@@ -52,7 +52,7 @@ The packaging script checks prerequisites before building, signs with Developer 
 1. Ensure all implementation issues and required CI checks are complete, and the release evidence in `docs/validation/0.1.0.md` is accurate.
 2. Verify the DMG installs and opens on a clean Apple Silicon Mac. Test setup, a short EMOM, sounds, pause/resume, and completion.
 3. Verify `release/commit.txt` matches the intended merged commit. Create `v0.1.0` at that commit and push the tag.
-4. Create a GitHub release attaching the signed/notarized DMG and `SHA256SUMS`, with `docs/release-notes-0.1.0.md` as release notes. Never substitute the ad-hoc test artifact.
+4. The tag workflow creates the GitHub release. Verify its DMG, `SHA256SUMS`, commit identifier, and release notes after the workflow succeeds. Never substitute the ad-hoc test artifact.
 5. Link the published release from #12, close only satisfied acceptance criteria, then complete epic #1 and its milestone.
 
 Creating the workflow does not itself publish a release. A successful signing rehearsal is separate evidence from a public tagged release.
