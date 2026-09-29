@@ -1,12 +1,14 @@
 # NextRound
 
+![NextRound — white and orange interval-timer emblem against a charcoal gym backdrop](assets/brand/nextround-splash.png)
+
 Plan your workout. Run the clock. Track your progress.
 
 NextRound is a workout companion for CrossFit and functional fitness. It brings together workout timers, a history of completed workouts, a library of exercises, and recommendations matched to the time, equipment, and intensity available for a session.
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: product definition. This repository currently contains documentation only. The application, dependencies, and build commands have not been scaffolded. Features below describe the intended product, not functionality already available.
+> Status: product definition. This repository currently contains documentation and a splash-screen brand asset. The application, dependencies, and build commands have not been scaffolded. Features below describe the intended product, not functionality already available.
 
 ## Product scope
 
