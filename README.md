@@ -8,7 +8,7 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: product definition. This repository currently contains documentation and a splash-screen brand asset. The application, dependencies, and build commands have not been scaffolded. Features below describe the intended product, not functionality already available.
+> Status: product definition. This repository currently contains documentation, splash artwork, and macOS/iOS app icons. The application and dependencies have not been scaffolded. Features below describe the intended product, not functionality already available.
 
 ## Product scope
 
@@ -136,7 +136,7 @@ Continuous background execution and audible interval alerts must be validated se
 
 ## Development status
 
-There are no install, development, test, or build commands yet. This README is the initial product brief and proposed technical direction; implementation setup will be documented as the application is scaffolded.
+Run `make icons` on macOS to regenerate the packaged [macOS and iOS icons](assets/icons/README.md) from their approved source artwork. There are no application install, development, test, or build commands yet. This README is the initial product brief and proposed technical direction; implementation setup will be documented as the application is scaffolded.
 
 ## Technical references
 
