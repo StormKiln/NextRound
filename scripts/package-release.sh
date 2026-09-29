@@ -21,7 +21,11 @@ if [ -n "${NOTARYTOOL_KEYCHAIN:-}" ]; then
 fi
 make check
 # Explicit configuration overrides the ad-hoc development signing identity.
-sign_config=$(python3 -c 'import json,os; print(json.dumps({"bundle":{"macOS":{"signingIdentity":os.environ["APPLE_SIGNING_IDENTITY"]}}}))')
+sign_dir=$(mktemp -d "${TMPDIR:-/tmp}/nextround-signing.XXXXXX")
+stage=''
+trap 'rm -rf "$sign_dir"; if [ -n "$stage" ]; then rm -rf "$stage"; fi' EXIT
+sign_config="$sign_dir/signing.json"
+python3 -c 'import json,os,sys; json.dump({"bundle":{"macOS":{"signingIdentity":os.environ["APPLE_SIGNING_IDENTITY"]}}},open(sys.argv[1],"w"))' "$sign_config"
 make build-app TAURI_CONFIG="$sign_config"
 app=apps/nextround/src-tauri/target/release/bundle/macos/NextRound.app
 codesign --verify --deep --strict "$app"
@@ -37,7 +41,6 @@ xcrun stapler staple "$app"
 xcrun stapler validate "$app"
 spctl --assess --type execute --verbose "$app"
 stage=$(mktemp -d "${TMPDIR:-/tmp}/nextround-release.XXXXXX")
-trap 'rm -rf "$stage"' EXIT
 ditto "$app" "$stage/NextRound.app"
 ln -s /Applications "$stage/Applications"
 version=$(node -p 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
