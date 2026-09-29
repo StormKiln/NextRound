@@ -8,6 +8,7 @@ import {
   useBlocker,
   useNavigate,
 } from '@tanstack/react-router';
+import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import React, { useEffect, useState } from 'react';
@@ -108,7 +109,7 @@ function Shell() {
                 await control('stop');
                 setClose(false);
                 const session = useWorkout.getState().snapshot;
-                if (session?.phase === 'cancelled') await getCurrentWindow().close();
+                if (session?.phase === 'cancelled') await invoke('quit_app');
               }}
             >
               Stop and close

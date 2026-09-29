@@ -102,6 +102,18 @@ fn read_workout(state: State<'_, Shared>) -> Result<Option<Snapshot>, String> {
     Ok(rt.session.as_ref().map(Session::snapshot))
 }
 
+#[tauri::command]
+fn quit_app(app: tauri::AppHandle, state: State<'_, Shared>) -> Result<(), String> {
+    {
+        let rt = state.lock().map_err(|_| "Timer unavailable")?;
+        if rt.session.as_ref().is_some_and(Session::active) {
+            return Err("Stop the active workout before quitting.".into());
+        }
+    }
+    app.exit(0);
+    Ok(())
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -158,7 +170,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             start_workout,
             control_workout,
-            read_workout
+            read_workout,
+            quit_app
         ])
         .build(tauri::generate_context!())
         .expect("Unable to initialize NextRound")
