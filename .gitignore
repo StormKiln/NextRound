@@ -1,0 +1,11 @@
+node_modules/
+dist/
+target/
+release/
+.superpowers/
+playwright-report/
+test-results/
+.DS_Store
+apps/nextround/src-tauri/gen/
+.env*
+!.env.example

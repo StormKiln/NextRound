@@ -8,7 +8,7 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: product definition. This repository currently contains documentation, splash artwork, and macOS/iOS app icons. The application and dependencies have not been scaffolded. Features below describe the intended product, not functionality already available.
+> Status: 0.1.0 macOS implementation. The desktop EMOM flow is implemented: exercise selection and ordering, Custom entries, lead-in/warning configuration, native timing and sounds, full-screen running, pause/resume, stop, and completion. Signed public distribution is pending Developer ID/notarization setup. Other workout types, durable libraries/history, recommendations, and iOS remain planned features.
 
 ## Product scope
 
@@ -79,7 +79,7 @@ TanStack refers here to Router and Query. Add other TanStack libraries only when
 
 ### Proposed repository layout
 
-This is a target layout, not a list of files already present:
+The workspace layout is:
 
 ```text
 NextRound/
@@ -94,7 +94,7 @@ NextRound/
 └── README.md
 ```
 
-Keep application components in the app initially; extract additional shared packages when there is an actual consumer. Use a JavaScript workspace and a committed package-manager version. The package manager remains to be selected. Expose routine workflows through a root Makefile when scaffolding is added.
+Application components remain in the app; shared validation and timeline types live in `packages/core`. pnpm 12.8.1 manages the workspace with committed JavaScript and Rust lockfiles. The root Makefile provides development, validation, and packaging commands.
 
 ### Persistence and synchronization
 
@@ -138,7 +138,33 @@ Continuous background execution and audible interval alerts must be validated se
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the PR workflow, required checks, and merge queue. PRs into `main` do not require reviewer approval.
 
-Run `make icons` on macOS to regenerate the packaged [macOS and iOS icons](assets/icons/README.md) from their approved source artwork. There are no application install, development, test, or build commands yet. This README is the initial product brief and proposed technical direction; implementation setup will be documented as the application is scaffolded.
+### Local development
+
+Prerequisites: macOS 14 or later, Node 24.3.0 (see `.node-version`), Xcode command-line tools, and Rust via rustup. `rust-toolchain.toml` pins Rust 1.98.1. The Makefile bootstraps pnpm 12.8.1 through npm without changing global tooling.
+
+```sh
+make install       # Install the locked workspace dependencies
+make dev           # Run the macOS Tauri application
+make dev-web       # Browser preview; production timing runs natively
+make check         # Types, unit tests, Rust tests/lints, frontend lint/build
+make test-e2e      # Browser interaction tests (install Chromium first)
+make build-app     # Produce a local ad-hoc-signed .app for testing
+make build-macos   # Produce the app and DMG for local testing
+```
+
+Before `make test-e2e`, install its browser with `npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm exec playwright install chromium` after `make install`.
+
+The app bundle is generated in `apps/nextround/src-tauri/target/release/bundle/macos/`. Initial distribution targets Apple Silicon. Local test builds are not Developer ID signed or notarized and are not public releases. See [release instructions](docs/release.md) for the signed distribution process.
+
+Run `make icons` to regenerate the [macOS and iOS icons](assets/icons/README.md), or `make sounds` to regenerate the original offline audio cues.
+
+### EMOM behavior
+
+Choose 1–1440 whole minutes, 0–3600 lead-in seconds, and 0–59 warning seconds. At least one exercise is required. Exercises repeat in order; 15 minutes with three exercises gives five turns each. Lead-in and pauses do not consume workout time. The timer tocks on each positive warning second, beeps at workout start and each new minute, and plays a distinct completion sound after the last round.
+
+The native process owns timing and plays bundled sounds independently of webview refreshes. Pause/stop cancels current sound playback. The app requests that macOS stay awake while running; if the timer process is suspended or detects a long system interruption, it pauses without replaying missed cues and asks you to resume. Normal backgrounding does not pause the workout. Escape exits full screen without ending the workout.
+
+Workout setup and completion are transient in 0.1.0: they are not saved across app restarts. No account or network connection is required to run a workout.
 
 ## Technical references
 

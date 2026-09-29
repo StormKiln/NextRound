@@ -19,12 +19,34 @@ concurrency:
 jobs:
   repository-checks:
     name: Repository checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    runs-on: macos-15
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Check repository assets and configuration
-        run: make check-repo
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Set up Rust
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Cache Rust builds
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            apps/nextround/src-tauri/target
+          key: rust-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock', 'rust-toolchain.toml') }}
+      - name: Install locked dependencies
+        run: make install
+      - name: Validate sources, tests, and frontend build
+        run: make check
+      - name: Install browser test runtime
+        run: npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm exec playwright install chromium
+      - name: Validate workout interactions
+        run: make test-e2e
+      - name: Build macOS app
+        run: make build-app
