@@ -29,7 +29,8 @@ python3 -c 'import json,os,sys; json.dump({"bundle":{"macOS":{"signingIdentity":
 make build-app NEXTROUND_CONFIG_PATH="$sign_config"
 app=apps/nextround/src-tauri/target/release/bundle/macos/NextRound.app
 codesign --verify --deep --strict "$app"
-codesign -dv "$app" 2>&1 | grep -F -- "Authority=$APPLE_SIGNING_IDENTITY" >/dev/null
+# Authority entries are only included at verbosity 2 or greater.
+codesign -dvv "$app" 2>&1 | grep -F -- "Authority=$APPLE_SIGNING_IDENTITY" >/dev/null
 mkdir -p release
 if [ -e release/SHA256SUMS ]; then
   echo "Move the previous release/ output aside before packaging again." >&2; exit 1
