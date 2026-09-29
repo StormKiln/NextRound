@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Manual runs rehearse signing on main without publishing a release.
+    if: github.event_name == 'push' || github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 90
+    outputs:
+      tag: ${{ steps.metadata.outputs.tag }}
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Validate release version and main ancestry
+        id: metadata
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
+        run: make release-metadata
+      - name: Set up Rust
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Install locked dependencies
+        run: make install
+      - name: Validate tagged sources
+        run: make check
+      - name: Install browser runtime
+        run: npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm exec playwright install chromium
+      - name: Validate workout interactions
+        run: make test-e2e
+      - name: Import signing identity and notarization profile
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: make release-keychain
+      - name: Build, notarize, staple, and verify app and DMG
+        env:
+          CI: 'true'
+        run: make release-package
+      - name: Retain verified release artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-release
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            release/*.dmg
+            release/SHA256SUMS
+            release/commit.txt
+            release/*-notarization.json
+      - name: Remove temporary signing material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/nextround-release.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/nextround-certificate.p12"
+
+  publish:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: macos-release
+          path: release
+      - name: Verify artifacts match this commit
+        run: |
+          test "$(cat release/commit.txt)" = "$GITHUB_SHA"
+          cd release
+          sha256sum --check SHA256SUMS
+      - name: Publish complete release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/is-draft"; then
+            if [ "$(cat "$RUNNER_TEMP/is-draft")" != true ]; then
+              echo 'Release is already published; refusing to replace its artifacts.' >&2
+              exit 1
+            fi
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft \
+              --title "NextRound $RELEASE_VERSION" \
+              --notes-file "docs/release-notes-$RELEASE_VERSION.md"
+          fi
+          for asset in release/*.dmg release/SHA256SUMS release/commit.txt; do
+            uploaded=false
+            for attempt in 1 2 3; do
+              if gh release upload "$RELEASE_TAG" "$asset" --clobber; then uploaded=true; break; fi
+              echo "Upload attempt $attempt failed; retrying." >&2
+              sleep 5
+            done
+            test "$uploaded" = true
+          done
+          gh release edit "$RELEASE_TAG" --draft=false --latest

@@ -13,4 +13,3 @@ Initial distribution targets Apple Silicon and macOS 14 or later. Install by ope
 
 Workout setup and results are not saved across restarts in this release. Other workout types, full exercise/workout library editing, history, recommendations, synchronization, and iOS are planned separately. After a detected system interruption the workout pauses and asks you to resume; it does not replay missed audio cues.
 
-Publication note: this file is a prepared draft until the Developer ID signed/notarized release is published.

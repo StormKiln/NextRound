@@ -39,7 +39,7 @@ build-macos:
 	CI=true $(PNPM) tauri build --bundles app,dmg
 
 build-app:
-	$(PNPM) tauri build --bundles app
+	$(PNPM) tauri build --bundles app $(if $(TAURI_CONFIG),--config '$(TAURI_CONFIG)')
 
 sounds:
 	python3 scripts/generate-sounds.py
@@ -47,12 +47,12 @@ sounds:
 release-package:
 	bash scripts/package-release.sh
 
-check: check-repo typecheck test test-native lint build
+check: check-repo test-release typecheck test test-native lint build
 
 # Lightweight checks while the application toolchain is being scaffolded.
 check-repo:
 	git diff --check "$$(git hash-object -t tree /dev/null)" HEAD
-	bash -n scripts/package-icons.sh
+	bash -n scripts/package-icons.sh scripts/package-release.sh scripts/setup-release-keychain.sh
 	python3 -m json.tool assets/icons/ios/AppIcon.appiconset/Contents.json > /dev/null
 	test -s assets/icons/ios/AppIcon.appiconset/AppIcon.png
 	test -s assets/icons/macos/NextRound.icns
@@ -61,3 +61,16 @@ check-repo:
 # Package the approved source artwork using macOS system tools.
 icons:
 	bash scripts/package-icons.sh
+
+.PHONY: test-release release-metadata release-keychain check-workflows
+test-release:
+	python3 -m unittest discover -s tests/release
+
+release-metadata:
+	python3 scripts/release-metadata.py
+
+release-keychain:
+	bash scripts/setup-release-keychain.sh
+
+check-workflows:
+	actionlint
