@@ -2,6 +2,7 @@ import datetime
 import importlib.util
 from pathlib import Path
 import unittest
+import tempfile
 
 spec = importlib.util.spec_from_file_location('testflight', Path(__file__).parents[2] / 'scripts/testflight-config.py')
 m = importlib.util.module_from_spec(spec)
@@ -33,3 +34,18 @@ class TestFlightTests(unittest.TestCase):
         self.assertEqual(tuples, sorted(set(tuples)))
         for run,attempt in [(0,1),(1,0),(1,100),(999900,1)]:
             with self.assertRaises(ValueError): m.build_number(run,attempt)
+
+class BundlePermissionsTests(unittest.TestCase):
+    def test_rejects_private_profile_and_allows_public_profile(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = Path(tmp) / 'NextRound.app'
+            bundle.mkdir(mode=0o755)
+            profile = bundle / 'embedded.provisionprofile'
+            profile.write_bytes(b'public provisioning metadata')
+            profile.chmod(0o600)
+            with self.assertRaises(ValueError): m.check_bundle_permissions(bundle)
+            m.prepare_embedded_profile(profile)
+            self.assertEqual(profile.stat().st_mode & 0o777, 0o644)
+            m.check_bundle_permissions(bundle)
+            bundle.chmod(0o700)
+            with self.assertRaises(ValueError): m.check_bundle_permissions(bundle)

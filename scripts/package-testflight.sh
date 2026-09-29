@@ -9,6 +9,7 @@ fi
 make build-app NEXTROUND_CONFIG_PATH="$TESTFLIGHT_DIR/tauri.appstore.json"
 app=apps/nextround/src-tauri/target/release/bundle/macos/NextRound.app
 codesign --verify --deep --strict "$app"
+python3 scripts/testflight-config.py --check-bundle "$app"
 codesign -d --entitlements :- "$app" > "$TESTFLIGHT_DIR/signed-entitlements.plist"
 python3 - "$app" <<'PY'
 import json, os, plistlib, sys
