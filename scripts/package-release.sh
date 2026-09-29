@@ -26,7 +26,7 @@ stage=''
 trap 'rm -rf "$sign_dir"; if [ -n "$stage" ]; then rm -rf "$stage"; fi' EXIT
 sign_config="$sign_dir/signing.json"
 python3 -c 'import json,os,sys; json.dump({"bundle":{"macOS":{"signingIdentity":os.environ["APPLE_SIGNING_IDENTITY"]}}},open(sys.argv[1],"w"))' "$sign_config"
-make build-app TAURI_CONFIG="$sign_config"
+make build-app NEXTROUND_CONFIG_PATH="$sign_config"
 app=apps/nextround/src-tauri/target/release/bundle/macos/NextRound.app
 codesign --verify --deep --strict "$app"
 codesign -dv "$app" 2>&1 | grep -F -- "Authority=$APPLE_SIGNING_IDENTITY" >/dev/null
