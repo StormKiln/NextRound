@@ -52,7 +52,7 @@ check: check-repo test-release typecheck test test-native lint build
 # Lightweight checks while the application toolchain is being scaffolded.
 check-repo:
 	git diff --check "$$(git hash-object -t tree /dev/null)" HEAD
-	bash -n scripts/package-icons.sh scripts/package-release.sh scripts/setup-release-keychain.sh
+	bash -n scripts/*.sh
 	python3 -m json.tool assets/icons/ios/AppIcon.appiconset/Contents.json > /dev/null
 	test -s assets/icons/ios/AppIcon.appiconset/AppIcon.png
 	test -s assets/icons/macos/NextRound.icns
@@ -74,3 +74,24 @@ release-keychain:
 
 check-workflows:
 	actionlint
+
+.PHONY: testflight-keychain testflight-package testflight-upload test-native-media
+testflight-keychain:
+	bash scripts/setup-testflight-keychain.sh
+
+testflight-package:
+	bash scripts/package-testflight.sh
+
+testflight-upload:
+	bash scripts/upload-testflight.sh
+
+test-native-media:
+	cargo test --manifest-path $(NATIVE) native_audio_and_power_lifecycle -- --ignored --nocapture
+
+.PHONY: test-sandbox-media
+test-sandbox-media:
+	bash scripts/test-sandbox-media.sh
+
+.PHONY: testflight-status
+testflight-status:
+	node scripts/testflight-status.mjs

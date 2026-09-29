@@ -11,3 +11,5 @@ apps/nextround/src-tauri/gen/
 !.env.example
 
 __pycache__/
+
+/testflight/

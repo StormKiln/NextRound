@@ -1,0 +1,89 @@
+name: TestFlight
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload the verified package to App Store Connect
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# Serialize all store builds so later build numbers cannot upload before earlier ones.
+concurrency:
+  group: testflight-macos
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    if: github.event_name == 'push' || github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Validate source version and main ancestry
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
+        run: make release-metadata
+      - name: Set up Rust
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Install locked dependencies
+        run: make install
+      - name: Validate sources
+        run: make check
+      - name: Install browser runtime
+        run: npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm exec playwright install chromium
+      - name: Validate workout interactions
+        run: make test-e2e
+      - name: Validate native media under App Sandbox
+        run: make test-sandbox-media
+      - name: Import and validate App Store signing configuration
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MACOS_DIST_CERT_P12_BASE64: ${{ secrets.MACOS_DIST_CERT_P12_BASE64 }}
+          MACOS_DIST_CERT_PASSWORD: ${{ secrets.MACOS_DIST_CERT_PASSWORD }}
+          MACOS_INSTALLER_CERT_P12_BASE64: ${{ secrets.MACOS_INSTALLER_CERT_P12_BASE64 }}
+          MACOS_INSTALLER_CERT_PASSWORD: ${{ secrets.MACOS_INSTALLER_CERT_PASSWORD }}
+          MACOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.MACOS_PROVISIONING_PROFILE_BASE64 }}
+        run: make testflight-keychain
+      - name: Build and verify signed App Store installer
+        env:
+          CI: 'true'
+        run: make testflight-package
+      - name: Retain verified installer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-testflight-${{ github.run_number }}-${{ github.run_attempt }}
+          path: testflight/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Validate and upload to App Store Connect
+        if: github.event_name == 'push' || inputs.upload
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+        run: make testflight-upload
+      - name: Verify Apple build processing
+        if: github.event_name == 'push' || inputs.upload
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+        run: make testflight-status
+      - name: Remove temporary signing material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/nextround-testflight.keychain-db" 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/nextround-testflight"

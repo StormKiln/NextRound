@@ -55,4 +55,6 @@ The packaging script checks prerequisites before building, signs with Developer 
 4. The tag workflow creates the GitHub release. Verify its DMG, `SHA256SUMS`, commit identifier, and release notes after the workflow succeeds. Never substitute the ad-hoc test artifact.
 5. Link the published release from #12, close only satisfied acceptance criteria, then complete epic #1 and its milestone.
 
+The same version tag also triggers the separate TestFlight workflow. To upload a beta without publishing a GitHub release, dispatch `testflight.yml` on `main`; see [TestFlight instructions](testflight-macos.md).
+
 Creating the workflow does not itself publish a release. A successful signing rehearsal is separate evidence from a public tagged release.
