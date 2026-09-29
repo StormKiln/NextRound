@@ -1,7 +1,7 @@
 node_modules/
 dist/
 target/
-release/
+/release/
 .superpowers/
 playwright-report/
 test-results/
@@ -9,3 +9,5 @@ test-results/
 apps/nextround/src-tauri/gen/
 .env*
 !.env.example
+
+__pycache__/
