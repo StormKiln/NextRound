@@ -67,6 +67,8 @@ def main():
             raise ValueError('A distribution certificate is missing its usable private key')
     app_id = validate_profile(profile, app_der, team, config['identifier'])
     entitlements = {'com.apple.security.app-sandbox': True,
+                    # WKWebView's networking process requires this even for bundled content.
+                    'com.apple.security.network.client': True,
                     'com.apple.application-identifier': app_id,
                     'com.apple.developer.team-identifier': team,
                     'beta-reports-active': True}
