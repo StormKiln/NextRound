@@ -42,10 +42,9 @@ impl Runtime {
                     session.notice = Some(error);
                 }
             }
-            if let Some(error) = self.audio.check() {
+            if let Err(error) = self.audio.keep_awake(session.active() && !session.paused) {
                 session.notice = Some(error);
             }
-            self.audio.keep_awake(session.active() && !session.paused);
         }
     }
 }
@@ -64,7 +63,9 @@ fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, S
             session.notice = Some(error);
         }
     }
-    rt.audio.keep_awake(true);
+    if let Err(error) = rt.audio.keep_awake(true) {
+        session.notice = Some(error);
+    }
     let result = session.snapshot();
     rt.session = Some(session);
     rt.last = Instant::now();
@@ -91,8 +92,14 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
     }
     let result = session.snapshot();
     rt.audio.stop();
-    rt.audio
-        .keep_awake(!result.paused && result.phase != "cancelled" && result.phase != "completed");
+    if let Err(error) = rt
+        .audio
+        .keep_awake(!result.paused && result.phase != "cancelled" && result.phase != "completed")
+    {
+        if let Some(session) = rt.session.as_mut() {
+            session.notice = Some(error);
+        }
+    }
     Ok(result)
 }
 #[tauri::command]
@@ -146,8 +153,7 @@ pub fn run() {
                     app.exit(0);
                 }
             });
-            let audio = Audio::new(app.path().app_cache_dir()?.join("sounds"))
-                .map_err(std::io::Error::other)?;
+            let audio = Audio::new().map_err(std::io::Error::other)?;
             let runtime = Arc::new(Mutex::new(Runtime {
                 session: None,
                 audio,
@@ -193,7 +199,7 @@ pub fn run() {
                 if let Some(state) = app.try_state::<Shared>() {
                     let mut rt = state.lock().unwrap_or_else(|e| e.into_inner());
                     rt.audio.stop();
-                    rt.audio.keep_awake(false);
+                    let _ = rt.audio.keep_awake(false);
                 }
             }
         });
