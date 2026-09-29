@@ -5,7 +5,10 @@ use std::{
     sync::{Arc, Mutex},
     time::{Duration, Instant, SystemTime},
 };
-use tauri::{Emitter, Manager, State};
+use tauri::{
+    menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
+    Emitter, Manager, State,
+};
 use timer::{Config, Session, Snapshot};
 
 struct Runtime {
@@ -102,6 +105,35 @@ fn read_workout(state: State<'_, Shared>) -> Result<Option<Snapshot>, String> {
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
+            let menu = Menu::default(app.handle())?;
+            menu.remove_at(0)?;
+            let quit = MenuItem::with_id(
+                app,
+                "safe-quit",
+                "Quit NextRound",
+                true,
+                Some("CmdOrCtrl+Q"),
+            )?;
+            let app_menu = Submenu::with_items(
+                app,
+                "NextRound",
+                true,
+                &[
+                    &PredefinedMenuItem::about(app, None, None)?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &PredefinedMenuItem::hide(app, None)?,
+                    &PredefinedMenuItem::hide_others(app, None)?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &quit,
+                ],
+            )?;
+            menu.insert(&app_menu, 0)?;
+            app.set_menu(menu)?;
+            app.on_menu_event(|app, event| {
+                if event.id().as_ref() == "safe-quit" {
+                    app.exit(0);
+                }
+            });
             let audio = Audio::new(app.path().app_cache_dir()?.join("sounds"))
                 .map_err(std::io::Error::other)?;
             let runtime = Arc::new(Mutex::new(Runtime {
