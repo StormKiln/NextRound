@@ -131,6 +131,19 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("Unable to initialize NextRound")
         .run(|app, event| {
+            if let tauri::RunEvent::ExitRequested { api, .. } = &event {
+                if let Some(state) = app.try_state::<Shared>() {
+                    let rt = state.lock().unwrap_or_else(|e| e.into_inner());
+                    if rt.session.as_ref().is_some_and(Session::active) {
+                        api.prevent_exit();
+                        let _ = app.emit("quit-requested", ());
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                }
+            }
             if let tauri::RunEvent::Exit = event {
                 if let Some(state) = app.try_state::<Shared>() {
                     let mut rt = state.lock().unwrap_or_else(|e| e.into_inner());

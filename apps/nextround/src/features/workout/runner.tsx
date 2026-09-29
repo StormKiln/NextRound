@@ -6,6 +6,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
+import { returnToSetup } from './navigation';
 
 export function Runner() {
   const { snapshot: s, control, busy, error } = useWorkout();
@@ -146,7 +147,7 @@ export function Runner() {
   );
 }
 export function Completion() {
-  const { snapshot: s, start, busy } = useWorkout();
+  const { snapshot: s, start, busy, error } = useWorkout();
   const navigate = useNavigate();
   if (!s)
     return (
@@ -173,6 +174,7 @@ export function Completion() {
           <span>active workout time</span>
         </div>
       </div>
+      {(s.notice || error) && <p role="alert">{s.notice || error}</p>}
       <div className="complete-actions">
         <Button
           disabled={busy}
@@ -186,8 +188,13 @@ export function Completion() {
         <Button
           variant="secondary"
           onClick={async () => {
-            await fullscreen(false);
-            void navigate({ to: '/' });
+            await returnToSetup(
+              () => fullscreen(false),
+              () => {
+                void navigate({ to: '/' });
+              },
+              (error) => useWorkout.setState({ error }),
+            );
           }}
         >
           Back to setup

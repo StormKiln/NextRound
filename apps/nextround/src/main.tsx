@@ -8,6 +8,7 @@ import {
   useBlocker,
   useNavigate,
 } from '@tanstack/react-router';
+import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
@@ -38,6 +39,12 @@ function Shell() {
     const boot = setTimeout(() => setBooting(false), 450);
     let unlisten: (() => void) | undefined;
     let disposed = false;
+    let unlistenQuit: (() => void) | undefined;
+    if (native)
+      void listen('quit-requested', () => setClose(true)).then((fn) => {
+        if (disposed) fn();
+        else unlistenQuit = fn;
+      });
     if (native)
       void getCurrentWindow()
         .onCloseRequested((event) => {
@@ -60,6 +67,7 @@ function Shell() {
       clearTimeout(boot);
       disposed = true;
       unlisten?.();
+      unlistenQuit?.();
       window.removeEventListener('keydown', handleEscape);
     };
   }, []);
@@ -99,7 +107,8 @@ function Shell() {
               onClick={async () => {
                 await control('stop');
                 setClose(false);
-                await getCurrentWindow().close();
+                const session = useWorkout.getState().snapshot;
+                if (session?.phase === 'cancelled') await getCurrentWindow().close();
               }}
             >
               Stop and close
