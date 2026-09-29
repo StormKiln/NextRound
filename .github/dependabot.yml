@@ -1,5 +1,19 @@
 version: 2
 updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      javascript:
+        patterns: ['*']
+  - package-ecosystem: cargo
+    directory: /apps/nextround/src-tauri
+    schedule:
+      interval: weekly
+    groups:
+      rust:
+        patterns: ['*']
   - package-ecosystem: github-actions
     directory: /
     schedule:

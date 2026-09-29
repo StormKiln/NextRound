@@ -1,0 +1,27 @@
+{
+  "name": "nextround",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=24.3.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @nextround/app dev",
+    "build": "pnpm --filter @nextround/app build",
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p apps/nextround",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "tauri": "pnpm --filter @nextround/app tauri"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.3",
+    "typescript": "7.0.2",
+    "vitest": "5.0.2"
+  },
+  "type": "module"
+}
