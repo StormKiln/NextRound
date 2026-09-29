@@ -136,6 +136,8 @@ Continuous background execution and audible interval alerts must be validated se
 
 ## Development status
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the PR workflow, required checks, and merge queue. PRs into `main` do not require reviewer approval.
+
 Run `make icons` on macOS to regenerate the packaged [macOS and iOS icons](assets/icons/README.md) from their approved source artwork. There are no application install, development, test, or build commands yet. This README is the initial product brief and proposed technical direction; implementation setup will be documented as the application is scaffolded.
 
 ## Technical references
