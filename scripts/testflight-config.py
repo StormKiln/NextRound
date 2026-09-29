@@ -29,8 +29,8 @@ def validate_profile(profile, certificate, team, bundle):
         raise ValueError('Provisioning profile has expired')
     if profile.get('ProvisionedDevices') or profile.get('ProvisionsAllDevices') or entitlements.get('get-task-allow') or entitlements.get('com.apple.security.get-task-allow'):
         raise ValueError('An App Store distribution profile is required')
-    if not entitlements.get('beta-reports-active'):
-        raise ValueError('Profile is not enabled for TestFlight')
+    if profile.get('Platform') != ['OSX']:
+        raise ValueError('A macOS provisioning profile is required')
     return app_id
 
 
@@ -70,8 +70,7 @@ def main():
                     # WKWebView's networking process requires this even for bundled content.
                     'com.apple.security.network.client': True,
                     'com.apple.application-identifier': app_id,
-                    'com.apple.developer.team-identifier': team,
-                    'beta-reports-active': True}
+                    'com.apple.developer.team-identifier': team}
     entitlements_path = directory / 'entitlements.plist'
     entitlements_path.write_bytes(plistlib.dumps(entitlements))
     number = build_number(int(os.environ['GITHUB_RUN_NUMBER']), int(os.environ['GITHUB_RUN_ATTEMPT']))
