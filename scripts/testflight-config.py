@@ -7,6 +7,8 @@ from pathlib import Path
 import plistlib
 import re
 import subprocess
+import stat
+import sys
 
 
 def build_number(run, attempt):
@@ -46,6 +48,21 @@ def cert_details(path):
     return data, fields['commonName'], fields['organizationalUnitName']
 
 
+def prepare_embedded_profile(path):
+    # A provisioning profile is public signing metadata embedded in every app.
+    # The containing temporary directory and private signing material stay private.
+    path.chmod(0o644)
+
+
+def check_bundle_permissions(bundle):
+    for path in [bundle, *bundle.rglob('*')]:
+        if path.is_symlink():
+            continue
+        required = stat.S_IROTH | (stat.S_IXOTH if path.is_dir() else 0)
+        if path.stat().st_mode & required != required:
+            raise ValueError(f'Bundle path must be readable/traversable by all users: {path}')
+
+
 def main():
     directory = Path(os.environ['TESTFLIGHT_DIR'])
     team = os.environ['APPLE_TEAM_ID']
@@ -66,6 +83,7 @@ def main():
         if hashlib.sha1(cert).hexdigest().upper() not in identities:
             raise ValueError('A distribution certificate is missing its usable private key')
     app_id = validate_profile(profile, app_der, team, config['identifier'])
+    prepare_embedded_profile(profile_path)
     entitlements = {'com.apple.security.app-sandbox': True,
                     # WKWebView's networking process requires this even for bundled content.
                     'com.apple.security.network.client': True,
@@ -87,4 +105,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 3 and sys.argv[1] == '--check-bundle':
+        check_bundle_permissions(Path(sys.argv[2]))
+    else:
+        main()
