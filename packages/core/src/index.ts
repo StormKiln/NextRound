@@ -5,6 +5,7 @@ export type EmomConfig = {
   warningSeconds: number;
   exercises: ExerciseEntry[];
 };
+export type WorkoutCue = 'tock' | 'beep' | 'complete';
 export type Workout = { type: 'emom'; config: EmomConfig };
 export type SessionSnapshot = {
   phase: 'leadIn' | 'running' | 'completed' | 'cancelled';

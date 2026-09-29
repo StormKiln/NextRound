@@ -32,11 +32,11 @@
 
 Files: root package.json/pnpm-workspace.yaml/tsconfig, apps/nextround package/Vite/Tauri configuration, packages/core package, Makefile, CI, application routing/styles/UI primitives.
 
-- [ ] Pin pnpm and current stable dependencies; install and lock them.
-- [ ] Add the smallest working React/Tauri shell with approved splash/icon; build and run it.
-- [ ] Configure Router, Query, Zustand, Tailwind/shadcn components and a native adapter boundary.
-- [ ] Establish Makefile lint/typecheck/test/build commands, native format/lint/tests, and queue-compatible CI.
-- [ ] Record framework decisions and update issue progress with actual evidence.
+- [x] Pin pnpm and current stable dependencies; install and lock them.
+- [x] Add the smallest working React/Tauri shell with approved splash/icon; build and run it.
+- [x] Configure Router, Query, Zustand, Tailwind/shadcn components and a native adapter boundary.
+- [x] Establish Makefile lint/typecheck/test/build commands, native format/lint/tests, and queue-compatible CI.
+- [x] Record framework decisions and update issue progress with actual evidence.
 
 ## Task 2: domain and timing (#3, #8, #10)
 
@@ -44,39 +44,39 @@ Files: packages/core/src/{model,timeline}.ts and tests; apps/nextround/src-tauri
 
 Interfaces: `EmomConfig { minutes, leadInSeconds, warningSeconds, exercises }`; `ExerciseEntry { id, name, description? }`; `SessionSnapshot { phase, remainingMs, roundRemainingMs, roundIndex, elapsedMs, paused, notice? }`. Native commands start/pause/resume/stop/read take typed configuration and return a snapshot. Native events provide snapshots; UI never counts timer callbacks as elapsed time.
 
-- [ ] Write and run failing validation/rotation tests for positive whole minutes, lead-in, warnings, empty/blank exercises, uneven rotation, and immutable snapshots.
-- [ ] Implement validation and a pure `snapshotAt(config, elapsedMs)` function; run tests green.
-- [ ] Write failing native timeline/cue tests for 3/2/1/start, short/zero lead-in, warning zero/59, all 15 rounds, final completion, pauses, and delayed updates.
-- [ ] Implement a monotonic native session loop and original synthesized/offline sound cues; derive both clocks from one active timeline.
-- [ ] Pause on suspend-sized gaps and prevent idle sleep only while running; release all resources on pause/stop/complete/exit.
+- [x] Write and run failing validation/rotation tests for positive whole minutes, lead-in, warnings, empty/blank exercises, uneven rotation, and immutable snapshots.
+- [x] Implement validation and a pure `snapshotAt(config, elapsedMs)` function; run tests green.
+- [x] Write failing native timeline/cue tests for 3/2/1/start, short/zero lead-in, warning zero/59, all 15 rounds, final completion, pauses, and delayed updates.
+- [x] Implement a monotonic native session loop and original synthesized/offline sound cues; derive both clocks from one active timeline.
+- [x] Pause on suspend-sized gaps and prevent idle sleep only while running; release all resources on pause/stop/complete/exit.
 - [ ] Verify real packaged-app audio separately from pure scheduling tests.
 
 ## Task 3: setup and exercise picker (#6–#7)
 
 Files: apps/nextround/src/features/setup/*, data/exercises.ts, state/session.ts, feature tests.
 
-- [ ] Write failing interaction tests for Custom name/description, selection, remove/reorder, numeric validation, and rotation preview.
-- [ ] Build a focused two-column desktop setup: left workout configuration, right ordered exercise list; single clear Start workout action.
-- [ ] Use a bundled provider via Query; preserve the transient draft after stop/return; freeze configuration at start.
-- [ ] Test keyboard controls, descriptive errors, long entries, and narrow windows.
+- [x] Write failing interaction tests for Custom name/description, selection, remove/reorder, numeric validation, and rotation preview.
+- [x] Build a focused two-column desktop setup: left workout configuration, right ordered exercise list; single clear Start workout action.
+- [x] Use a bundled provider via Query; preserve the transient draft after stop/return; freeze configuration at start.
+- [x] Test keyboard controls, descriptive errors, long entries, and narrow windows.
 
 ## Task 4: runner and completion (#9–#10)
 
 Files: features/workout/*, native adapter, audio fallback/browser preview adapter, tests/e2e.
 
-- [ ] Test lead-in versus workout clocks, simultaneous round/total display, pause/resume, explicit stop confirmation, final screen, repeat, and navigation blocking.
-- [ ] Enter native full screen after Start; Escape exits full screen without stopping the workout.
-- [ ] Make the round countdown the dominant element; show current/next exercise, round number, total time, and clear pause/stop controls.
-- [ ] Keep live countdowns quiet for assistive technology; announce phase changes and support reduced motion.
-- [ ] Inspect screenshots and run browser interaction tests plus native app smoke tests.
+- [x] Test lead-in versus workout clocks, simultaneous round/total display, pause/resume, explicit stop confirmation, final screen, repeat, and navigation blocking.
+- [x] Enter native full screen after Start; Escape exits full screen without stopping the workout.
+- [x] Make the round countdown the dominant element; show current/next exercise, round number, total time, and clear pause/stop controls.
+- [x] Keep live countdowns quiet for assistive technology; announce phase changes and support reduced motion.
+- [x] Inspect screenshots and run browser interaction tests plus native app smoke tests.
 
 ## Task 5: verification and release (#11–#12)
 
 Files: CI/release workflows, release scripts, docs/validation/0.1.0.md, README/CONTRIBUTING, release notes.
 
-- [ ] Run lint, typecheck, core/UI/native tests and macOS production build from Makefiles; record outputs.
+- [x] Run lint, typecheck, core/UI/native tests and macOS production build from Makefiles; record outputs.
 - [ ] Run a real-time 15-minute session and verify five turns for each of three exercises and all cue counts.
-- [ ] Review the whole branch with a fresh reviewer per executing-plans; fix meaningful findings with regression tests.
+- [x] Review the whole branch with a fresh reviewer per executing-plans; fix meaningful findings with regression tests.
 - [ ] Create/merge PRs via required queue, updating issues and checking only fulfilled acceptance criteria.
 - [ ] Build installable artifacts, check installation/launch and supported architecture; sign/notarize only if credentials and the chosen channel permit it.
 - [ ] Publish the authorized release channel with limitations and artifact checksums, or report the exact external blocker without falsely closing the release epic.
@@ -90,3 +90,7 @@ Use the approved brand: charcoal #141414, panel #202020, orange #ff5b0a, warm wh
 - Baseline: clean main at 22cc245; make check-repo passes. Current host is Apple Silicon macOS 26.6.2 with Xcode 26.6, Node 24.3.0 and Rust 1.98.1.
 - Ruling: execute in a feature branch at the user-requested local checkout, rather than move the code; main remains protected and all integration uses PRs.
 - Distribution decision requested asynchronously; continue implementation independently of signing.
+
+- Final independent review identified quit bypass and fullscreen error navigation; both were reproduced/fixed, with native Cmd-Q confirmation verified for active and paused sessions and a failing-then-passing navigation regression.
+- Current native 15-minute run began at approximately 17:41:21Z active time; it includes a verified pause/resume and Escape without cancellation. The earlier run was interrupted and is not counted as completed.
+- Physical sleep/wake and signed publication remain distinct external/manual gates; do not infer them from fake-clock tests.

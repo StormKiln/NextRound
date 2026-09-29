@@ -1,4 +1,10 @@
-import { type EmomConfig, type SessionSnapshot, snapshotAt, validateConfig } from '@nextround/core';
+import {
+  type EmomConfig,
+  type SessionSnapshot,
+  snapshotAt,
+  validateConfig,
+  type WorkoutCue,
+} from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import beepUrl from '../../sounds/beep.wav';
@@ -15,7 +21,7 @@ function stopSound() {
   playback?.pause();
   playback = null;
 }
-function play(cue: 'tock' | 'beep' | 'complete') {
+function play(cue: WorkoutCue) {
   stopSound();
   playback = new Audio({ tock: tockUrl, beep: beepUrl, complete: completeUrl }[cue]);
   void playback.play().catch(() => {
