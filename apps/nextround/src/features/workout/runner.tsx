@@ -179,8 +179,13 @@ export function Completion() {
         <Button
           variant="ghost"
           onClick={async () => {
-            await fullscreen(false);
-            void navigate({ to: '/' });
+            await returnToSetup(
+              () => fullscreen(false),
+              () => {
+                void navigate({ to: '/' });
+              },
+              (error) => useWorkout.setState({ error }),
+            );
           }}
         >
           Home

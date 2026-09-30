@@ -1,3 +1,4 @@
+use tauri_plugin_opener::OpenerExt;
 mod audio;
 pub mod timer;
 mod update_gate;
@@ -137,8 +138,20 @@ fn distribution_channel() -> &'static str {
     }
 }
 
+#[tauri::command]
+fn open_project_page(app: tauri::AppHandle, page: String) -> Result<(), String> {
+    let url = match page.as_str() {
+        "releases" => "https://github.com/StormKiln/NextRound/releases",
+        "issues" => "https://github.com/StormKiln/NextRound/issues",
+        _ => return Err("Unknown project page".into()),
+    };
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 pub fn run() {
-    let builder = tauri::Builder::default();
+    let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
     #[cfg(feature = "direct-update")]
     let builder = builder
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -148,6 +161,7 @@ pub fn run() {
             read_workout,
             quit_app,
             distribution_channel,
+            open_project_page,
             updates::check_app_update,
             updates::install_app_update
         ]);
@@ -157,7 +171,8 @@ pub fn run() {
         control_workout,
         read_workout,
         quit_app,
-        distribution_channel
+        distribution_channel,
+        open_project_page
     ]);
     builder
         .setup(|app| {

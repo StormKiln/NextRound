@@ -1,6 +1,7 @@
 import { Download, Info, X } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog } from '@/components/dialog';
+import { ExternalLink } from '@/components/external-link';
 import { Button } from '@/components/ui/button';
 import icon from '../../../../../assets/icons/ios/AppIcon.appiconset/AppIcon.png';
 import { version } from '../../../package.json';
@@ -52,20 +53,8 @@ export function Settings({ onClose }: { onClose: () => void }) {
               <p>Version {version}</p>
               <p>A little structure. A stronger session.</p>
               <div className="settings-group">
-                <a
-                  href="https://github.com/StormKiln/NextRound/releases"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Release notes
-                </a>
-                <a
-                  href="https://github.com/StormKiln/NextRound/issues"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Feedback & support
-                </a>
+                <ExternalLink page="releases">Release notes</ExternalLink>
+                <ExternalLink page="issues">Feedback &amp; support</ExternalLink>
               </div>
               <p className="muted">Made for macOS. Workout history is not saved in this version.</p>
             </>
