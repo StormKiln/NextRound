@@ -70,6 +70,7 @@ export function Settings({
               <p>Version {version}</p>
               <p>A little structure. A stronger session.</p>
               <div className="settings-group">
+                <ExternalLink page="privacy">Privacy policy</ExternalLink>
                 <ExternalLink page="releases">Release notes</ExternalLink>
                 <ExternalLink page="issues">Feedback &amp; support</ExternalLink>
               </div>

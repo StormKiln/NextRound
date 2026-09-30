@@ -148,6 +148,7 @@ fn open_project_page(app: tauri::AppHandle, page: String) -> Result<(), String> 
     let url = match page.as_str() {
         "releases" => "https://github.com/StormKiln/NextRound/releases",
         "issues" => "https://github.com/StormKiln/NextRound/issues",
+        "privacy" => "https://github.com/StormKiln/NextRound/blob/main/PRIVACY.md",
         _ => return Err("Unknown project page".into()),
     };
     app.opener()
