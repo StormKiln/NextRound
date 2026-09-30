@@ -13,10 +13,12 @@ const labels: Record<TargetUnit, string> = {
 const allUnits: TargetUnit[] = ['reps', 'seconds', 'metres', 'calories'];
 export function TargetDialog({
   exercise,
+  mode = 'emom',
   onSave,
   onClose,
 }: {
   exercise: ExerciseEntry;
+  mode?: 'emom' | 'countdown';
   onSave: (target: ExerciseTarget | undefined) => void;
   onClose: () => void;
 }) {
@@ -40,7 +42,9 @@ export function TargetDialog({
         }}
       >
         <p className="muted">
-          Finish this work within your minute, then recover until the next round.
+          {mode === 'emom'
+            ? 'Finish this work within your minute, then recover until the next round.'
+            : 'Work through your list at your own pace while the countdown runs.'}
         </p>
         <div className="target-fields">
           <div>
@@ -80,7 +84,9 @@ export function TargetDialog({
         </div>
         {unit === 'seconds' && (
           <p className="hint">
-            A time target does not change the 60-second round or add a separate alert.
+            {mode === 'emom'
+              ? 'A time target does not change the 60-second round or add a separate alert.'
+              : 'A time target is a guide; it does not change the countdown or add a separate alert.'}
           </p>
         )}
         {unit === 'calories' && (

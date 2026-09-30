@@ -23,6 +23,12 @@ export function UpdatePanel() {
               />
             </label>
           </div>
+          <p className="muted">
+            Automatic checks run when you return and every 15 minutes while the app is visible.
+          </p>
+          {u.lastCheckedAt !== null && (
+            <p className="muted">Last checked: {new Date(u.lastCheckedAt).toLocaleString()}</p>
+          )}
           {u.storageError && (
             <p role="alert">Your preference could not be saved. It applies until the app closes.</p>
           )}

@@ -6,10 +6,11 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
+import '../countdown/checklist.css';
 import { returnToSetup } from './navigation';
 
 export function Runner() {
-  const { snapshot: s, control, busy, error } = useWorkout();
+  const { snapshot: s, control, busy, error, checkedExerciseIds, toggleChecked } = useWorkout();
   const navigate = useNavigate();
   const [stop, setStop] = useState(false);
   useEffect(() => {
@@ -105,6 +106,32 @@ export function Runner() {
               {formatTime(s.remainingMs)}
             </strong>
           </div>
+          {s.config.type === 'countdown' && !!s.config.exercises?.length && (
+            <section className="countdown-checklist" aria-label="Workout exercises">
+              <h2>Your workout list</h2>
+              <ol>
+                {s.config.exercises.map((exercise) => (
+                  <li key={exercise.id}>
+                    {s.config.type === 'countdown' && s.config.showChecklist !== false && (
+                      <input
+                        type="checkbox"
+                        aria-label={`Complete ${exercise.name}`}
+                        checked={checkedExerciseIds.includes(exercise.id)}
+                        onChange={() => toggleChecked(exercise.id)}
+                      />
+                    )}
+                    <div>
+                      <strong>{exercise.name}</strong>
+                      {exercise.target && (
+                        <span className="checklist-target">{formatTarget(exercise.target)}</span>
+                      )}
+                      {exercise.description && <p>{exercise.description}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
           {emom && (
             <div className="up-next">
               <span>

@@ -7,7 +7,10 @@ test('custom exercises can be added, reordered and removed', async ({ page }) =>
   await page.getByLabel('Description (optional)').fill('Five careful repetitions');
   await page.getByRole('button', { name: 'Add custom exercise' }).click();
   await expect(page.getByRole('heading', { name: 'My movement' })).toBeVisible();
-  await page.getByRole('button', { name: 'Move My movement up' }).click();
+  await page.getByRole('button', { name: 'Reorder My movement' }).focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Space');
   await expect(page.getByTestId('exercise-entry').nth(2)).toContainText('My movement');
   await page.getByRole('button', { name: 'Remove My movement' }).click();
   await expect(page.getByRole('heading', { name: 'My movement' })).toHaveCount(0);
@@ -73,8 +76,8 @@ test('exercise search, uneven rotation and long custom descriptions work in narr
   await page.setViewportSize({ width: 780, height: 1000 });
   await page.goto('/emom');
   await page.getByLabel('Total minutes').fill('5');
-  await expect(page.getByText('2 turns')).toHaveCount(2);
-  await expect(page.getByText('1 turns')).toHaveCount(1);
+  await expect(page.getByText('2 rounds')).toHaveCount(2);
+  await expect(page.getByText('1 round', { exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('does not exist');
   await expect(page.getByText(/No matching exercises/)).toBeVisible();

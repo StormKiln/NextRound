@@ -17,10 +17,16 @@ type Draft = {
 type CountdownDraft = {
   minutes: string;
   seconds: string;
+  exercises: ExerciseEntry[];
+  showChecklist: boolean;
   leadInSeconds: string;
   warningSeconds: string;
 };
 type State = {
+  getDraftConfig: (mode: 'emom' | 'countdown') => WorkoutConfig;
+  loadConfig: (config: WorkoutConfig) => boolean;
+  checkedExerciseIds: string[];
+  toggleChecked: (id: string) => void;
   countdownDraft: CountdownDraft;
   setCountdownDraft: (patch: Partial<CountdownDraft>) => void;
   draft: Draft;
@@ -42,7 +48,14 @@ export const useWorkout = create<State>((set, get) => ({
     warningSeconds: '3',
     exercises: exercises.slice(0, 3),
   },
-  countdownDraft: { minutes: '5', seconds: '0', leadInSeconds: '10', warningSeconds: '3' },
+  countdownDraft: {
+    minutes: '5',
+    seconds: '0',
+    leadInSeconds: '10',
+    warningSeconds: '3',
+    exercises: [],
+    showChecklist: true,
+  },
   setCountdownDraft: (patch) =>
     set((state) => ({ countdownDraft: { ...state.countdownDraft, ...patch }, errors: {} })),
   snapshot: null,
@@ -50,28 +63,85 @@ export const useWorkout = create<State>((set, get) => ({
   busy: false,
   error: null,
   setDraft: (patch) => set((state) => ({ draft: { ...state.draft, ...patch }, errors: {} })),
+  checkedExerciseIds: [],
+  toggleChecked: (id) => {
+    const { snapshot, checkedExerciseIds } = get();
+    if (
+      snapshot?.config.type !== 'countdown' ||
+      snapshot.config.showChecklist === false ||
+      !snapshot.config.exercises?.some((exercise) => exercise.id === id)
+    )
+      return;
+    set({
+      checkedExerciseIds: checkedExerciseIds.includes(id)
+        ? checkedExerciseIds.filter((checked) => checked !== id)
+        : [...checkedExerciseIds, id],
+    });
+  },
+  getDraftConfig: (mode) => {
+    const { draft, countdownDraft } = get();
+    return mode === 'countdown'
+      ? {
+          type: 'countdown',
+          durationSeconds: countdownDuration(countdownDraft),
+          leadInSeconds: numeric(countdownDraft.leadInSeconds),
+          warningSeconds: numeric(countdownDraft.warningSeconds),
+          exercises: structuredClone(countdownDraft.exercises),
+          showChecklist: countdownDraft.showChecklist,
+        }
+      : {
+          type: 'emom',
+          minutes: numeric(draft.minutes),
+          leadInSeconds: numeric(draft.leadInSeconds),
+          warningSeconds: numeric(draft.warningSeconds),
+          exercises: structuredClone(draft.exercises),
+        };
+  },
+  loadConfig: (config) => {
+    const { busy, snapshot } = get();
+    if (busy || (snapshot && ['leadIn', 'running'].includes(snapshot.phase))) return false;
+    try {
+      const errors = validateConfig(config);
+      if (Object.keys(errors).length) {
+        set({ errors });
+        return false;
+      }
+      const copy = structuredClone(config);
+      if (copy.type === 'countdown') {
+        set({
+          countdownDraft: {
+            minutes: String(Math.floor(copy.durationSeconds / 60)),
+            seconds: String(copy.durationSeconds % 60),
+            leadInSeconds: String(copy.leadInSeconds),
+            warningSeconds: String(copy.warningSeconds),
+            exercises: copy.exercises ?? [],
+            showChecklist: copy.showChecklist ?? true,
+          },
+          errors: {},
+          error: null,
+        });
+      } else {
+        set({
+          draft: {
+            minutes: String(copy.minutes),
+            leadInSeconds: String(copy.leadInSeconds),
+            warningSeconds: String(copy.warningSeconds),
+            exercises: copy.exercises,
+          },
+          errors: {},
+          error: null,
+        });
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  },
   start: async (repeat, mode = 'emom') => {
     if (get().busy) return false;
-    const { draft, countdownDraft, snapshot: previous } = get();
-    const config: WorkoutConfig =
-      repeat && previous
-        ? structuredClone(previous.config)
-        : mode === 'countdown'
-          ? {
-              type: 'countdown',
-              durationSeconds: countdownDuration(countdownDraft),
-              leadInSeconds: numeric(countdownDraft.leadInSeconds),
-              warningSeconds: numeric(countdownDraft.warningSeconds),
-            }
-          : {
-              type: 'emom',
-              minutes: draft.minutes.trim() === '' ? Number.NaN : Number(draft.minutes),
-              leadInSeconds:
-                draft.leadInSeconds.trim() === '' ? Number.NaN : Number(draft.leadInSeconds),
-              warningSeconds:
-                draft.warningSeconds.trim() === '' ? Number.NaN : Number(draft.warningSeconds),
-              exercises: structuredClone(draft.exercises),
-            };
+    const previous = get().snapshot;
+    const config =
+      repeat && previous ? structuredClone(previous.config) : get().getDraftConfig(mode);
     const errors = validateConfig(config);
     set({ errors });
     if (Object.keys(errors).length) return false;
@@ -79,7 +149,7 @@ export const useWorkout = create<State>((set, get) => ({
     set({ busy: true, error: null });
     try {
       const snapshot = await adapter.startWorkout(config);
-      set({ snapshot });
+      set({ snapshot, checkedExerciseIds: [] });
       try {
         await adapter.fullscreen(true);
       } catch {

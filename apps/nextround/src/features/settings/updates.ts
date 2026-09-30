@@ -22,9 +22,11 @@ type State = {
   total: number | null;
   error: string | null;
   storageError: boolean;
+  lastAttemptAt: number | null;
+  lastCheckedAt: number | null;
   preferences: Preferences;
   initialize: () => Promise<void>;
-  check: () => Promise<void>;
+  check: (automatic?: boolean) => Promise<void>;
   install: () => Promise<void>;
   setPreferences: (patch: Partial<Preferences>) => void;
 };
@@ -43,6 +45,8 @@ export const useUpdates = create<State>((set, get) => ({
   total: null,
   error: null,
   storageError: false,
+  lastAttemptAt: null,
+  lastCheckedAt: null,
   preferences: preferences(),
   initialize: async () => {
     try {
@@ -59,16 +63,19 @@ export const useUpdates = create<State>((set, get) => ({
     } catch {}
     set({ preferences: value, storageError: !saved });
   },
-  check: async () => {
+  check: async (automatic = false) => {
     if (
       get().channel !== 'direct' ||
+      (automatic &&
+        (!get().preferences.automatic ||
+          (get().lastAttemptAt !== null && Date.now() - (get().lastAttemptAt ?? 0) < 60_000))) ||
       ['checking', 'downloading', 'installing'].includes(get().status)
     )
       return;
-    set({ status: 'checking', error: null });
+    set({ status: 'checking', error: null, lastAttemptAt: Date.now() });
     try {
       const available = await invoke<Available | null>('check_app_update');
-      set({ available, status: available ? 'available' : 'current' });
+      set({ available, status: available ? 'available' : 'current', lastCheckedAt: Date.now() });
     } catch (error) {
       set({ status: 'error', error: String(error) });
     }
@@ -79,7 +86,7 @@ export const useUpdates = create<State>((set, get) => ({
     if (
       !state.available ||
       state.channel !== 'direct' ||
-      ['downloading', 'installing'].includes(state.status)
+      ['checking', 'downloading', 'installing'].includes(state.status)
     )
       return;
     if (session && ['running', 'leadIn'].includes(session.phase)) {

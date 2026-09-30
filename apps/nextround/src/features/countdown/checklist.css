@@ -1,0 +1,54 @@
+.checklist-option {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 1.25rem 0;
+}
+.checklist-option input,
+.countdown-checklist input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: #ff994f;
+  flex-shrink: 0;
+}
+.countdown-checklist {
+  margin-top: 1.25rem;
+  text-align: left;
+}
+.countdown-checklist h2 {
+  font-size: 1.1rem;
+}
+.countdown-checklist ol {
+  padding: 0;
+  margin: 0.75rem 0 0;
+  list-style-position: inside;
+  max-height: 38vh;
+  overflow-y: auto;
+}
+.countdown-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #ffffff20;
+}
+.countdown-checklist li > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.countdown-checklist li strong {
+  font-size: 1rem;
+}
+.countdown-checklist li p {
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+  opacity: 0.75;
+}
+.checklist-target {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+}
+.countdown-checklist input:checked + div {
+  opacity: 0.6;
+}

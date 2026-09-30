@@ -61,3 +61,44 @@ describe('Countdown', () => {
     expect(cueAt({ ...config, warningSeconds: 0 }, 126000)).toBeNull();
   });
 });
+
+it('validates optional countdown lists, unique identities, targets and checkbox setting', () => {
+  const exercise = { id: 'a', name: 'Squat', target: { unit: 'reps' as const, value: 5 } };
+  expect(validateConfig({ ...config, exercises: [], showChecklist: false })).toEqual({});
+  expect(validateConfig({ ...config, exercises: [exercise] })).toEqual({});
+  for (const exercises of [
+    [{ ...exercise, id: '' }],
+    [exercise, exercise],
+    [{ ...exercise, name: '' }],
+    [{ ...exercise, target: { unit: 'reps' as const, value: 0 } }],
+    Array.from({ length: 101 }, (_, i) => ({ ...exercise, id: String(i) })),
+  ]) {
+    expect(validateConfig({ ...config, exercises })).toHaveProperty('exercises');
+  }
+  expect(
+    validateConfig({ ...config, showChecklist: 'yes' } as unknown as CountdownConfig),
+  ).toHaveProperty('showChecklist');
+});
+
+it('rejects malformed countdown lists without throwing', () => {
+  for (const exercises of [
+    null,
+    {},
+    ['oops'],
+    [null],
+    [{ id: 'a', name: 'Squat', supportedUnits: 'reps' }],
+  ]) {
+    expect(validateConfig({ ...config, exercises } as CountdownConfig)).toHaveProperty('exercises');
+  }
+});
+
+it('rejects malformed falsy targets', () => {
+  for (const target of [false, 0, '']) {
+    expect(
+      validateConfig({
+        ...config,
+        exercises: [{ id: 'a', name: 'Squat', target }],
+      } as unknown as CountdownConfig),
+    ).toHaveProperty('exercises');
+  }
+});

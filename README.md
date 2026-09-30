@@ -187,3 +187,7 @@ GitHub installs support signed updates from Settings starting with 0.2.0; 0.1.0 
 Choose EMOM or a fixed-duration Countdown from Home. The bundled picker now contains 43 exercises, including 20 kettlebell movements, five extra variations each of push-ups/planks/bodyweight squats, and rowing-machine rowing. Set per-exercise repetition, time, distance or machine-calorie targets; see [exercise sources](docs/exercise-sources.md). EMOM rounds remain 60 seconds.
 
 Red-close minimizes by default and keeps workouts running. General Settings can switch it to Quit, retaining active-workout confirmation. Click the Dock icon to restore the window. See [0.3.0 release notes](docs/release-notes-0.3.0.md).
+
+### 0.4.0: build once, use again
+
+Home now has matching, clearly labeled workout cards. Exercise selection groups movements into collapsible categories; drag handles support pointer and keyboard reordering. Countdown can include an optional exercise checklist. Save named EMOM/Countdown templates locally and load, search, rename or delete them from Home. Templates persist across restarts; workout history and active-session recovery are still future work. See [0.4.0 release notes](docs/release-notes-0.4.0.md) for update behavior and data boundaries.

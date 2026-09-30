@@ -15,7 +15,7 @@ function validTarget(exercise: ExerciseEntry): boolean {
   if (exercise.supportedUnits?.some((unit) => !units.includes(unit))) return false;
   const target = exercise.target;
   return (
-    !target ||
+    target == null ||
     (units.includes(target.unit) &&
       Number.isInteger(target.value) &&
       target.value > 0 &&
@@ -35,6 +35,8 @@ export type CountdownConfig = {
   durationSeconds: number;
   leadInSeconds: number;
   warningSeconds: number;
+  exercises?: ExerciseEntry[];
+  showChecklist?: boolean;
 };
 export type WorkoutConfig = EmomConfig | CountdownConfig;
 export type WorkoutCue = 'tock' | 'beep' | 'complete';
@@ -75,20 +77,35 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
     config.warningSeconds > 59
   )
     errors.warningSeconds = 'Choose a whole number from 0 to 59.';
+  const entries =
+    config.exercises === undefined && config.type === 'countdown' ? [] : config.exercises;
   if (
-    config.type !== 'countdown' &&
-    (config.exercises.length < 1 ||
-      config.exercises.length > 100 ||
-      config.exercises.some(
-        (e) =>
-          !e.name.trim() ||
-          e.name.length > 120 ||
-          (e.description?.length ?? 0) > 2000 ||
-          !validTarget(e),
-      ))
+    !Array.isArray(entries) ||
+    (config.type !== 'countdown' && entries.length < 1) ||
+    entries.length > 100 ||
+    entries.some(
+      (e) =>
+        !e ||
+        typeof e.id !== 'string' ||
+        !e.id.trim() ||
+        typeof e.name !== 'string' ||
+        !e.name.trim() ||
+        e.name.length > 120 ||
+        (e.description !== undefined &&
+          e.description !== null &&
+          (typeof e.description !== 'string' || e.description.length > 2000)) ||
+        (e.supportedUnits !== undefined && !Array.isArray(e.supportedUnits)) ||
+        !validTarget(e),
+    ) ||
+    new Set(entries.map((e) => e.id)).size !== entries.length
   )
-    errors.exercises =
-      'Add 1–100 exercises with names up to 120 characters and descriptions up to 2000 characters. Targets must use a supported unit and a positive whole value up to 999999 (86400 for seconds).';
+    errors.exercises = `Add ${config.type === 'countdown' ? '0' : '1'}–100 exercises with unique IDs, names up to 120 characters and descriptions up to 2000 characters. Targets must use a supported unit and a positive whole value up to 999999 (86400 for seconds).`;
+  if (
+    config.type === 'countdown' &&
+    config.showChecklist !== undefined &&
+    typeof config.showChecklist !== 'boolean'
+  )
+    errors.showChecklist = 'Choose whether to show completion checkboxes.';
   return errors;
 }
 export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnapshot {
