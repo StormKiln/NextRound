@@ -175,3 +175,9 @@ Workout setup and completion are transient in 0.1.0: they are not saved across a
 - [shadcn/ui with Tailwind CSS 4 and React 19](https://ui.shadcn.com/docs/tailwind-v4)
 - [TanStack libraries for React](https://tanstack.com/libraries/react)
 - [TanStack Query overview](https://tanstack.com/query/latest/docs/framework/react/overview)
+
+### 0.2.0 desktop experience
+
+Start on Home, choose **Build an EMOM**, and return home without losing the setup in your current session. Open **Settings** from the toolbar or Command-comma for app information and software updates. The branded startup screen stays visible for at least three seconds.
+
+GitHub installs support signed updates from Settings starting with 0.2.0; 0.1.0 users need one manual upgrade. Updates never install during a running or paused workout. TestFlight/App Store builds update through Apple. See [0.2.0 release notes](docs/release-notes-0.2.0.md).

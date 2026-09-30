@@ -11,16 +11,21 @@ import {
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { Home as HomeIcon, Settings2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Dialog } from '@/components/dialog';
+import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
+import { Home } from '@/features/home/home';
+import { Settings } from '@/features/settings/settings';
+import { useUpdates } from '@/features/settings/updates';
 import { Setup } from '@/features/setup/setup';
 import { Completion, Runner } from '@/features/workout/runner';
 import { native } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
-import splash from '../../../assets/brand/nextround-splash.png';
 import icon from '../../../assets/icons/ios/AppIcon.appiconset/AppIcon.png';
+import { version } from '../package.json';
 import './styles.css';
 
 const queryClient = new QueryClient();
@@ -30,16 +35,33 @@ function Shell() {
   const active = !!s && (s.phase === 'leadIn' || s.phase === 'running');
   const navigate = useNavigate();
   const [close, setClose] = useState(false);
-  const [booting, setBooting] = useState(true);
+  const [settings, setSettings] = useState(false);
+  const updates = useUpdates();
+  const installing = ['downloading', 'installing'].includes(updates.status);
+  useEffect(() => {
+    void useUpdates.getState().initialize();
+  }, []);
+  useEffect(() => {
+    if (updates.channel !== 'direct' || !updates.preferences.automatic) return;
+    void useUpdates.getState().check();
+    const timer = setInterval(() => void useUpdates.getState().check(), 6 * 60 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [updates.channel, updates.preferences.automatic]);
   useBlocker({
-    shouldBlockFn: ({ next }) => active && next.pathname !== '/workout',
-    enableBeforeUnload: active,
+    shouldBlockFn: ({ next }) => installing || (active && next.pathname !== '/workout'),
+    enableBeforeUnload: active || installing,
   });
   useEffect(() => {
     const timer = setInterval(() => void useWorkout.getState().poll(), 100);
-    const boot = setTimeout(() => setBooting(false), 450);
+
     let unlisten: (() => void) | undefined;
     let disposed = false;
+    let unlistenSettings: (() => void) | undefined;
+    if (native)
+      void listen('open-settings', () => setSettings(true)).then((fn) => {
+        if (disposed) fn();
+        else unlistenSettings = fn;
+      });
     let unlistenQuit: (() => void) | undefined;
     if (native)
       void listen('quit-requested', () => setClose(true)).then((fn) => {
@@ -49,6 +71,10 @@ function Shell() {
     if (native)
       void getCurrentWindow()
         .onCloseRequested((event) => {
+          if (['downloading', 'installing'].includes(useUpdates.getState().status)) {
+            event.preventDefault();
+            return;
+          }
           const session = useWorkout.getState().snapshot;
           if (session && ['running', 'leadIn'].includes(session.phase)) {
             event.preventDefault();
@@ -60,12 +86,13 @@ function Shell() {
           else unlisten = fn;
         });
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && native) void getCurrentWindow().setFullscreen(false);
+      if (event.key === 'Escape' && native && !document.querySelector('dialog[open]'))
+        void getCurrentWindow().setFullscreen(false);
     };
     window.addEventListener('keydown', handleEscape);
     return () => {
       clearInterval(timer);
-      clearTimeout(boot);
+      unlistenSettings?.();
       disposed = true;
       unlisten?.();
       unlistenQuit?.();
@@ -85,14 +112,44 @@ function Shell() {
         <span className="header-note">
           {active ? 'Stay with it.' : 'Your next round starts here.'}
         </span>
-        <span className="version">0.1.0</span>
+        <span className="version">{version}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Home"
+          disabled={active || installing}
+          onClick={() => void navigate({ to: '/' })}
+        >
+          <HomeIcon size={18} />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Settings" onClick={() => setSettings(true)}>
+          <Settings2 size={18} />
+        </Button>
       </header>
-      <Outlet />
-      {booting && (
-        <div className="splash" aria-hidden="true">
-          <img src={splash} alt="" />
-        </div>
-      )}
+      <div inert={installing}>
+        <Outlet />
+      </div>
+      {updates.available &&
+        !active &&
+        !settings &&
+        updates.preferences.dismissed !== updates.available.version &&
+        !installing && (
+          <aside className="update-banner" aria-label="Update available">
+            <span>NextRound {updates.available.version} is available.</span>
+            <Button variant="secondary" onClick={() => setSettings(true)}>
+              View update
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                updates.setPreferences({ dismissed: updates.available?.version ?? null })
+              }
+            >
+              Not now
+            </Button>
+          </aside>
+        )}
+      {settings && <Settings onClose={() => setSettings(false)} />}
       {close && (
         <Dialog title="Close NextRound?" onClose={() => setClose(false)}>
           <p>
@@ -130,7 +187,12 @@ const rootRoute = createRootRoute({
     </main>
   ),
 });
-const setupRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Setup });
+const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Home });
+const setupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/emom',
+  component: Setup,
+});
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
@@ -142,7 +204,7 @@ const completeRoute = createRoute({
   component: Completion,
 });
 const router = createRouter({
-  routeTree: rootRoute.addChildren([setupRoute, workoutRoute, completeRoute]),
+  routeTree: rootRoute.addChildren([homeRoute, setupRoute, workoutRoute, completeRoute]),
 });
 declare module '@tanstack/react-router' {
   interface Register {
@@ -154,7 +216,9 @@ if (root)
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <Startup>
+          <RouterProvider router={router} />
+        </Startup>
       </QueryClientProvider>
     </React.StrictMode>,
   );

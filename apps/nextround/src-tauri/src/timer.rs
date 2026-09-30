@@ -90,7 +90,7 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
     if second == end {
         return Some("complete");
     }
-    if second == lead || (second > lead && (second - lead) % 60 == 0) {
+    if second == lead || (second > lead && (second - lead).is_multiple_of(60)) {
         return Some("beep");
     }
     let remaining = if second < lead {

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('custom exercises can be added, reordered and removed', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/emom');
   await page.getByRole('button', { name: 'Custom exercise' }).click();
   await page.getByLabel('Exercise name').fill('My movement');
   await page.getByLabel('Description (optional)').fill('Five careful repetitions');
@@ -16,7 +16,8 @@ test('custom exercises can be added, reordered and removed', async ({ page }) =>
 test('lead-in, round and total clocks, pause, completion and repeat', async ({ page }) => {
   test.setTimeout(90000);
   await page.clock.install();
-  await page.goto('/');
+  await page.goto('/emom');
+  await page.clock.runFor(3200);
   await page.getByLabel('Total minutes').fill('1');
   await page.getByLabel('Lead-in seconds').fill('2');
   await page.getByRole('button', { name: 'Start workout' }).click();
@@ -36,7 +37,7 @@ test('lead-in, round and total clocks, pause, completion and repeat', async ({ p
 });
 
 test('invalid inputs are explained and stop preserves the draft', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/emom');
   await page.getByLabel('Total minutes').fill('0');
   await page.getByRole('button', { name: 'Start workout' }).click();
   await expect(page.getByText('Choose a whole number from 1 to 1440.')).toBeVisible();
@@ -50,7 +51,7 @@ test('invalid inputs are explained and stop preserves the draft', async ({ page 
 test('empty exercise list, blank Custom names and invalid warnings are rejected', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/emom');
   await page.getByRole('button', { name: 'Custom exercise' }).click();
   await page.getByLabel('Exercise name').fill('   ');
   await page.getByRole('button', { name: 'Add custom exercise' }).click();
@@ -70,7 +71,7 @@ test('exercise search, uneven rotation and long custom descriptions work in narr
   page,
 }) => {
   await page.setViewportSize({ width: 780, height: 1000 });
-  await page.goto('/');
+  await page.goto('/emom');
   await page.getByLabel('Total minutes').fill('5');
   await expect(page.getByText('2 turns')).toHaveCount(2);
   await expect(page.getByText('1 turns')).toHaveCount(1);
@@ -91,7 +92,7 @@ test('exercise search, uneven rotation and long custom descriptions work in narr
 test('zero lead-in starts immediately, Escape keeps the workout active, stop can be dismissed', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/emom');
   await page.getByLabel('Lead-in seconds').fill('0');
   await page.getByLabel('Warning seconds').fill('0');
   await page.getByRole('button', { name: 'Start workout' }).click();

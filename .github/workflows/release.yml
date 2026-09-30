@@ -56,6 +56,8 @@ jobs:
       - name: Build, notarize, staple, and verify app and DMG
         env:
           CI: 'true'
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
         run: make release-package
       - name: Retain verified release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -65,6 +67,9 @@ jobs:
           retention-days: 14
           path: |
             release/*.dmg
+            release/*.app.tar.gz
+            release/*.sig
+            release/latest.json
             release/SHA256SUMS
             release/commit.txt
             release/*-notarization.json
@@ -111,7 +116,7 @@ jobs:
               --title "NextRound $RELEASE_VERSION" \
               --notes-file "docs/release-notes-$RELEASE_VERSION.md"
           fi
-          for asset in release/*.dmg release/SHA256SUMS release/commit.txt; do
+          for asset in release/*.dmg release/*.app.tar.gz release/*.sig release/latest.json release/SHA256SUMS release/commit.txt; do
             uploaded=false
             for attempt in 1 2 3; do
               if gh release upload "$RELEASE_TAG" "$asset" --clobber; then uploaded=true; break; fi

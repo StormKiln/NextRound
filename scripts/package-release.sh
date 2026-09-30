@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+: "${TAURI_SIGNING_PRIVATE_KEY:?Set the NextRound updater signing key}"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}"
 : "${APPLE_SIGNING_IDENTITY:?Set a Developer ID Application signing identity}"
 : "${NOTARYTOOL_PROFILE:?Set an existing notarytool keychain profile name}"
 case "$APPLE_SIGNING_IDENTITY" in
@@ -53,6 +55,12 @@ python3 -c 'import json; assert json.load(open("release/dmg-notarization.json"))
 xcrun stapler staple "$dmg"
 xcrun stapler validate "$dmg"
 spctl --assess --type open --context context:primary-signature --verbose "$dmg"
-(cd release && shasum -a 256 "$(basename "$dmg")" > SHA256SUMS)
+# Package only after stapling the app; sign these final archive bytes.
+archive="release/NextRound_${version}_aarch64.app.tar.gz"
+tar -czf "$archive" -C "$(dirname "$app")" NextRound.app
+npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm tauri signer sign "$PWD/$archive"
+UPDATER_ARCHIVE="$PWD/$archive" make verify-updater
+python3 scripts/updater-manifest.py release "$version"
+(cd release && shasum -a 256 "$(basename "$dmg")" "$(basename "$archive")" "$(basename "$archive").sig" latest.json > SHA256SUMS)
 git rev-parse HEAD > release/commit.txt
 printf 'Signed release artifact ready: %s\nNo public release has been created.\n' "$dmg"

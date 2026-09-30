@@ -58,3 +58,11 @@ The packaging script checks prerequisites before building, signs with Developer 
 The same version tag also triggers the separate TestFlight workflow. To upload a beta without publishing a GitHub release, dispatch `testflight.yml` on `main`; see [TestFlight instructions](testflight-macos.md).
 
 Creating the workflow does not itself publish a release. A successful signing rehearsal is separate evidence from a public tagged release.
+
+## Updates (0.2.0+)
+
+GitHub builds include a signed Tauri updater. Settings supports automatic checks, per-version dismissal, manual checks and explicit install/restart. Active and paused workouts block installation. Installing restarts the app and loses unsaved session setup. Version 0.1.0 must be upgraded manually once.
+
+The release workflow packages the final notarized/stapled app as `NextRound_VERSION_aarch64.app.tar.gz`, signs the exact bytes with `TAURI_SIGNING_PRIVATE_KEY`, verifies against the embedded public key (and tests tamper refusal), and publishes the archive, `.sig`, and `latest.json` with the DMG and checksums. Do not repackage the archive after signing. Only `darwin-aarch64` is advertised.
+
+App Store/TestFlight packaging uses `--no-default-features` to omit the native updater. Updates for that channel stay with Apple. No updater plugin IPC permissions are exposed; custom commands reserve the native workout/update lock.
