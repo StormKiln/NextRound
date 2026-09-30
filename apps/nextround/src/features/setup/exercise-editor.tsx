@@ -84,7 +84,27 @@ export function ExerciseEditor({
         <p role="status" className="sr-only">
           {announcement}
         </p>
-        <ol className="exercise-list">
+        <ol
+          className="exercise-list"
+          onPointerMove={(event) => {
+            if (!pointerActive.current || !dragId) return;
+            const rows = event.currentTarget.querySelectorAll('li');
+            const target = Array.from(rows).findIndex((row) => {
+              const rect = row.getBoundingClientRect();
+              return event.clientY >= rect.top && event.clientY <= rect.bottom;
+            });
+            if (target >= 0) move(dragId, target);
+          }}
+          onPointerUp={() => {
+            if (pointerActive.current) finish();
+          }}
+          onPointerCancel={() => {
+            if (pointerActive.current) finish(true);
+          }}
+          onLostPointerCapture={() => {
+            if (pointerActive.current) finish(true);
+          }}
+        >
           {exercises.map((exercise, index) => (
             <li
               key={exercise.id}
@@ -116,24 +136,10 @@ export function ExerciseEditor({
                 onPointerDown={(event) => {
                   if (event.button !== 0) return;
                   event.currentTarget.focus();
-                  event.currentTarget.setPointerCapture(event.pointerId);
+                  event.currentTarget.closest('ol')?.setPointerCapture(event.pointerId);
                   pointerActive.current = true;
                   pickup(exercise.id);
                 }}
-                onPointerMove={(event) => {
-                  if (!pointerActive.current || dragId !== exercise.id) return;
-                  const rows = event.currentTarget.closest('ol')?.querySelectorAll('li');
-                  if (!rows) return;
-                  const target = Array.from(rows).findIndex((row) => {
-                    const rect = row.getBoundingClientRect();
-                    return event.clientY >= rect.top && event.clientY <= rect.bottom;
-                  });
-                  if (target >= 0) move(exercise.id, target);
-                }}
-                onPointerUp={() => {
-                  if (pointerActive.current) finish();
-                }}
-                onPointerCancel={() => finish(true)}
               >
                 <GripVertical size={18} />
               </Button>

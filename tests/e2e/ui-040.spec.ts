@@ -124,3 +124,21 @@ for (const viewport of [
     ).toBeTruthy();
   });
 }
+
+test('pointer drag moves the first exercise down multiple rows and releases cleanly', async ({
+  page,
+}) => {
+  await openPage(page, '/emom');
+  const handle = page.getByRole('button', { name: 'Reorder Air squat', exact: true });
+  const from = await handle.boundingBox();
+  const to = await page.getByTestId('exercise-entry').last().boundingBox();
+  if (!from || !to) throw new Error('Missing drag geometry');
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + 20, to.y + to.height - 20, { steps: 24 });
+  await page.mouse.up();
+  await expect(page.getByTestId('exercise-entry').last()).toContainText('Air squat');
+  await expect(handle).toHaveAttribute('aria-pressed', 'false');
+  await page.mouse.move(from.x + 20, from.y + 20);
+  await expect(page.getByTestId('exercise-entry').last()).toContainText('Air squat');
+});
