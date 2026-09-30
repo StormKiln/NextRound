@@ -1,5 +1,6 @@
 use tauri_plugin_opener::OpenerExt;
 mod audio;
+mod templates;
 pub mod timer;
 mod update_gate;
 #[cfg(feature = "direct-update")]
@@ -252,6 +253,8 @@ pub fn run() {
             open_project_page,
             get_close_behavior,
             set_close_behavior,
+            templates::read_workout_templates,
+            templates::mutate_workout_templates,
             updates::check_app_update,
             updates::install_app_update
         ]);
@@ -264,7 +267,9 @@ pub fn run() {
         distribution_channel,
         open_project_page,
         get_close_behavior,
-        set_close_behavior
+        set_close_behavior,
+        templates::read_workout_templates,
+        templates::mutate_workout_templates
     ]);
     builder
         .on_window_event(|window, event| {
@@ -296,6 +301,9 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            app.manage(templates::TemplateStore::new(
+                app.path().app_data_dir()?.join("workout-templates.json"),
+            ));
             app.manage(WindowSettings {
                 preferences: Mutex::new(window_behavior::Preferences::load(
                     app.path().app_config_dir()?.join("window.json"),

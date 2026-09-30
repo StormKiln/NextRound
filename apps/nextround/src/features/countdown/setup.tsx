@@ -2,6 +2,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { Clock3, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ExerciseEditor } from '@/features/setup/exercise-editor';
+import './checklist.css';
+import { SaveWorkoutButton } from '@/features/templates';
 import { useWorkout } from '@/state/workout';
 
 export function CountdownSetup() {
@@ -50,6 +53,14 @@ export function CountdownSetup() {
               </div>
             ))}
           </div>
+          <label className="checklist-option">
+            <input
+              type="checkbox"
+              checked={draft.showChecklist}
+              onChange={(event) => setCountdownDraft({ showChecklist: event.target.checked })}
+            />
+            Show completion checkboxes
+          </label>
           {Object.entries(errors).map(([key, message]) => (
             <p className="error" role="alert" key={key}>
               {message}
@@ -70,23 +81,14 @@ export function CountdownSetup() {
             <Play size={19} fill="currentColor" />
             {busy ? 'Starting…' : 'Start countdown'}
           </Button>
+          <SaveWorkoutButton getConfig={() => useWorkout.getState().getDraftConfig('countdown')} />
         </section>
-        <section className="sequence">
-          <h2>A little space to focus.</h2>
-          <p className="muted">
-            Use your time for a hold, a stretch, a recovery, or a workout of your own.
-          </p>
-          <div className="clock-note">
-            <Clock3 size={18} />
-            <p>
-              Your lead-in is extra.
-              <span>
-                One beep starts your workout. Tocks count down the final warning seconds, and a
-                distinct sound marks the finish. Set warnings to zero for no tocks.
-              </span>
-            </p>
-          </div>
-        </section>
+        <ExerciseEditor
+          exercises={draft.exercises}
+          onChange={(exercises) => setCountdownDraft({ exercises })}
+          title="Your workout list"
+          description="Optional movements to follow at your own pace. Checking them off never ends the timer."
+        />
       </div>
     </main>
   );

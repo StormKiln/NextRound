@@ -44,6 +44,8 @@ pub struct Config {
     pub warning_seconds: u32,
     #[serde(default)]
     pub exercises: Vec<Exercise>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub show_checklist: Option<bool>,
 }
 #[derive(Clone, Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -80,11 +82,13 @@ pub fn validate(config: &Config) -> Result<(), String> {
     if config.lead_in_seconds > 3600 || config.warning_seconds > 59 {
         return Err("Invalid lead-in or warning duration.".into());
     }
-    if config.mode == Mode::Emom
-        && (config.exercises.is_empty()
-            || config.exercises.len() > 100
-            || config.exercises.iter().any(|e| {
-                e.target.as_ref().is_some_and(|target| {
+    let mut ids = std::collections::HashSet::new();
+    if (config.mode == Mode::Emom && config.exercises.is_empty())
+        || config.exercises.len() > 100
+        || config.exercises.iter().any(|e| {
+            e.id.trim().is_empty()
+                || !ids.insert(&e.id)
+                || e.target.as_ref().is_some_and(|target| {
                     target.value == 0
                         || target.value
                             > if target.unit == TargetUnit::Seconds {
@@ -95,14 +99,15 @@ pub fn validate(config: &Config) -> Result<(), String> {
                         || e.supported_units
                             .as_ref()
                             .is_some_and(|units| !units.contains(&target.unit))
-                }) || e.name.trim().is_empty()
-                    || e.name.chars().count() > 120
-                    || e.description
-                        .as_ref()
-                        .is_some_and(|d| d.chars().count() > 2000)
-            }))
+                })
+                || e.name.trim().is_empty()
+                || e.name.chars().count() > 120
+                || e.description
+                    .as_ref()
+                    .is_some_and(|d| d.chars().count() > 2000)
+        })
     {
-        return Err("Add 1–100 named exercises within the text limits.".into());
+        return Err("Use up to 100 named exercises with unique IDs within the text limits.".into());
     }
     Ok(())
 }
@@ -236,6 +241,7 @@ mod tests {
     fn config() -> Config {
         Config {
             mode: Mode::Emom,
+            show_checklist: None,
             duration_seconds: None,
             minutes: 15,
             lead_in_seconds: 10,
@@ -248,6 +254,19 @@ mod tests {
                 supported_units: None,
             }],
         }
+    }
+    #[test]
+    fn countdown_exercises_validate_and_roundtrip() {
+        let mut c: Config = serde_json::from_value(serde_json::json!({"type":"countdown","durationSeconds":30,"leadInSeconds":0,"warningSeconds":3,"showChecklist":false,"exercises":[{"id":"a","name":"Squat","target":{"unit":"reps","value":5}}]})).unwrap();
+        assert!(validate(&c).is_ok());
+        let encoded = serde_json::to_value(&c).unwrap();
+        assert_eq!(encoded["showChecklist"], false);
+        assert_eq!(serde_json::from_value::<Config>(encoded).unwrap(), c);
+        c.exercises.push(c.exercises[0].clone());
+        assert!(validate(&c).is_err());
+        c.exercises.pop();
+        c.exercises[0].target.as_mut().unwrap().value = 0;
+        assert!(validate(&c).is_err());
     }
     #[test]
     fn countdown_contract() {

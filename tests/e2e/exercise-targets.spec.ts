@@ -6,7 +6,10 @@ test('exercise prescriptions follow ordering into the workout', async ({ page })
   await page.getByLabel('Target amount', { exact: true }).fill('10');
   await page.getByLabel('Target unit', { exact: true }).selectOption('reps');
   await page.getByRole('button', { name: 'Save target', exact: true }).click();
-  await page.getByRole('button', { name: 'Move Push-up up', exact: true }).click();
+  await page.getByRole('button', { name: 'Reorder Push-up', exact: true }).focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Space');
   await page.getByLabel('Lead-in seconds').fill('0');
   await page.getByRole('button', { name: 'Start workout', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Push-up', exact: true })).toBeVisible();

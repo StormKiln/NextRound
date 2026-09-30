@@ -32,9 +32,6 @@ button:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
-button,
-input,
-textarea,
 :focus-visible {
   outline: 3px solid #ff994f;
   outline-offset: 4px;
@@ -323,7 +320,7 @@ textarea {
   margin-top: 6px;
   overflow-wrap: anywhere;
 }
-.turn-count {
+.round-count {
   display: inline-block;
   font-size: 10px;
   color: #d8bba7;
@@ -332,11 +329,11 @@ textarea {
 .exercise-actions {
   display: flex;
   flex-direction: column;
-  margin-top: -5px;
+  gap: 12px;
 }
 .add-actions {
   display: flex;
-  gap: 9px;
+  gap: 16px;
   border-top: 1px solid #32302d;
   padding-top: 18px;
   flex-wrap: wrap;
@@ -719,6 +716,10 @@ textarea {
   max-width: 1220px;
 }
 .home-intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
   padding: 12px 0 36px;
 }
 .home-intro h1 {
@@ -732,20 +733,33 @@ textarea {
   font-size: 15px;
   line-height: 1.8;
 }
-.workout-choice {
+.workout-choices {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.workout-choice {
+  display: flex;
   overflow: hidden;
   background: #1d1c1b;
   border: 1px solid #34312e;
   border-radius: 20px;
 }
 .workout-choice-copy {
-  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 32px;
 }
 .workout-choice-copy > svg {
   color: #ff994f;
   margin-bottom: 24px;
+}
+.workout-choice-copy .button {
+  margin-top: auto;
+}
+.workout-choice h3 {
+  margin-top: 14px;
 }
 .workout-choice h2 {
   font-size: 32px;
@@ -760,7 +774,8 @@ textarea {
 }
 .home-art {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
   object-fit: cover;
 }
 .home-footnote {
@@ -770,6 +785,7 @@ textarea {
   font-size: 11px;
 }
 .settings-dialog {
+  position: relative;
   width: min(760px, calc(100vw - 40px));
   padding: 0;
   border-radius: 14px;
@@ -802,7 +818,6 @@ textarea {
 }
 .settings-content {
   padding: 28px;
-  position: relative;
   min-width: 0;
 }
 .settings-content h3 {
@@ -816,7 +831,7 @@ textarea {
 .settings-close {
   position: absolute;
   right: 12px;
-  top: -45px;
+  top: 12px;
 }
 .settings-group {
   margin: 24px 0;
@@ -853,11 +868,8 @@ textarea {
   .app-header {
     gap: 12px;
   }
-  .home-art {
-    display: none;
-  }
-  .workout-choice {
-    grid-template-columns: 1fr;
+  .home-intro {
+    gap: 24px;
   }
   .home-intro {
     padding-top: 0;
@@ -922,7 +934,8 @@ textarea {
 }
 .exercise-target strong {
   color: #ffb77c;
-  font-size: 14px;
+  font-size: 22px;
+  line-height: 1.3;
 }
 .exercise-target button {
   font-size: 12px;
@@ -946,36 +959,59 @@ textarea {
   font: inherit;
 }
 
-.countdown-choice {
-  margin-top: 20px;
-  grid-template-columns: 1fr;
+.drag-handle {
+  touch-action: none;
+  cursor: grab;
+  flex-shrink: 0;
 }
-.countdown-choice .workout-choice-copy {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  column-gap: 24px;
-  padding: 26px 32px;
+.drag-handle[aria-pressed="true"] {
+  cursor: grabbing;
 }
-.countdown-choice .workout-choice-copy > svg {
-  display: none;
+.exercise-entry.is-dragging {
+  background: #30271f;
 }
-.countdown-choice h2 {
-  font-size: 24px;
+.exercise-group summary {
+  padding: 16px 8px;
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 1px solid #48433f;
 }
-.countdown-choice p {
-  margin: 10px 0 0;
-  max-width: 55ch;
+.exercise-group summary span {
+  float: right;
+  color: #aaa49e;
 }
-.countdown-choice .button {
-  grid-column: 2;
-  grid-row: 1 / 3;
+.settings-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-@media (max-width: 800px) {
-  .countdown-choice .workout-choice-copy {
-    display: block;
+.settings-sidebar .button {
+  margin-bottom: 0;
+}
+@media (max-width: 650px) {
+  .home-intro,
+  .workout-choices {
+    grid-template-columns: 1fr;
   }
-  .countdown-choice .button {
-    margin-top: 18px;
+  .home-art {
+    max-height: 300px;
+  }
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+  .settings-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: 0;
+    border-bottom: 1px solid #393939;
+  }
+  .settings-sidebar .button {
+    width: auto;
+  }
+  .exercise-entry {
+    gap: 8px;
+  }
+  .order-number {
+    display: none;
   }
 }

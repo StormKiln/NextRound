@@ -19,6 +19,7 @@ import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
 import { CountdownSetup } from '@/features/countdown/setup';
 import { Home } from '@/features/home/home';
+import { scheduleAutomaticUpdates } from '@/features/settings/automatic-updates';
 import { Settings } from '@/features/settings/settings';
 import { useUpdates } from '@/features/settings/updates';
 import { Setup } from '@/features/setup/setup';
@@ -45,9 +46,29 @@ function Shell() {
   }, []);
   useEffect(() => {
     if (updates.channel !== 'direct' || !updates.preferences.automatic) return;
-    void useUpdates.getState().check();
-    const timer = setInterval(() => void useUpdates.getState().check(), 6 * 60 * 60 * 1000);
-    return () => clearInterval(timer);
+    const check = () => void useUpdates.getState().check(true);
+    const stop = scheduleAutomaticUpdates(check, {
+      window,
+      document,
+      visible: () => document.visibilityState === 'visible',
+    });
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+    if (native)
+      void getCurrentWindow()
+        .onFocusChanged(({ payload }) => {
+          if (payload) check();
+        })
+        .then((fn) => {
+          if (disposed) fn();
+          else unlisten = fn;
+        })
+        .catch(() => {});
+    return () => {
+      disposed = true;
+      stop();
+      unlisten?.();
+    };
   }, [updates.channel, updates.preferences.automatic]);
   useBlocker({
     shouldBlockFn: ({ next }) => installing || (active && next.pathname !== '/workout'),
