@@ -39,7 +39,7 @@ build-macos:
 	CI=true $(PNPM) tauri build --bundles app,dmg
 
 build-app:
-	$(PNPM) tauri build --bundles app $(NEXTROUND_CARGO_ARGS) $(if $(NEXTROUND_CONFIG_PATH),--config "$(NEXTROUND_CONFIG_PATH)")
+	$(PNPM) tauri build --bundles app $(if $(NEXTROUND_CONFIG_PATH),--config "$(NEXTROUND_CONFIG_PATH)") $(if $(NEXTROUND_CARGO_ARGS),-- $(NEXTROUND_CARGO_ARGS))
 
 sounds:
 	python3 scripts/generate-sounds.py
