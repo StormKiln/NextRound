@@ -1,3 +1,4 @@
+import { formatTarget } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowDown, ArrowUp, Clock3, Play, Plus, RotateCw, Trash2 } from 'lucide-react';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { listExercises } from '@/data/exercises';
 import { useWorkout } from '@/state/workout';
+import { TargetDialog } from './target-dialog';
 
 export function Setup() {
   const { draft, setDraft, errors, busy, start, error } = useWorkout();
@@ -18,6 +20,7 @@ export function Setup() {
   const navigate = useNavigate();
   const [custom, setCustom] = useState(false);
   const [picker, setPicker] = useState(false);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [customError, setCustomError] = useState('');
@@ -151,6 +154,16 @@ export function Setup() {
                 <div className="exercise-copy">
                   <h3>{exercise.name}</h3>
                   <p>{exercise.description || 'Your custom movement'}</p>
+                  <div className="exercise-target">
+                    {exercise.target && <strong>{formatTarget(exercise.target)}</strong>}
+                    <Button
+                      variant="ghost"
+                      aria-label={`${exercise.target ? 'Edit' : 'Set'} target for ${exercise.name}`}
+                      onClick={() => setTargetIndex(index)}
+                    >
+                      {exercise.target ? 'Edit target' : 'Set target'}
+                    </Button>
+                  </div>
                   {validDuration && (
                     <span className="turn-count">
                       {Math.floor(minutes / draft.exercises.length) +
@@ -237,6 +250,20 @@ export function Setup() {
           )}
         </section>
       </div>
+      {targetIndex !== null && draft.exercises[targetIndex] && (
+        <TargetDialog
+          exercise={draft.exercises[targetIndex]}
+          onClose={() => setTargetIndex(null)}
+          onSave={(target) => {
+            setDraft({
+              exercises: draft.exercises.map((entry, index) =>
+                index === targetIndex ? { ...entry, target } : entry,
+              ),
+            });
+            setTargetIndex(null);
+          }}
+        />
+      )}
       {custom && (
         <Dialog title="Add a custom exercise" onClose={() => setCustom(false)}>
           <form

@@ -1,23 +1,38 @@
-import { Download, Info, X } from 'lucide-react';
+import { Download, Info, Settings2, X } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { ExternalLink } from '@/components/external-link';
 import { Button } from '@/components/ui/button';
 import icon from '../../../../../assets/icons/ios/AppIcon.appiconset/AppIcon.png';
 import { version } from '../../../package.json';
+import { GeneralSettings } from './general';
 import { UpdatePanel } from './update-panel';
 import { useUpdates } from './updates';
 
-export function Settings({ onClose }: { onClose: () => void }) {
+export function Settings({
+  onClose,
+  initialSection = 'general',
+}: {
+  onClose: () => void;
+  initialSection?: 'general' | 'updates';
+}) {
   const installing = useUpdates((s) => ['downloading', 'installing'].includes(s.status));
   const dismiss = () => {
     if (!installing) onClose();
   };
-  const [section, setSection] = useState<'updates' | 'about'>('updates');
+  const [section, setSection] = useState<'general' | 'updates' | 'about'>(initialSection);
   return (
     <Dialog title="Settings" onClose={dismiss} className="settings-dialog">
       <div className="settings-layout">
         <nav className="settings-sidebar" aria-label="Settings categories">
+          <Button
+            variant="ghost"
+            aria-pressed={section === 'general'}
+            onClick={() => setSection('general')}
+          >
+            <Settings2 size={17} />
+            General
+          </Button>
           <Button
             variant="ghost"
             aria-pressed={section === 'updates'}
@@ -46,7 +61,9 @@ export function Settings({ onClose }: { onClose: () => void }) {
           >
             <X size={18} />
           </Button>
-          {section === 'about' ? (
+          {section === 'general' ? (
+            <GeneralSettings />
+          ) : section === 'about' ? (
             <>
               <img className="about-icon" src={icon} alt="" />
               <h3>NextRound</h3>

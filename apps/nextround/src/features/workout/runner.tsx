@@ -1,4 +1,4 @@
-import { formatTime } from '@nextround/core';
+import { formatTarget, formatTime } from '@nextround/core';
 import { useNavigate } from '@tanstack/react-router';
 import { Check, Maximize, Pause, Play, RotateCw, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -13,23 +13,36 @@ export function Runner() {
   const navigate = useNavigate();
   const [stop, setStop] = useState(false);
   useEffect(() => {
-    if (!s || s.phase === 'cancelled') void navigate({ to: '/emom' });
+    if (!s || s.phase === 'cancelled')
+      void navigate({ to: s?.config.type === 'countdown' ? '/countdown' : '/emom' });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
   }, [s?.phase, navigate, s]);
   if (!s) return null;
   const lead = s.phase === 'leadIn';
-  const current = s.config.exercises[s.exerciseIndex];
-  const next = s.config.exercises[(s.exerciseIndex + 1) % s.config.exercises.length];
+  const countdown = s.config.type === 'countdown';
+  const emom = s.config.type !== 'countdown' ? s.config : null;
+  const current = emom?.exercises[s.exerciseIndex];
+  const next = emom?.exercises[(s.exerciseIndex + 1) % emom.exercises.length];
+  const upcomingTarget = lead
+    ? current?.target
+    : emom && s.roundIndex < emom.minutes - 1
+      ? next?.target
+      : undefined;
   const warning = !s.paused && s.roundRemainingMs <= s.config.warningSeconds * 1000;
   const fraction = lead
     ? s.roundRemainingMs / Math.max(1, s.config.leadInSeconds * 1000)
-    : s.roundRemainingMs / 60000;
+    : s.roundRemainingMs /
+      (s.config.type === 'countdown' ? s.config.durationSeconds * 1000 : 60000);
   return (
     <main className={`runner ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}>
       <div className="runner-top">
-        <span className="mode-pill">EMOM</span>
+        <span className="mode-pill">{countdown ? 'Countdown' : 'EMOM'}</span>
         <span>
-          {lead ? 'Before you begin' : `Round ${s.roundIndex + 1} of ${s.config.minutes}`}
+          {lead
+            ? 'Before you begin'
+            : countdown
+              ? 'Time for your workout'
+              : `Round ${s.roundIndex + 1} of ${emom?.minutes}`}
         </span>
         <Button
           variant="ghost"
@@ -41,7 +54,10 @@ export function Runner() {
         </Button>
       </div>
       <div className="runner-content">
-        <section className="timer-face" aria-label="Current round">
+        <section
+          className="timer-face"
+          aria-label={countdown ? 'Countdown timer' : 'Current round'}
+        >
           <svg viewBox="0 0 400 400" aria-hidden="true">
             <circle className="track" cx="200" cy="200" r="184" />
             <circle
@@ -54,7 +70,15 @@ export function Runner() {
             />
           </svg>
           <div className="timer-center">
-            <p>{s.paused ? 'Paused' : lead ? 'Starting in' : 'This round'}</p>
+            <p>
+              {s.paused
+                ? 'Paused'
+                : lead
+                  ? 'Starting in'
+                  : countdown
+                    ? 'Time remaining'
+                    : 'This round'}
+            </p>
             <div className="timer-digits" data-testid="round-clock" aria-live="off">
               {formatTime(s.roundRemainingMs)}
             </div>
@@ -68,28 +92,34 @@ export function Runner() {
           </div>
         </section>
         <section className="movement">
-          <p className="eyebrow">{lead ? 'Up first' : 'Your movement'}</p>
-          <h1>{lead ? 'Get ready' : current.name}</h1>
-          {lead && <h2>{current.name}</h2>}
-          <p className="movement-description">{current.description}</p>
+          <p className="eyebrow">
+            {countdown ? 'Your time. Your pace.' : lead ? 'Up first' : 'Your movement'}
+          </p>
+          <h1>{lead ? 'Get ready' : countdown ? 'Make time to move' : current?.name}</h1>
+          {lead && <h2>{current?.name}</h2>}
+          <p className="movement-description">{current?.description}</p>
+          {current?.target && <h2>{formatTarget(current.target)}</h2>}
           <div className="total">
             <span>Workout remaining</span>
             <strong data-testid="total-clock" aria-live="off">
               {formatTime(s.remainingMs)}
             </strong>
           </div>
-          <div className="up-next">
-            <span>
-              {s.roundIndex === s.config.minutes - 1 && !lead ? 'Last round' : 'Next movement'}
-            </span>
-            <strong>
-              {s.roundIndex === s.config.minutes - 1 && !lead
-                ? 'Finish strong.'
-                : lead
-                  ? current.name
-                  : next.name}
-            </strong>
-          </div>
+          {emom && (
+            <div className="up-next">
+              <span>
+                {s.roundIndex === emom.minutes - 1 && !lead ? 'Last round' : 'Next movement'}
+              </span>
+              <strong>
+                {s.roundIndex === emom.minutes - 1 && !lead
+                  ? 'Finish strong.'
+                  : lead
+                    ? current?.name
+                    : next?.name}
+                {upcomingTarget && ` · ${formatTarget(upcomingTarget)}`}
+              </strong>
+            </div>
+          )}
         </section>
       </div>
       {(s.notice || error) && (
@@ -102,7 +132,9 @@ export function Runner() {
           ? 'Workout paused'
           : lead
             ? 'Get ready'
-            : `Round ${s.roundIndex + 1}. ${current.name}`}
+            : countdown
+              ? 'Countdown running'
+              : `Round ${s.roundIndex + 1}. ${current?.name}`}
       </div>
       <div className="runner-controls">
         <Button
@@ -126,7 +158,7 @@ export function Runner() {
       </div>
       {stop && (
         <Dialog title="End this workout?" onClose={() => setStop(false)}>
-          <p>Your workout will stop. Your exercise setup will be kept so you can start again.</p>
+          <p>Your workout will stop. Your setup will be kept so you can start again.</p>
           <div className="dialog-actions">
             <Button variant="ghost" onClick={() => setStop(false)}>
               Keep going
@@ -161,14 +193,18 @@ export function Completion() {
       <span className="complete-mark">
         <Check size={44} />
       </span>
-      <p className="eyebrow">Every round earned</p>
+      <p className="eyebrow">
+        {s.config.type === 'countdown' ? 'Time well spent' : 'Every round earned'}
+      </p>
       <h1>Workout complete</h1>
       <p>You showed up. You put in the work.</p>
       <div className="complete-stats">
-        <div>
-          <strong>{s.config.minutes}</strong>
-          <span>rounds completed</span>
-        </div>
+        {s.config.type !== 'countdown' && (
+          <div>
+            <strong>{s.config.minutes}</strong>
+            <span>rounds completed</span>
+          </div>
+        )}
         <div>
           <strong>{formatTime(s.elapsedMs)}</strong>
           <span>active workout time</span>
@@ -205,7 +241,7 @@ export function Completion() {
             await returnToSetup(
               () => fullscreen(false),
               () => {
-                void navigate({ to: '/emom' });
+                void navigate({ to: s.config.type === 'countdown' ? '/countdown' : '/emom' });
               },
               (error) => useWorkout.setState({ error }),
             );

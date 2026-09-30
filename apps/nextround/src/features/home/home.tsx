@@ -30,6 +30,16 @@ export function Home() {
         </div>
         <img className="home-art" src={artwork} alt="NextRound timer artwork in a gym" />
       </section>
+      <section className="workout-choice countdown-choice" aria-labelledby="countdown-title">
+        <div className="workout-choice-copy">
+          <Clock3 size={32} aria-hidden="true" />
+          <h2 id="countdown-title">One uninterrupted countdown.</h2>
+          <p>One uninterrupted countdown for a workout, a stretch, or a moment to recover.</p>
+          <Button onClick={() => void navigate({ to: '/countdown' })}>
+            Set a countdown <ArrowUpRight size={18} />
+          </Button>
+        </div>
+      </section>
     </main>
   );
 }

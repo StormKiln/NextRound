@@ -4,9 +4,13 @@ pub mod timer;
 mod update_gate;
 #[cfg(feature = "direct-update")]
 mod updates;
+mod window_behavior;
 use audio::Audio;
 use std::{
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc, Mutex,
+    },
     time::{Duration, Instant, SystemTime},
 };
 use tauri::{
@@ -150,6 +154,90 @@ fn open_project_page(app: tauri::AppHandle, page: String) -> Result<(), String> 
         .map_err(|e| e.to_string())
 }
 
+struct WindowSettings {
+    preferences: Mutex<window_behavior::Preferences>,
+    minimize_generation: AtomicU64,
+}
+#[tauri::command]
+fn get_close_behavior(
+    state: State<WindowSettings>,
+) -> Result<window_behavior::CloseBehavior, String> {
+    Ok(state
+        .preferences
+        .lock()
+        .map_err(|_| "Window settings unavailable")?
+        .behavior)
+}
+#[tauri::command]
+fn set_close_behavior(
+    state: State<WindowSettings>,
+    behavior: window_behavior::CloseBehavior,
+) -> Result<(), String> {
+    state
+        .preferences
+        .lock()
+        .map_err(|_| "Window settings unavailable")?
+        .save(behavior)
+}
+fn restore_window(app: &tauri::AppHandle) {
+    if let Some(state) = app.try_state::<WindowSettings>() {
+        state.minimize_generation.fetch_add(1, Ordering::SeqCst);
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+fn request_quit_confirmation(app: &tauri::AppHandle) {
+    restore_window(app);
+    let _ = app.emit("quit-requested", ());
+}
+fn minimize_window(window: tauri::Window) {
+    if !window.is_fullscreen().unwrap_or(false) {
+        if let Err(error) = window.minimize() {
+            let _ = window.emit("window-error", error.to_string());
+        }
+        return;
+    }
+    // macOS cannot miniaturize until the asynchronous fullscreen exit completes.
+    let app = window.app_handle().clone();
+    let ticket = app
+        .state::<WindowSettings>()
+        .minimize_generation
+        .fetch_add(1, Ordering::SeqCst)
+        + 1;
+    if let Err(error) = window.set_fullscreen(false) {
+        let _ = window.emit("window-error", error.to_string());
+        return;
+    }
+    std::thread::spawn(move || {
+        for _ in 0..30 {
+            std::thread::sleep(Duration::from_millis(100));
+            if app
+                .state::<WindowSettings>()
+                .minimize_generation
+                .load(Ordering::SeqCst)
+                != ticket
+            {
+                return;
+            }
+            if window.is_minimized().unwrap_or(false) {
+                return;
+            }
+            if !window.is_fullscreen().unwrap_or(true) {
+                let _ = window.minimize();
+            }
+        }
+        if !window.is_minimized().unwrap_or(false) {
+            let _ = window.emit(
+                "window-error",
+                "The window could not be minimized. Try the yellow minimize button.",
+            );
+        }
+    });
+}
+
 pub fn run() {
     let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
     #[cfg(feature = "direct-update")]
@@ -162,6 +250,8 @@ pub fn run() {
             quit_app,
             distribution_channel,
             open_project_page,
+            get_close_behavior,
+            set_close_behavior,
             updates::check_app_update,
             updates::install_app_update
         ]);
@@ -172,10 +262,46 @@ pub fn run() {
         read_workout,
         quit_app,
         distribution_channel,
-        open_project_page
+        open_project_page,
+        get_close_behavior,
+        set_close_behavior
     ]);
     builder
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let app = window.app_handle();
+                let behavior = app
+                    .state::<WindowSettings>()
+                    .preferences
+                    .lock()
+                    .map(|prefs| prefs.behavior)
+                    .unwrap_or_default();
+                let (installing, active) = app
+                    .try_state::<Shared>()
+                    .map(|state| {
+                        let rt = state.lock().unwrap_or_else(|e| e.into_inner());
+                        (
+                            rt.update_gate.busy,
+                            rt.session.as_ref().is_some_and(Session::active),
+                        )
+                    })
+                    .unwrap_or((false, false));
+                match window_behavior::close_action(behavior, installing, active) {
+                    window_behavior::CloseAction::Block => {}
+                    window_behavior::CloseAction::Minimize => minimize_window(window.clone()),
+                    window_behavior::CloseAction::ConfirmQuit => request_quit_confirmation(app),
+                    window_behavior::CloseAction::Quit => app.exit(0),
+                }
+            }
+        })
         .setup(|app| {
+            app.manage(WindowSettings {
+                preferences: Mutex::new(window_behavior::Preferences::load(
+                    app.path().app_config_dir()?.join("window.json"),
+                )),
+                minimize_generation: AtomicU64::new(0),
+            });
             let menu = Menu::default(app.handle())?;
             menu.remove_at(0)?;
             let quit = MenuItem::with_id(
@@ -205,6 +331,7 @@ pub fn run() {
             app.set_menu(menu)?;
             app.on_menu_event(|app, event| {
                 if event.id().as_ref() == "settings" {
+                    restore_window(app);
                     let _ = app.emit("open-settings", ());
                 }
                 if event.id().as_ref() == "safe-quit" {
@@ -235,6 +362,10 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("Unable to initialize NextRound")
         .run(|app, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = &event {
+                restore_window(app);
+            }
             if let tauri::RunEvent::ExitRequested { api, code, .. } = &event {
                 if let Some(state) = app.try_state::<Shared>() {
                     let rt = state.lock().unwrap_or_else(|e| e.into_inner());
@@ -244,11 +375,7 @@ pub fn run() {
                     }
                     if rt.session.as_ref().is_some_and(Session::active) {
                         api.prevent_exit();
-                        let _ = app.emit("quit-requested", ());
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+                        request_quit_confirmation(app);
                     }
                 }
             }
