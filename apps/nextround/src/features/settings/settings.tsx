@@ -9,12 +9,18 @@ import { GeneralSettings } from './general';
 import { UpdatePanel } from './update-panel';
 import { useUpdates } from './updates';
 
-export function Settings({ onClose }: { onClose: () => void }) {
+export function Settings({
+  onClose,
+  initialSection = 'general',
+}: {
+  onClose: () => void;
+  initialSection?: 'general' | 'updates';
+}) {
   const installing = useUpdates((s) => ['downloading', 'installing'].includes(s.status));
   const dismiss = () => {
     if (!installing) onClose();
   };
-  const [section, setSection] = useState<'general' | 'updates' | 'about'>('general');
+  const [section, setSection] = useState<'general' | 'updates' | 'about'>(initialSection);
   return (
     <Dialog title="Settings" onClose={dismiss} className="settings-dialog">
       <div className="settings-layout">

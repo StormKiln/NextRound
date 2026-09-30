@@ -37,7 +37,7 @@ function Shell() {
   const navigate = useNavigate();
   const [close, setClose] = useState(false);
   const [windowError, setWindowError] = useState<string | null>(null);
-  const [settings, setSettings] = useState(false);
+  const [settings, setSettings] = useState<'general' | 'updates' | null>(null);
   const updates = useUpdates();
   const installing = ['downloading', 'installing'].includes(updates.status);
   useEffect(() => {
@@ -60,7 +60,7 @@ function Shell() {
     let disposed = false;
     let unlistenSettings: (() => void) | undefined;
     if (native)
-      void listen('open-settings', () => setSettings(true)).then((fn) => {
+      void listen('open-settings', () => setSettings('general')).then((fn) => {
         if (disposed) fn();
         else unlistenSettings = fn;
       });
@@ -112,7 +112,12 @@ function Shell() {
         >
           <HomeIcon size={18} />
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Settings" onClick={() => setSettings(true)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Settings"
+          onClick={() => setSettings('general')}
+        >
           <Settings2 size={18} />
         </Button>
       </header>
@@ -131,7 +136,7 @@ function Shell() {
         !installing && (
           <aside className="update-banner" aria-label="Update available">
             <span>NextRound {updates.available.version} is available.</span>
-            <Button variant="secondary" onClick={() => setSettings(true)}>
+            <Button variant="secondary" onClick={() => setSettings('updates')}>
               View update
             </Button>
             <Button
@@ -144,7 +149,7 @@ function Shell() {
             </Button>
           </aside>
         )}
-      {settings && <Settings onClose={() => setSettings(false)} />}
+      {settings && <Settings initialSection={settings} onClose={() => setSettings(null)} />}
       {close && (
         <Dialog title="Close NextRound?" onClose={() => setClose(false)}>
           <p>
