@@ -58,7 +58,7 @@ spctl --assess --type open --context context:primary-signature --verbose "$dmg"
 # Package only after stapling the app; sign these final archive bytes.
 archive="release/NextRound_${version}_aarch64.app.tar.gz"
 tar -czf "$archive" -C "$(dirname "$app")" NextRound.app
-npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm tauri signer sign "$PWD/$archive"
+npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm tauri signer sign --app-version "$version" "$PWD/$archive"
 UPDATER_ARCHIVE="$PWD/$archive" make verify-updater
 python3 scripts/updater-manifest.py release "$version"
 (cd release && shasum -a 256 "$(basename "$dmg")" "$(basename "$archive")" "$(basename "$archive").sig" latest.json > SHA256SUMS)

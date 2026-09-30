@@ -40,7 +40,8 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUxOUY1MkNCRkNGRkQyRUMKUldUczB2Lzh5MUtmVVJsckkwRjJ5V3pjTHRVTUxPSlRFUW5RNEl5eUFrODFWWUR1b0JpU25oWWMK",
-      "endpoints": ["https://github.com/StormKiln/NextRound/releases/latest/download/latest.json"]
+      "endpoints": ["https://github.com/StormKiln/NextRound/releases/latest/download/latest.json"],
+      "requireSignedVersion": true
     }
   }
 }
