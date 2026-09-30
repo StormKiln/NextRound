@@ -17,6 +17,7 @@ import ReactDOM from 'react-dom/client';
 import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
+import { CountdownSetup } from '@/features/countdown/setup';
 import { Home } from '@/features/home/home';
 import { Settings } from '@/features/settings/settings';
 import { useUpdates } from '@/features/settings/updates';
@@ -35,6 +36,7 @@ function Shell() {
   const active = !!s && (s.phase === 'leadIn' || s.phase === 'running');
   const navigate = useNavigate();
   const [close, setClose] = useState(false);
+  const [windowError, setWindowError] = useState<string | null>(null);
   const [settings, setSettings] = useState(false);
   const updates = useUpdates();
   const installing = ['downloading', 'installing'].includes(updates.status);
@@ -69,22 +71,10 @@ function Shell() {
         else unlistenQuit = fn;
       });
     if (native)
-      void getCurrentWindow()
-        .onCloseRequested((event) => {
-          if (['downloading', 'installing'].includes(useUpdates.getState().status)) {
-            event.preventDefault();
-            return;
-          }
-          const session = useWorkout.getState().snapshot;
-          if (session && ['running', 'leadIn'].includes(session.phase)) {
-            event.preventDefault();
-            setClose(true);
-          }
-        })
-        .then((fn) => {
-          if (disposed) fn();
-          else unlisten = fn;
-        });
+      void listen<string>('window-error', (event) => setWindowError(event.payload)).then((fn) => {
+        if (disposed) fn();
+        else unlisten = fn;
+      });
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && native && !document.querySelector('dialog[open]'))
         void getCurrentWindow().setFullscreen(false);
@@ -126,6 +116,11 @@ function Shell() {
           <Settings2 size={18} />
         </Button>
       </header>
+      {windowError && (
+        <p className="error page" role="alert">
+          {windowError}
+        </p>
+      )}
       <div inert={installing}>
         <Outlet />
       </div>
@@ -193,6 +188,11 @@ const setupRoute = createRoute({
   path: '/emom',
   component: Setup,
 });
+const countdownRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/countdown',
+  component: CountdownSetup,
+});
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
@@ -204,7 +204,13 @@ const completeRoute = createRoute({
   component: Completion,
 });
 const router = createRouter({
-  routeTree: rootRoute.addChildren([homeRoute, setupRoute, workoutRoute, completeRoute]),
+  routeTree: rootRoute.addChildren([
+    homeRoute,
+    setupRoute,
+    countdownRoute,
+    workoutRoute,
+    completeRoute,
+  ]),
 });
 declare module '@tanstack/react-router' {
   interface Register {

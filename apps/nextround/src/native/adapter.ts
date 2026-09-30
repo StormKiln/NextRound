@@ -1,8 +1,9 @@
 import {
-  type EmomConfig,
+  cueAt,
   type SessionSnapshot,
   snapshotAt,
   validateConfig,
+  type WorkoutConfig,
   type WorkoutCue,
 } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
@@ -53,19 +54,20 @@ function tickBrowser() {
   const second = Math.floor(elapsed / 1000);
   if (lastSecond === second) return;
   lastSecond = second;
-  const { config, phase, roundRemainingMs } = browserSession;
-  if (phase === 'completed') {
-    play('complete');
-    clearInterval(browserLoop);
-  } else if (
-    second === config.leadInSeconds ||
-    (second > config.leadInSeconds && (second - config.leadInSeconds) % 60 === 0)
-  )
-    play('beep');
-  else if (Math.ceil(roundRemainingMs / 1000) <= config.warningSeconds) play('tock');
+  const cue = cueAt(
+    browserSession.config,
+    Math.min(
+      elapsed,
+      browserSession.config.leadInSeconds * 1000 +
+        browserSession.elapsedMs +
+        browserSession.remainingMs,
+    ),
+  );
+  if (cue) play(cue);
+  if (browserSession.phase === 'completed') clearInterval(browserLoop);
 }
 export const native = isTauri();
-export async function startWorkout(config: EmomConfig): Promise<SessionSnapshot> {
+export async function startWorkout(config: WorkoutConfig): Promise<SessionSnapshot> {
   if (native) return invoke('start_workout', { config });
   if (Object.keys(validateConfig(config)).length)
     throw new Error('Check the workout configuration.');

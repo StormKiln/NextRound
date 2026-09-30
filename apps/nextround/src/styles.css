@@ -34,9 +34,7 @@ button:disabled {
 }
 button,
 input,
-textarea {
-  -webkit-app-region: no-drag;
-}
+textarea,
 :focus-visible {
   outline: 3px solid #ff994f;
   outline-offset: 4px;
@@ -895,4 +893,89 @@ textarea {
   width: max-content;
   max-width: calc(100vw - 32px);
   z-index: 10;
+}
+
+.settings-group select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #48433f;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #211e1b;
+  color: #faf5ef;
+  font: inherit;
+}
+.settings-group select:focus-visible {
+  outline: 2px solid #ff994f;
+  outline-offset: 2px;
+}
+.settings-group select:disabled {
+  opacity: 0.6;
+}
+
+.exercise-target {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.exercise-target strong {
+  color: #ffb77c;
+  font-size: 14px;
+}
+.exercise-target button {
+  font-size: 12px;
+  min-height: 32px;
+  padding: 4px 8px;
+}
+.target-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.target-fields select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #48433f;
+  border-radius: 8px;
+  background: #211e1b;
+  color: #faf5ef;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.countdown-choice {
+  margin-top: 20px;
+  grid-template-columns: 1fr;
+}
+.countdown-choice .workout-choice-copy {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 24px;
+  padding: 26px 32px;
+}
+.countdown-choice .workout-choice-copy > svg {
+  display: none;
+}
+.countdown-choice h2 {
+  font-size: 24px;
+}
+.countdown-choice p {
+  margin: 10px 0 0;
+  max-width: 55ch;
+}
+.countdown-choice .button {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+@media (max-width: 800px) {
+  .countdown-choice .workout-choice-copy {
+    display: block;
+  }
+  .countdown-choice .button {
+    margin-top: 18px;
+  }
 }

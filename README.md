@@ -181,3 +181,9 @@ Workout setup and completion are transient in 0.1.0: they are not saved across a
 Start on Home, choose **Build an EMOM**, and return home without losing the setup in your current session. Open **Settings** from the toolbar or Command-comma for app information and software updates. The branded startup screen stays visible for at least three seconds.
 
 GitHub installs support signed updates from Settings starting with 0.2.0; 0.1.0 users need one manual upgrade. Updates never install during a running or paused workout. TestFlight/App Store builds update through Apple. See [0.2.0 release notes](docs/release-notes-0.2.0.md).
+
+### 0.3.0
+
+Choose EMOM or a fixed-duration Countdown from Home. The bundled picker now contains 43 exercises, including 20 kettlebell movements, five extra variations each of push-ups/planks/bodyweight squats, and rowing-machine rowing. Set per-exercise repetition, time, distance or machine-calorie targets; see [exercise sources](docs/exercise-sources.md). EMOM rounds remain 60 seconds.
+
+Red-close minimizes by default and keeps workouts running. General Settings can switch it to Quit, retaining active-workout confirmation. Click the Dock icon to restore the window. See [0.3.0 release notes](docs/release-notes-0.3.0.md).
