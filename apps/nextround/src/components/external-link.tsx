@@ -5,14 +5,14 @@ export function ExternalLink({
   page,
   children,
 }: {
-  page: 'releases' | 'issues';
+  page: 'releases' | 'issues' | 'privacy';
   children: ReactNode;
 }) {
   const [error, setError] = useState<string | null>(null);
   return (
     <>
       <a
-        href={`https://github.com/StormKiln/NextRound/${page}`}
+        href={`https://github.com/StormKiln/NextRound/${page === 'privacy' ? 'blob/main/PRIVACY.md' : page}`}
         target="_blank"
         rel="noreferrer"
         onClick={(event) => {

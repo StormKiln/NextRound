@@ -29,7 +29,14 @@ test('Settings supports keyboard closing and About information at minimum size',
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible();
   await page.getByRole('button', { name: 'About', exact: true }).click();
-  await expect(page.getByText('Version 0.4.0', { exact: true })).toBeVisible();
+  await expect(page.getByText('Version 1.0.0', { exact: true })).toBeVisible();
+  const privacy = page.getByRole('link', { name: 'Privacy policy', exact: true });
+  await expect(privacy).toBeVisible();
+  await expect(privacy).toHaveAttribute(
+    'href',
+    'https://github.com/StormKiln/NextRound/blob/main/PRIVACY.md',
+  );
+  await expect(privacy).toHaveAttribute('target', '_blank');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeFocused();
