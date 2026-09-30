@@ -3,6 +3,8 @@ import importlib.util
 from pathlib import Path
 import unittest
 import tempfile
+import shlex
+import subprocess
 
 spec = importlib.util.spec_from_file_location('testflight', Path(__file__).parents[2] / 'scripts/testflight-config.py')
 m = importlib.util.module_from_spec(spec)
@@ -49,3 +51,25 @@ class BundlePermissionsTests(unittest.TestCase):
             m.check_bundle_permissions(bundle)
             bundle.chmod(0o700)
             with self.assertRaises(ValueError): m.check_bundle_permissions(bundle)
+
+class CargoForwardingTests(unittest.TestCase):
+    def test_app_store_flags_follow_tauri_separator(self):
+        root = Path(__file__).parents[2]
+        command = subprocess.check_output([
+            'make', '-n', 'build-app', 'PNPM=pnpm',
+            'NEXTROUND_CARGO_ARGS=--no-default-features',
+            'NEXTROUND_CONFIG_PATH=/tmp/app store.json',
+        ], cwd=root, text=True)
+        args = shlex.split(command.strip())
+        separator = args.index('--')
+        self.assertEqual(args[separator + 1:], ['--no-default-features'])
+        self.assertIn('--config', args[:separator])
+        self.assertIn('/tmp/app store.json', args[:separator])
+
+    def test_direct_build_has_no_cargo_separator(self):
+        root = Path(__file__).parents[2]
+        command = subprocess.check_output([
+            'make', '-n', 'build-app', 'PNPM=pnpm',
+            'NEXTROUND_CARGO_ARGS=', 'NEXTROUND_CONFIG_PATH=',
+        ], cwd=root, text=True)
+        self.assertEqual(shlex.split(command.strip()), ['pnpm', 'tauri', 'build', '--bundles', 'app'])
