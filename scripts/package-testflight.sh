@@ -6,7 +6,7 @@ set -euo pipefail
 if [ "$(uname -m)" != arm64 ]; then
   echo 'Build on Apple Silicon for the initial macOS release.' >&2; exit 1
 fi
-make build-app NEXTROUND_CONFIG_PATH="$TESTFLIGHT_DIR/tauri.appstore.json"
+make build-app NEXTROUND_CARGO_ARGS=--no-default-features NEXTROUND_CONFIG_PATH="$TESTFLIGHT_DIR/tauri.appstore.json"
 app=apps/nextround/src-tauri/target/release/bundle/macos/NextRound.app
 codesign --verify --deep --strict "$app"
 python3 scripts/testflight-config.py --check-bundle "$app"

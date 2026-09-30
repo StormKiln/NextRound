@@ -13,7 +13,7 @@ export function Runner() {
   const navigate = useNavigate();
   const [stop, setStop] = useState(false);
   useEffect(() => {
-    if (!s || s.phase === 'cancelled') void navigate({ to: '/' });
+    if (!s || s.phase === 'cancelled') void navigate({ to: '/emom' });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
   }, [s?.phase, navigate, s]);
   if (!s) return null;
@@ -153,7 +153,7 @@ export function Completion() {
     return (
       <main className="complete">
         <h1>No completed workout yet</h1>
-        <Button onClick={() => void navigate({ to: '/' })}>Set up a workout</Button>
+        <Button onClick={() => void navigate({ to: '/emom' })}>Set up a workout</Button>
       </main>
     );
   return (
@@ -177,6 +177,20 @@ export function Completion() {
       {(s.notice || error) && <p role="alert">{s.notice || error}</p>}
       <div className="complete-actions">
         <Button
+          variant="ghost"
+          onClick={async () => {
+            await returnToSetup(
+              () => fullscreen(false),
+              () => {
+                void navigate({ to: '/' });
+              },
+              (error) => useWorkout.setState({ error }),
+            );
+          }}
+        >
+          Home
+        </Button>
+        <Button
           disabled={busy}
           onClick={async () => {
             if (await start(true)) void navigate({ to: '/workout' });
@@ -191,7 +205,7 @@ export function Completion() {
             await returnToSetup(
               () => fullscreen(false),
               () => {
-                void navigate({ to: '/' });
+                void navigate({ to: '/emom' });
               },
               (error) => useWorkout.setState({ error }),
             );

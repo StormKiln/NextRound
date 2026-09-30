@@ -3,19 +3,27 @@ export function Dialog({
   title,
   children,
   onClose,
+  className = '',
 }: {
+  className?: string;
   title: string;
   children: ReactNode;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    ref.current?.showModal();
+    const previous = document.activeElement as HTMLElement | null;
+    const dialog = ref.current;
+    dialog?.showModal();
+    return () => {
+      dialog?.close();
+      previous?.focus();
+    };
   }, []);
   return (
     <dialog
       ref={ref}
-      className="dialog"
+      className={`dialog ${className}`}
       aria-label={title}
       onCancel={(event) => {
         event.preventDefault();

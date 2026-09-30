@@ -39,7 +39,7 @@ build-macos:
 	CI=true $(PNPM) tauri build --bundles app,dmg
 
 build-app:
-	$(PNPM) tauri build --bundles app $(if $(NEXTROUND_CONFIG_PATH),--config "$(NEXTROUND_CONFIG_PATH)")
+	$(PNPM) tauri build --bundles app $(NEXTROUND_CARGO_ARGS) $(if $(NEXTROUND_CONFIG_PATH),--config "$(NEXTROUND_CONFIG_PATH)")
 
 sounds:
 	python3 scripts/generate-sounds.py
@@ -95,3 +95,7 @@ test-sandbox-media:
 .PHONY: testflight-status
 testflight-status:
 	node scripts/testflight-status.mjs
+
+.PHONY: verify-updater
+verify-updater:
+	cargo test --manifest-path $(NATIVE) verify_signed_updater_archive -- --ignored --nocapture

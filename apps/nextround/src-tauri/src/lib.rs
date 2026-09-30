@@ -1,5 +1,9 @@
+use tauri_plugin_opener::OpenerExt;
 mod audio;
 pub mod timer;
+mod update_gate;
+#[cfg(feature = "direct-update")]
+mod updates;
 use audio::Audio;
 use std::{
     sync::{Arc, Mutex},
@@ -13,6 +17,7 @@ use timer::{Config, Session, Snapshot};
 
 struct Runtime {
     session: Option<Session>,
+    update_gate: update_gate::UpdateGate,
     audio: Audio,
     last: Instant,
     wall: SystemTime,
@@ -54,6 +59,9 @@ type Shared = Arc<Mutex<Runtime>>;
 fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, String> {
     let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
     rt.update();
+    if rt.update_gate.busy {
+        return Err("An update is being installed. Wait for NextRound to restart.".into());
+    }
     if rt.session.as_ref().is_some_and(Session::active) {
         return Err("A workout is already active.".into());
     }
@@ -121,8 +129,52 @@ fn quit_app(app: tauri::AppHandle, state: State<'_, Shared>) -> Result<(), Strin
     Ok(())
 }
 
+#[tauri::command]
+fn distribution_channel() -> &'static str {
+    if cfg!(feature = "direct-update") {
+        "direct"
+    } else {
+        "app-store"
+    }
+}
+
+#[tauri::command]
+fn open_project_page(app: tauri::AppHandle, page: String) -> Result<(), String> {
+    let url = match page.as_str() {
+        "releases" => "https://github.com/StormKiln/NextRound/releases",
+        "issues" => "https://github.com/StormKiln/NextRound/issues",
+        _ => return Err("Unknown project page".into()),
+    };
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
+    #[cfg(feature = "direct-update")]
+    let builder = builder
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![
+            start_workout,
+            control_workout,
+            read_workout,
+            quit_app,
+            distribution_channel,
+            open_project_page,
+            updates::check_app_update,
+            updates::install_app_update
+        ]);
+    #[cfg(not(feature = "direct-update"))]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        start_workout,
+        control_workout,
+        read_workout,
+        quit_app,
+        distribution_channel,
+        open_project_page
+    ]);
+    builder
         .setup(|app| {
             let menu = Menu::default(app.handle())?;
             menu.remove_at(0)?;
@@ -133,12 +185,15 @@ pub fn run() {
                 true,
                 Some("CmdOrCtrl+Q"),
             )?;
+            let settings =
+                MenuItem::with_id(app, "settings", "Settings…", true, Some("CmdOrCtrl+,"))?;
             let app_menu = Submenu::with_items(
                 app,
                 "NextRound",
                 true,
                 &[
                     &PredefinedMenuItem::about(app, None, None)?,
+                    &settings,
                     &PredefinedMenuItem::separator(app)?,
                     &PredefinedMenuItem::hide(app, None)?,
                     &PredefinedMenuItem::hide_others(app, None)?,
@@ -149,6 +204,9 @@ pub fn run() {
             menu.insert(&app_menu, 0)?;
             app.set_menu(menu)?;
             app.on_menu_event(|app, event| {
+                if event.id().as_ref() == "settings" {
+                    let _ = app.emit("open-settings", ());
+                }
                 if event.id().as_ref() == "safe-quit" {
                     app.exit(0);
                 }
@@ -156,6 +214,7 @@ pub fn run() {
             let audio = Audio::new().map_err(std::io::Error::other)?;
             let runtime = Arc::new(Mutex::new(Runtime {
                 session: None,
+                update_gate: update_gate::UpdateGate::default(),
                 audio,
                 last: Instant::now(),
                 wall: SystemTime::now(),
@@ -173,18 +232,16 @@ pub fn run() {
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![
-            start_workout,
-            control_workout,
-            read_workout,
-            quit_app
-        ])
         .build(tauri::generate_context!())
         .expect("Unable to initialize NextRound")
         .run(|app, event| {
-            if let tauri::RunEvent::ExitRequested { api, .. } = &event {
+            if let tauri::RunEvent::ExitRequested { api, code, .. } = &event {
                 if let Some(state) = app.try_state::<Shared>() {
                     let rt = state.lock().unwrap_or_else(|e| e.into_inner());
+                    if !rt.update_gate.allows_exit(*code) {
+                        api.prevent_exit();
+                        return;
+                    }
                     if rt.session.as_ref().is_some_and(Session::active) {
                         api.prevent_exit();
                         let _ = app.emit("quit-requested", ());
@@ -204,3 +261,6 @@ pub fn run() {
             }
         });
 }
+
+#[cfg(test)]
+mod update_signature_test;
