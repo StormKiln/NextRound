@@ -34,7 +34,7 @@ test('saved countdown survives reload, loads an isolated draft, searches, rename
   await page.getByRole('button', { name: 'Delete workout', exact: true }).click();
   await page.reload();
   await expect(
-    page.getByText('Save a workout from EMOM or Countdown setup to see it here.'),
+    page.getByText('Save a workout from any workout setup to see it here.'),
   ).toBeVisible();
 });
 test('future saved template schema reports an error and cannot be overwritten by saving', async ({

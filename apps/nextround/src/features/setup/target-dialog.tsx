@@ -14,11 +14,13 @@ const allUnits: TargetUnit[] = ['reps', 'seconds', 'metres', 'calories'];
 export function TargetDialog({
   exercise,
   mode = 'emom',
+  workSeconds = 60,
   onSave,
   onClose,
 }: {
   exercise: ExerciseEntry;
-  mode?: 'emom' | 'countdown';
+  mode?: 'emom' | 'countdown' | 'intervals';
+  workSeconds?: number;
   onSave: (target: ExerciseTarget | undefined) => void;
   onClose: () => void;
 }) {
@@ -42,8 +44,8 @@ export function TargetDialog({
         }}
       >
         <p className="muted">
-          {mode === 'emom'
-            ? 'Finish this work within your minute, then recover until the next round.'
+          {mode !== 'countdown'
+            ? 'Aim to finish within the work phase. The timer advances independently of your target.'
             : 'Work through your list at your own pace while the countdown runs.'}
         </p>
         <div className="target-fields">
@@ -82,10 +84,20 @@ export function TargetDialog({
             </select>
           </div>
         </div>
+        {unit === 'seconds' &&
+          mode !== 'countdown' &&
+          Number.isFinite(workSeconds) &&
+          workSeconds > 0 &&
+          Number(amount) > workSeconds && (
+            <p role="status" className="hint">
+              This target exceeds the {workSeconds}-second work phase. The timer still advances
+              after {workSeconds} seconds. Save it only if this is intentional.
+            </p>
+          )}
         {unit === 'seconds' && (
           <p className="hint">
-            {mode === 'emom'
-              ? 'A time target does not change the 60-second round or add a separate alert.'
+            {mode !== 'countdown'
+              ? 'A time target does not change the work phase or add a separate alert.'
               : 'A time target is a guide; it does not change the countdown or add a separate alert.'}
           </p>
         )}

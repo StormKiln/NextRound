@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1] / 'apps/nextround/sounds'
 ROOT.mkdir(parents=True, exist_ok=True)
 for name, notes in {
     'tock': [(700, .055)],
+    'rest': [(550, .15), (440, .2)],
     'beep': [(1000, .22)],
     'complete': [(660, .18), (880, .18), (1320, .4)],
 }.items():

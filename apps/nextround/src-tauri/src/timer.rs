@@ -30,6 +30,7 @@ pub enum Mode {
     #[default]
     Emom,
     Countdown,
+    Intervals,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -40,6 +41,12 @@ pub struct Config {
     pub duration_seconds: Option<u32>,
     #[serde(default)]
     pub minutes: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub work_seconds: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rest_seconds: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rounds: Option<u32>,
     pub lead_in_seconds: u32,
     pub warning_seconds: u32,
     #[serde(default)]
@@ -53,6 +60,7 @@ pub struct Snapshot {
     pub phase: String,
     pub remaining_ms: u64,
     pub round_remaining_ms: u64,
+    pub interval_phase: Option<String>,
     pub round_index: u32,
     pub exercise_index: usize,
     pub elapsed_ms: u64,
@@ -64,12 +72,28 @@ impl Config {
     fn duration_ms(&self) -> u64 {
         match self.mode {
             Mode::Countdown => u64::from(self.duration_seconds.unwrap_or(0)) * 1000,
+            Mode::Intervals => {
+                let rounds = u64::from(self.rounds.unwrap_or(0));
+                (rounds * u64::from(self.work_seconds.unwrap_or(0))
+                    + rounds.saturating_sub(1) * u64::from(self.rest_seconds.unwrap_or(0)))
+                    * 1000
+            }
             Mode::Emom => u64::from(self.minutes) * 60000,
         }
     }
 }
 pub fn validate(config: &Config) -> Result<(), String> {
-    if config.mode == Mode::Countdown {
+    if config.mode == Mode::Intervals {
+        if !config
+            .work_seconds
+            .is_some_and(|s| (1..=86400).contains(&s))
+            || !config.rest_seconds.is_some_and(|s| s <= 86400)
+            || !config.rounds.is_some_and(|s| (1..=1440).contains(&s))
+            || config.duration_ms() > 86400000
+        {
+            return Err("Choose work 1–86400 seconds, rest 0–86400, rounds 1–1440 and a total within 24 hours.".into());
+        }
+    } else if config.mode == Mode::Countdown {
         if !config
             .duration_seconds
             .is_some_and(|s| (1..=86400).contains(&s))
@@ -83,7 +107,7 @@ pub fn validate(config: &Config) -> Result<(), String> {
         return Err("Invalid lead-in or warning duration.".into());
     }
     let mut ids = std::collections::HashSet::new();
-    if (config.mode == Mode::Emom && config.exercises.is_empty())
+    if (config.mode != Mode::Countdown && config.exercises.is_empty())
         || config.exercises.len() > 100
         || config.exercises.iter().any(|e| {
             e.id.trim().is_empty()
@@ -116,10 +140,23 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
     let duration = config.duration_ms();
     let active = elapsed.saturating_sub(lead);
     let completed = active >= duration;
+    let cycle = if config.mode == Mode::Intervals {
+        u64::from(config.work_seconds.unwrap() + config.rest_seconds.unwrap()) * 1000
+    } else {
+        60000
+    };
+    let resting = config.mode == Mode::Intervals
+        && !completed
+        && elapsed >= lead
+        && active % cycle >= u64::from(config.work_seconds.unwrap()) * 1000;
     let round = if config.mode == Mode::Countdown {
         0
     } else {
-        ((active / 60000) as u32).min(config.minutes - 1)
+        ((active / cycle) as u32).min(if config.mode == Mode::Intervals {
+            config.rounds.unwrap() - 1
+        } else {
+            config.minutes - 1
+        })
     };
     Snapshot {
         phase: if elapsed < lead {
@@ -138,8 +175,14 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         } else if config.mode == Mode::Countdown {
             duration - active
         } else {
-            60000 - active % 60000
+            (if config.mode == Mode::Intervals && !resting {
+                u64::from(config.work_seconds.unwrap()) * 1000
+            } else {
+                cycle
+            }) - active % cycle
         },
+        interval_phase: (config.mode == Mode::Intervals)
+            .then(|| if resting { "rest" } else { "work" }.into()),
         round_index: round,
         exercise_index: if config.mode == Mode::Countdown {
             0
@@ -161,6 +204,19 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
     }
     if second == end {
         return Some("complete");
+    }
+    if config.mode == Mode::Intervals && second >= lead {
+        let work = u64::from(config.work_seconds.unwrap());
+        let cycle = work + u64::from(config.rest_seconds.unwrap());
+        let position = (second - lead) % cycle;
+        if position == 0 {
+            return Some("beep");
+        }
+        if position == work {
+            return Some("rest");
+        }
+        let remaining = (if position < work { work } else { cycle }) - position;
+        return (remaining <= u64::from(config.warning_seconds)).then_some("tock");
     }
     if second == lead
         || (config.mode == Mode::Emom && second > lead && (second - lead).is_multiple_of(60))
@@ -244,6 +300,9 @@ mod tests {
             show_checklist: None,
             duration_seconds: None,
             minutes: 15,
+            work_seconds: None,
+            rest_seconds: None,
+            rounds: None,
             lead_in_seconds: 10,
             warning_seconds: 3,
             exercises: vec![Exercise {
@@ -254,6 +313,75 @@ mod tests {
                 supported_units: None,
             }],
         }
+    }
+    #[test]
+    fn intervals_validate_bounds_and_zero_rest() {
+        let base = serde_json::json!({"type":"intervals","workSeconds":4,"restSeconds":0,"rounds":2,"leadInSeconds":0,"warningSeconds":59,"exercises":[{"id":"a","name":"Squat"}]});
+        let c: Config = serde_json::from_value(base.clone()).unwrap();
+        assert!(validate(&c).is_ok());
+        assert_eq!(cue_at(&c, 4000), Some("beep"));
+        assert_eq!(cue_at(&c, 8000), Some("complete"));
+        assert_eq!(snapshot(&c, 4000).round_index, 1);
+        for (key, value) in [
+            ("workSeconds", 0),
+            ("workSeconds", 86401),
+            ("restSeconds", 86401),
+            ("rounds", 0),
+            ("rounds", 1441),
+        ] {
+            let mut raw = base.clone();
+            raw[key] = serde_json::json!(value);
+            assert!(validate(&serde_json::from_value(raw).unwrap()).is_err());
+        }
+        let mut raw = base.clone();
+        raw["workSeconds"] = serde_json::json!(86400);
+        assert!(validate(&serde_json::from_value(raw.clone()).unwrap()).is_err());
+        raw["rounds"] = serde_json::json!(1);
+        assert!(validate(&serde_json::from_value(raw).unwrap()).is_ok());
+        let mut raw = base;
+        raw.as_object_mut().unwrap().remove("restSeconds");
+        assert!(validate(&serde_json::from_value(raw).unwrap()).is_err());
+    }
+    #[test]
+    fn interval_contract_and_pause() {
+        let c: Config = serde_json::from_value(serde_json::json!({"type":"intervals","workSeconds":4,"restSeconds":2,"rounds":2,"leadInSeconds":2,"warningSeconds":1,"exercises":[{"id":"a","name":"Squat"},{"id":"b","name":"Push-up"}]})).unwrap();
+        assert!(validate(&c).is_ok());
+        assert_eq!(snapshot(&c, 0).remaining_ms, 10000);
+        assert_eq!(snapshot(&c, 6000).round_remaining_ms, 2000);
+        assert_eq!(snapshot(&c, 8000).exercise_index, 1);
+        assert_eq!(snapshot(&c, 12000).phase, "completed");
+        let cues: Vec<_> = (0..=13).map(|s| cue_at(&c, s * 1000)).collect();
+        assert_eq!(
+            cues,
+            vec![
+                None,
+                Some("tock"),
+                Some("beep"),
+                None,
+                None,
+                Some("tock"),
+                Some("rest"),
+                Some("tock"),
+                Some("beep"),
+                None,
+                None,
+                Some("tock"),
+                Some("complete"),
+                None
+            ]
+        );
+        let mut session = Session::new(c).unwrap();
+        assert_eq!(session.advance(6000, false), Some("rest"));
+        session.paused = true;
+        assert_eq!(session.advance(5000, false), None);
+        assert_eq!(session.elapsed, 6000);
+        session.paused = false;
+        assert_eq!(session.advance(2000, true), None);
+        assert!(session.paused);
+        session.paused = false;
+        assert_eq!(session.advance(2000, false), Some("beep"));
+        assert_eq!(session.advance(4000, false), Some("complete"));
+        assert_eq!(session.advance(1000, false), None);
     }
     #[test]
     fn countdown_exercises_validate_and_roundtrip() {

@@ -8,6 +8,15 @@ import { create } from 'zustand';
 import { exercises } from '@/data/exercises';
 import * as adapter from '@/native/adapter';
 
+type WorkoutMode = 'emom' | 'countdown' | 'intervals';
+type IntervalsDraft = {
+  workSeconds: string;
+  restSeconds: string;
+  rounds: string;
+  leadInSeconds: string;
+  warningSeconds: string;
+  exercises: ExerciseEntry[];
+};
 type Draft = {
   minutes: string;
   leadInSeconds: string;
@@ -23,10 +32,12 @@ type CountdownDraft = {
   warningSeconds: string;
 };
 type State = {
-  getDraftConfig: (mode: 'emom' | 'countdown') => WorkoutConfig;
+  getDraftConfig: (mode: WorkoutMode) => WorkoutConfig;
   loadConfig: (config: WorkoutConfig) => boolean;
   checkedExerciseIds: string[];
   toggleChecked: (id: string) => void;
+  intervalsDraft: IntervalsDraft;
+  setIntervalsDraft: (patch: Partial<IntervalsDraft>) => void;
   countdownDraft: CountdownDraft;
   setCountdownDraft: (patch: Partial<CountdownDraft>) => void;
   draft: Draft;
@@ -35,7 +46,7 @@ type State = {
   busy: boolean;
   error: string | null;
   setDraft: (patch: Partial<Draft>) => void;
-  start: (repeat?: boolean, mode?: 'emom' | 'countdown') => Promise<boolean>;
+  start: (repeat?: boolean, mode?: WorkoutMode) => Promise<boolean>;
   control: (action: 'pause' | 'resume' | 'stop') => Promise<void>;
   poll: () => Promise<void>;
 };
@@ -48,6 +59,16 @@ export const useWorkout = create<State>((set, get) => ({
     warningSeconds: '3',
     exercises: exercises.slice(0, 3),
   },
+  intervalsDraft: {
+    workSeconds: '40',
+    restSeconds: '20',
+    rounds: '8',
+    leadInSeconds: '10',
+    warningSeconds: '3',
+    exercises: exercises.slice(0, 3),
+  },
+  setIntervalsDraft: (patch) =>
+    set((s) => ({ intervalsDraft: { ...s.intervalsDraft, ...patch }, errors: {} })),
   countdownDraft: {
     minutes: '5',
     seconds: '0',
@@ -79,7 +100,17 @@ export const useWorkout = create<State>((set, get) => ({
     });
   },
   getDraftConfig: (mode) => {
-    const { draft, countdownDraft } = get();
+    const { draft, countdownDraft, intervalsDraft } = get();
+    if (mode === 'intervals')
+      return {
+        type: 'intervals',
+        workSeconds: numeric(intervalsDraft.workSeconds),
+        restSeconds: numeric(intervalsDraft.restSeconds),
+        rounds: numeric(intervalsDraft.rounds),
+        leadInSeconds: numeric(intervalsDraft.leadInSeconds),
+        warningSeconds: numeric(intervalsDraft.warningSeconds),
+        exercises: structuredClone(intervalsDraft.exercises),
+      };
     return mode === 'countdown'
       ? {
           type: 'countdown',
@@ -107,7 +138,20 @@ export const useWorkout = create<State>((set, get) => ({
         return false;
       }
       const copy = structuredClone(config);
-      if (copy.type === 'countdown') {
+      if (copy.type === 'intervals') {
+        set({
+          intervalsDraft: {
+            workSeconds: String(copy.workSeconds),
+            restSeconds: String(copy.restSeconds),
+            rounds: String(copy.rounds),
+            leadInSeconds: String(copy.leadInSeconds),
+            warningSeconds: String(copy.warningSeconds),
+            exercises: copy.exercises,
+          },
+          errors: {},
+          error: null,
+        });
+      } else if (copy.type === 'countdown') {
         set({
           countdownDraft: {
             minutes: String(Math.floor(copy.durationSeconds / 60)),
