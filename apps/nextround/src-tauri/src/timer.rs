@@ -267,6 +267,14 @@ impl Session {
     pub fn needs_result_decision(&self) -> bool {
         !self.cancelled && !self.result_resolved && self.snapshot().phase == "completed"
     }
+    pub fn stop(&mut self) -> Result<(), String> {
+        if self.snapshot().phase == "completed" {
+            return Err("Your workout has completed. Save or discard its result.".into());
+        }
+        self.cancelled = true;
+        self.paused = false;
+        Ok(())
+    }
     pub fn active(&self) -> bool {
         !self.cancelled && self.snapshot().phase != "completed"
     }
@@ -324,6 +332,17 @@ mod tests {
                 supported_units: None,
             }],
         }
+    }
+    #[test]
+    fn stop_at_completion_preserves_result_until_explicit_resolution() {
+        let mut session = Session::new(config()).unwrap();
+        session.advance(910000, false);
+        assert!(session.stop().is_err());
+        assert_eq!(session.snapshot().phase, "completed");
+        assert!(session.needs_result_decision());
+        let mut active = Session::new(config()).unwrap();
+        assert!(active.stop().is_ok());
+        assert_eq!(active.snapshot().phase, "cancelled");
     }
     #[test]
     fn completed_result_requires_resolution_before_leaving() {

@@ -113,3 +113,23 @@ it('accepts legacy exercise identities and snapshots of all three modes', async 
   }
   expect((await f.repo.read()).results).toHaveLength(2);
 });
+
+it('rejects extra history fields without overwriting them, matching native storage', async () => {
+  for (const value of [
+    { version: 1, results: [result], extra: 'preserve me' },
+    { version: 1, results: [{ ...result, extra: 'preserve me' }] },
+  ]) {
+    const f = fixture();
+    const raw = JSON.stringify(value);
+    f.put(raw);
+    await expect(f.repo.mutate({ action: 'delete', id: result.id })).rejects.toThrow();
+    expect(f.raw()).toBe(raw);
+  }
+});
+it('treats explicit null catalog identity as absent, matching native optional fields', () => {
+  const input = structuredClone(result);
+  const value = JSON.parse(JSON.stringify(input));
+  value.config.exercises[0].catalogId = null;
+  const parsed = parseHistoryDocument({ version: 1, results: [value] });
+  expect(parsed.results[0].config.exercises?.[0].catalogId).toBeUndefined();
+});

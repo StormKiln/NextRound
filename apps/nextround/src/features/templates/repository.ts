@@ -35,7 +35,7 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
           typeof e.id !== 'string' ||
           !e.id ||
           typeof e.name !== 'string' ||
-          (e.catalogId !== undefined &&
+          (e.catalogId != null &&
             (typeof e.catalogId !== 'string' || !e.catalogId.trim() || e.catalogId.length > 120)) ||
           (e.description !== undefined &&
             e.description !== null &&
@@ -51,7 +51,11 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
   const config = value as WorkoutConfig;
   const errors = validateConfig(config);
   if (Object.keys(errors).length) throw new Error(Object.values(errors).join(' '));
-  return structuredClone(config);
+  const copy = structuredClone(config);
+  for (const exercise of copy.exercises ?? []) {
+    if (exercise.catalogId === null) delete exercise.catalogId;
+  }
+  return copy;
 }
 export function parseTemplateDocument(value: unknown): TemplateDocument {
   if (!record(value)) throw new Error(invalid);

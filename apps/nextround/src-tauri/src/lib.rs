@@ -107,10 +107,7 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
             session.paused = false;
             session.notice = None;
         }
-        "stop" => {
-            session.cancelled = true;
-            session.paused = false;
-        }
+        "stop" => session.stop()?,
         _ => return Err("This action is not available.".into()),
     }
     let result = session.snapshot();

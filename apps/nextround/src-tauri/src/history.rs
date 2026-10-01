@@ -137,11 +137,14 @@ mod tests {
     fn result() -> WorkoutResult {
         serde_json::from_value(serde_json::json!({"id":"session-1","completedAt":1780000000000u64,"elapsedMs":30000,"checkedExerciseIds":["entry"],"config":{"type":"countdown","durationSeconds":30,"leadInSeconds":5,"warningSeconds":3,"showChecklist":true,"exercises":[{"id":"entry","catalogId":"pushup","name":"Push-up","target":{"unit":"reps","value":10}}]}})).unwrap()
     }
+    static TEST_ID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     fn store() -> HistoryStore {
         HistoryStore::new(
             std::env::temp_dir()
                 .join(format!(
-                    "nextround-history-{}",
+                    "nextround-history-{}-{}-{}",
+                    std::process::id(),
+                    TEST_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
                     std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
                         .unwrap()
@@ -171,6 +174,34 @@ mod tests {
         .unwrap();
         assert!(s.read().unwrap().results.is_empty());
         std::fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn rejects_extra_fields_and_normalizes_absent_catalog_identity() {
+        let s = store();
+        fs::create_dir_all(s.path.parent().unwrap()).unwrap();
+        let r = serde_json::to_value(result()).unwrap();
+        for raw in [
+            serde_json::json!({"version":1,"results":[r.clone()],"extra":"preserve me"}),
+            {
+                let mut extra = r.clone();
+                extra["extra"] = "preserve me".into();
+                serde_json::json!({"version":1,"results":[extra]})
+            },
+        ] {
+            let bytes = serde_json::to_vec(&raw).unwrap();
+            fs::write(&s.path, &bytes).unwrap();
+            assert!(s
+                .mutate(Mutation::Delete {
+                    id: "session-1".into()
+                })
+                .is_err());
+            assert_eq!(fs::read(&s.path).unwrap(), bytes);
+        }
+        let mut null_id = r;
+        null_id["config"]["exercises"][0]["catalogId"] = serde_json::Value::Null;
+        let parsed: WorkoutResult = serde_json::from_value(null_id).unwrap();
+        assert!(parsed.config.exercises[0].catalog_id.is_none());
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     #[test]
     fn corrupt_future_and_invalid_records_are_not_replaced() {

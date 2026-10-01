@@ -89,6 +89,8 @@ export async function controlWorkout(
   if (!browserSession) throw new Error('No active workout.');
   stopSound();
   if (action === 'stop') {
+    if (browserSession.phase === 'completed')
+      throw new Error('Your workout has completed. Save or discard its result.');
     browserSession.phase = 'cancelled';
     clearInterval(browserLoop);
   } else {

@@ -16,6 +16,12 @@ export const HISTORY_STORAGE_KEY = 'nextround.workout-history.v1';
 const invalid = 'Workout history could not be read. Existing data has been preserved.';
 export function copyResult(value: unknown): WorkoutResult {
   if (!value || typeof value !== 'object') throw new Error(invalid);
+  if (
+    Object.keys(value).some(
+      (key) => !['id', 'completedAt', 'elapsedMs', 'config', 'checkedExerciseIds'].includes(key),
+    )
+  )
+    throw new Error(invalid);
   const entry = value as WorkoutResult;
   const config = copyValidatedConfig(entry.config);
   if (
@@ -48,6 +54,8 @@ export function copyResult(value: unknown): WorkoutResult {
 }
 export function parseHistoryDocument(value: unknown): HistoryDocument {
   if (!value || typeof value !== 'object') throw new Error(invalid);
+  if (Object.keys(value).some((key) => !['version', 'results'].includes(key)))
+    throw new Error(invalid);
   const document = value as HistoryDocument;
   if (document.version !== 1)
     throw new Error(
