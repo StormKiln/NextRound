@@ -54,7 +54,7 @@ test('padded search matches and whitespace-only search collapses groups', async 
   await page.getByLabel('Search exercises').fill('  kettlebell   swing  ');
   await expect(page.getByRole('button', { name: /^Kettlebell swing/ })).toBeVisible();
   await page.getByLabel('Search exercises').fill('   ');
-  await expect(page.locator('summary')).toHaveCount(6);
+  await expect(page.locator('.exercise-group summary')).toHaveCount(6);
   await expect(page.getByRole('button', { name: /^Kettlebell swing/ })).toBeHidden();
 });
 test('oversized EMOM target warns without blocking intentional saving', async ({ page }) => {
