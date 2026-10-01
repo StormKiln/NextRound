@@ -4,6 +4,7 @@ import { Check, Maximize, Pause, Play, RotateCw, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
+import { ResultActions } from '@/features/history';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
 import '../countdown/checklist.css';
@@ -243,9 +244,9 @@ export function Runner() {
   );
 }
 export function Completion() {
-  const { snapshot: s, start, busy, error } = useWorkout();
+  const { snapshot: s, start, busy, error, pendingResult } = useWorkout();
   const navigate = useNavigate();
-  if (!s)
+  if (s?.phase !== 'completed')
     return (
       <main className="complete">
         <h1>No completed workout yet</h1>
@@ -275,6 +276,7 @@ export function Completion() {
         </div>
       </div>
       {(s.notice || error) && <p role="alert">{s.notice || error}</p>}
+      <ResultActions />
       <div className="complete-actions">
         <Button
           variant="ghost"
@@ -291,7 +293,7 @@ export function Completion() {
           Home
         </Button>
         <Button
-          disabled={busy}
+          disabled={busy || !!pendingResult}
           onClick={async () => {
             if (await start(true)) void navigate({ to: '/workout' });
           }}

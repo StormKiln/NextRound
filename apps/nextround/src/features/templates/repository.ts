@@ -35,6 +35,8 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
           typeof e.id !== 'string' ||
           !e.id ||
           typeof e.name !== 'string' ||
+          (e.catalogId !== undefined &&
+            (typeof e.catalogId !== 'string' || !e.catalogId.trim() || e.catalogId.length > 120)) ||
           (e.description !== undefined &&
             e.description !== null &&
             typeof e.description !== 'string') ||

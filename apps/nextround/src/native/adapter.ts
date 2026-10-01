@@ -103,3 +103,7 @@ export async function readWorkout(): Promise<SessionSnapshot | null> {
 export async function fullscreen(enabled: boolean) {
   if (native) await getCurrentWindow().setFullscreen(enabled);
 }
+
+export async function resolveResult() {
+  if (native) await invoke('resolve_workout_result');
+}

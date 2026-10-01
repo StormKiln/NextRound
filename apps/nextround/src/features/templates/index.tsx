@@ -28,7 +28,8 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
   const [config, setConfig] = useState<WorkoutConfig | null>(null);
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
+  const currentConfig = JSON.stringify(getConfig());
   const mutation = useTemplateMutation();
   const inputId = useId();
   return (
@@ -41,7 +42,7 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
             setConfig(copyValidatedConfig(getConfig()));
             setName('');
             setError(null);
-            setSaved(false);
+            setSaved(null);
           } catch (e) {
             setError(message(e));
           }
@@ -49,7 +50,7 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
       >
         Save workout
       </Button>
-      {saved && <span role="status">Workout saved.</span>}
+      {saved === currentConfig && <span role="status">Workout saved.</span>}
       {error && !config && <p role="alert">{error}</p>}
       {config && (
         <Dialog
@@ -66,7 +67,7 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
               try {
                 await mutation.mutateAsync({ action: 'save', name, config });
                 setConfig(null);
-                setSaved(true);
+                setSaved(JSON.stringify(config));
               } catch (e) {
                 setError(message(e));
               }

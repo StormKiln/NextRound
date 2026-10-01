@@ -1,7 +1,7 @@
 import { type ExerciseEntry, formatTarget } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,8 +27,9 @@ export function ExerciseEditor({
   const {
     data: library = [],
     isError,
+    isPending,
     refetch,
-  } = useQuery({ queryKey: ['exercises'], queryFn: listExercises });
+  } = useQuery({ queryKey: ['exercises'], queryFn: listExercises, retry: false });
   const [custom, setCustom] = useState(false);
   const [picker, setPicker] = useState(false);
   const [targetId, setTargetId] = useState<string | null>(null);
@@ -41,8 +42,16 @@ export function ExerciseEditor({
   const helpId = useId();
   const [announcement, setAnnouncement] = useState('');
   const [dragId, setDragId] = useState<string | null>(null);
-  const originalOrder = useRef<ExerciseEntry[] | null>(null);
+  const originalOrder = useRef<string[] | null>(null);
   const pointerActive = useRef(false);
+  useEffect(() => {
+    if (dragId && !exercises.some((entry) => entry.id === dragId)) {
+      originalOrder.current = null;
+      pointerActive.current = false;
+      setDragId(null);
+      setAnnouncement('Reordering ended. Movement removed.');
+    }
+  }, [dragId, exercises]);
   const minutes = rounds ?? 0;
   const validDuration = Number.isInteger(minutes) && minutes > 0 && minutes <= 1440;
   const targetIndex = exercises.findIndex((entry) => entry.id === targetId);
@@ -58,12 +67,22 @@ export function ExerciseEditor({
     setAnnouncement(`${entry.name}, position ${to + 1} of ${next.length}`);
   };
   const pickup = (id: string) => {
-    originalOrder.current = [...exercises];
+    originalOrder.current = exercises.map((entry) => entry.id);
     setDragId(id);
     setAnnouncement('Movement picked up. Use arrow keys to move, Space to drop, Escape to cancel.');
   };
   const finish = (cancel = false) => {
-    if (cancel && originalOrder.current) onChange(originalOrder.current);
+    if (cancel && originalOrder.current) {
+      const order = originalOrder.current;
+      const current = new Map(exercises.map((entry) => [entry.id, entry]));
+      onChange([
+        ...order.flatMap((id) => {
+          const entry = current.get(id);
+          return entry ? [entry] : [];
+        }),
+        ...exercises.filter((entry) => !order.includes(entry.id)),
+      ]);
+    }
     originalOrder.current = null;
     pointerActive.current = false;
     setDragId(null);
@@ -299,18 +318,29 @@ export function ExerciseEditor({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          {isError && <Button onClick={() => void refetch()}>Retry loading exercises</Button>}
+          {isPending && <p role="status">Loading exercises…</p>}
+          {isError && (
+            <div role="alert">
+              <p>Exercises could not be loaded.</p>
+              <Button onClick={() => void refetch()}>Retry loading exercises</Button>
+            </div>
+          )}
           <div className="library-list">
-            <ExerciseGroups
-              library={library}
-              search={search}
-              onSelect={(entry) => {
-                onChange([...exercises, { ...entry, id: crypto.randomUUID() }]);
-                setPicker(false);
-                setSearch('');
-              }}
-            />
-            {!library.some((e) => matchesExercise(e, search)) && (
+            {!isPending && !isError && (
+              <ExerciseGroups
+                library={library}
+                search={search}
+                onSelect={(entry) => {
+                  onChange([
+                    ...exercises,
+                    { ...entry, catalogId: entry.id, id: crypto.randomUUID() },
+                  ]);
+                  setPicker(false);
+                  setSearch('');
+                }}
+              />
+            )}
+            {!isPending && !isError && !library.some((e) => matchesExercise(e, search)) && (
               <p>No matching exercises. Try another search or add a Custom exercise.</p>
             )}
           </div>

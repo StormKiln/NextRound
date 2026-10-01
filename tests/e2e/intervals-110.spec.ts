@@ -23,6 +23,8 @@ test('intervals run work/rest without final rest, pause and repeat', async ({ pa
   await page.clock.runFor(4000);
   await expect(page.getByRole('heading', { name: 'Workout complete' })).toBeVisible();
   await expect(page.getByText('00:10', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save result', exact: true }).click();
+  await expect(page.getByText('Result saved to history.')).toBeVisible();
   await page.getByRole('button', { name: 'Repeat workout' }).click();
   await expect(page.getByRole('heading', { name: 'Get ready' })).toBeVisible();
   await page.getByRole('button', { name: 'Stop workout' }).click();

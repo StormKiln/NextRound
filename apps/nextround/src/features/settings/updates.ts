@@ -93,6 +93,10 @@ export const useUpdates = create<State>((set, get) => ({
       set({ error: 'Finish or stop your workout before installing an update.' });
       return;
     }
+    if (useWorkout.getState().pendingResult) {
+      set({ error: 'Save or discard your completed result before installing an update.' });
+      return;
+    }
     set({ status: 'downloading', error: null, downloaded: 0, total: null });
     const cleanups: Array<() => void> = [];
     try {

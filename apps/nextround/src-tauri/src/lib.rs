@@ -1,5 +1,6 @@
 use tauri_plugin_opener::OpenerExt;
 mod audio;
+mod history;
 mod templates;
 pub mod timer;
 mod update_gate;
@@ -70,6 +71,15 @@ fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, S
     if rt.session.as_ref().is_some_and(Session::active) {
         return Err("A workout is already active.".into());
     }
+    if rt
+        .session
+        .as_ref()
+        .is_some_and(Session::needs_result_decision)
+    {
+        return Err(
+            "Save or discard your completed result before starting another workout.".into(),
+        );
+    }
     let mut session = Session::new(config)?;
     if let Some(cue) = timer::cue_at(&session.config, 0) {
         if let Err(error) = rt.audio.play(cue) {
@@ -123,11 +133,28 @@ fn read_workout(state: State<'_, Shared>) -> Result<Option<Snapshot>, String> {
 }
 
 #[tauri::command]
+fn resolve_workout_result(state: State<'_, Shared>) -> Result<(), String> {
+    let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    let session = rt.session.as_mut().ok_or("No completed workout")?;
+    if session.snapshot().phase != "completed" {
+        return Err("No completed workout".into());
+    }
+    session.result_resolved = true;
+    Ok(())
+}
+
+#[tauri::command]
 fn quit_app(app: tauri::AppHandle, state: State<'_, Shared>) -> Result<(), String> {
     {
         let rt = state.lock().map_err(|_| "Timer unavailable")?;
-        if rt.session.as_ref().is_some_and(Session::active) {
-            return Err("Stop the active workout before quitting.".into());
+        if rt
+            .session
+            .as_ref()
+            .is_some_and(|s| s.active() || s.needs_result_decision())
+        {
+            return Err(
+                "Stop your workout or save/discard its completed result before quitting.".into(),
+            );
         }
     }
     app.exit(0);
@@ -250,10 +277,13 @@ pub fn run() {
             control_workout,
             read_workout,
             quit_app,
+            resolve_workout_result,
             distribution_channel,
             open_project_page,
             get_close_behavior,
             set_close_behavior,
+            history::read_workout_history,
+            history::mutate_workout_history,
             templates::read_workout_templates,
             templates::mutate_workout_templates,
             updates::check_app_update,
@@ -265,10 +295,13 @@ pub fn run() {
         control_workout,
         read_workout,
         quit_app,
+        resolve_workout_result,
         distribution_channel,
         open_project_page,
         get_close_behavior,
         set_close_behavior,
+        history::read_workout_history,
+        history::mutate_workout_history,
         templates::read_workout_templates,
         templates::mutate_workout_templates
     ]);
@@ -289,7 +322,9 @@ pub fn run() {
                         let rt = state.lock().unwrap_or_else(|e| e.into_inner());
                         (
                             rt.update_gate.busy,
-                            rt.session.as_ref().is_some_and(Session::active),
+                            rt.session
+                                .as_ref()
+                                .is_some_and(|s| s.active() || s.needs_result_decision()),
                         )
                     })
                     .unwrap_or((false, false));
@@ -302,6 +337,9 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            app.manage(history::HistoryStore::new(
+                app.path().app_data_dir()?.join("workout-history.json"),
+            ));
             app.manage(templates::TemplateStore::new(
                 app.path().app_data_dir()?.join("workout-templates.json"),
             ));
@@ -382,7 +420,11 @@ pub fn run() {
                         api.prevent_exit();
                         return;
                     }
-                    if rt.session.as_ref().is_some_and(Session::active) {
+                    if rt
+                        .session
+                        .as_ref()
+                        .is_some_and(|s| s.active() || s.needs_result_decision())
+                    {
                         api.prevent_exit();
                         request_quit_confirmation(app);
                     }
