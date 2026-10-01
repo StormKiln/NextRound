@@ -32,12 +32,12 @@ test('groups collapse and search reveals matching movements', async ({ page }) =
     'Cardio',
     'Other bodyweight',
   ]) {
-    await expect(page.locator('summary').filter({ hasText: group })).toBeVisible();
+    await expect(page.locator('.exercise-group summary').filter({ hasText: group })).toBeVisible();
   }
   await expect(page.getByRole('button', { name: /^Kettlebell swing/ })).toBeHidden();
   await page.getByLabel('Search exercises').fill('swing');
   await expect(page.getByRole('button', { name: /^Kettlebell swing/ })).toBeVisible();
-  await expect(page.locator('summary')).toHaveCount(1);
+  await expect(page.locator('.exercise-group summary')).toHaveCount(1);
 });
 
 test('keyboard reorder can commit and cancel while preserving focus', async ({ page }) => {

@@ -12,6 +12,10 @@ When you choose **Save workout**, the app stores the template's name, exercises,
 
 NextRound does not access HealthKit, read health records, connect to fitness equipment, or automatically measure your activity. Repetition, distance, and calorie targets are values you enter or select, not measurements collected from a device.
 
+## Exercise usage and suggestions
+
+The exercise picker derives usage counts and exercise suggestions locally from retained saved results. A catalog exercise counts once per saved workout, regardless of repeated rounds or entries. Deleting a result removes its contribution. Custom or older entries without catalog identity are not attributed by name. These suggestions do not send workout data to any external service and do not use an AI service.
+
 ## No advertising or developer-operated analytics
 
 The app includes no advertising, tracking, or developer-operated analytics SDKs. We do not sell your workout data or use it for advertising. There is no NextRound account database or server-side copy of your saved workout templates or history.
