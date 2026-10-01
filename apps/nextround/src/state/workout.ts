@@ -6,6 +6,7 @@ import {
 } from '@nextround/core';
 import { create } from 'zustand';
 import { exercises } from '@/data/exercises';
+import { copyResult, mutateHistory, type WorkoutResult } from '@/features/history/repository';
 import * as adapter from '@/native/adapter';
 
 type WorkoutMode = 'emom' | 'countdown' | 'intervals';
@@ -32,6 +33,11 @@ type CountdownDraft = {
   warningSeconds: string;
 };
 type State = {
+  sessionId: string | null;
+  pendingResult: WorkoutResult | null;
+  resultStatus: 'none' | 'pending' | 'saved' | 'discarded';
+  saveResult: () => Promise<boolean>;
+  discardResult: () => Promise<boolean>;
   getDraftConfig: (mode: WorkoutMode) => WorkoutConfig;
   loadConfig: (config: WorkoutConfig) => boolean;
   checkedExerciseIds: string[];
@@ -53,11 +59,45 @@ type State = {
 let generation = 0;
 let polling = false;
 export const useWorkout = create<State>((set, get) => ({
+  sessionId: null,
+  pendingResult: null,
+  resultStatus: 'none',
+  saveResult: async () => {
+    const { pendingResult, busy } = get();
+    if (!pendingResult || busy) return false;
+    set({ busy: true, error: null });
+    try {
+      await mutateHistory({ action: 'save', result: pendingResult });
+      await adapter.resolveResult();
+      set({ pendingResult: null, resultStatus: 'saved' });
+      return true;
+    } catch (error) {
+      set({ error: `Could not save the result: ${String(error)}` });
+      return false;
+    } finally {
+      set({ busy: false });
+    }
+  },
+  discardResult: async () => {
+    if (get().busy) return false;
+    if (!get().pendingResult) return true;
+    set({ busy: true, error: null });
+    try {
+      await adapter.resolveResult();
+      set({ pendingResult: null, resultStatus: 'discarded' });
+      return true;
+    } catch (error) {
+      set({ error: String(error) });
+      return false;
+    } finally {
+      set({ busy: false });
+    }
+  },
   draft: {
     minutes: '15',
     leadInSeconds: '10',
     warningSeconds: '3',
-    exercises: exercises.slice(0, 3),
+    exercises: exercises.slice(0, 3).map((entry) => ({ ...entry, catalogId: entry.id })),
   },
   intervalsDraft: {
     workSeconds: '40',
@@ -65,7 +105,7 @@ export const useWorkout = create<State>((set, get) => ({
     rounds: '8',
     leadInSeconds: '10',
     warningSeconds: '3',
-    exercises: exercises.slice(0, 3),
+    exercises: exercises.slice(0, 3).map((entry) => ({ ...entry, catalogId: entry.id })),
   },
   setIntervalsDraft: (patch) =>
     set((s) => ({ intervalsDraft: { ...s.intervalsDraft, ...patch }, errors: {} })),
@@ -88,6 +128,7 @@ export const useWorkout = create<State>((set, get) => ({
   toggleChecked: (id) => {
     const { snapshot, checkedExerciseIds } = get();
     if (
+      snapshot?.phase !== 'running' ||
       snapshot?.config.type !== 'countdown' ||
       snapshot.config.showChecklist === false ||
       !snapshot.config.exercises?.some((exercise) => exercise.id === id)
@@ -130,7 +171,8 @@ export const useWorkout = create<State>((set, get) => ({
   },
   loadConfig: (config) => {
     const { busy, snapshot } = get();
-    if (busy || (snapshot && ['leadIn', 'running'].includes(snapshot.phase))) return false;
+    if (get().pendingResult || busy || (snapshot && ['leadIn', 'running'].includes(snapshot.phase)))
+      return false;
     try {
       const errors = validateConfig(config);
       if (Object.keys(errors).length) {
@@ -182,7 +224,7 @@ export const useWorkout = create<State>((set, get) => ({
     }
   },
   start: async (repeat, mode = 'emom') => {
-    if (get().busy) return false;
+    if (get().busy || get().pendingResult) return false;
     const previous = get().snapshot;
     const config =
       repeat && previous ? structuredClone(previous.config) : get().getDraftConfig(mode);
@@ -193,7 +235,13 @@ export const useWorkout = create<State>((set, get) => ({
     set({ busy: true, error: null });
     try {
       const snapshot = await adapter.startWorkout(config);
-      set({ snapshot, checkedExerciseIds: [] });
+      set({
+        snapshot,
+        checkedExerciseIds: [],
+        sessionId: crypto.randomUUID(),
+        pendingResult: null,
+        resultStatus: 'none',
+      });
       try {
         await adapter.fullscreen(true);
       } catch {
@@ -227,7 +275,19 @@ export const useWorkout = create<State>((set, get) => ({
     const ticket = generation;
     try {
       const snapshot = await adapter.readWorkout();
-      if (ticket === generation && snapshot) set({ snapshot });
+      if (ticket === generation && snapshot) {
+        const state = get();
+        if (snapshot.phase === 'completed' && state.resultStatus === 'none') {
+          const result = copyResult({
+            id: state.sessionId ?? crypto.randomUUID(),
+            completedAt: Date.now(),
+            elapsedMs: snapshot.elapsedMs,
+            config: snapshot.config,
+            checkedExerciseIds: state.checkedExerciseIds,
+          });
+          set({ snapshot, pendingResult: result, resultStatus: 'pending' });
+        } else set({ snapshot });
+      }
     } catch (error) {
       if (ticket === generation) set({ error: `The timer could not be read: ${String(error)}` });
     } finally {

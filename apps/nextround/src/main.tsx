@@ -11,13 +11,14 @@ import {
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { Home as HomeIcon, Settings2 } from 'lucide-react';
+import { History as HistoryIcon, Home as HomeIcon, Settings2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
 import { CountdownSetup } from '@/features/countdown/setup';
+import { History } from '@/features/history';
 import { Home } from '@/features/home/home';
 import { IntervalsSetup } from '@/features/intervals/setup';
 import { scheduleAutomaticUpdates } from '@/features/settings/automatic-updates';
@@ -35,6 +36,9 @@ const queryClient = new QueryClient();
 function Shell() {
   const s = useWorkout((state) => state.snapshot);
   const control = useWorkout((state) => state.control);
+  const pendingResult = useWorkout((state) => state.pendingResult);
+  const resultBusy = useWorkout((state) => state.busy);
+  const resultError = useWorkout((state) => state.error);
   const active = !!s && (s.phase === 'leadIn' || s.phase === 'running');
   const navigate = useNavigate();
   const [close, setClose] = useState(false);
@@ -74,6 +78,12 @@ function Shell() {
   useBlocker({
     shouldBlockFn: ({ next }) => installing || (active && next.pathname !== '/workout'),
     enableBeforeUnload: active || installing,
+  });
+  const resultBlocker = useBlocker({
+    shouldBlockFn: ({ next }) =>
+      !!useWorkout.getState().pendingResult && next.pathname !== '/complete',
+    enableBeforeUnload: !!pendingResult,
+    withResolver: true,
   });
   useEffect(() => {
     const timer = setInterval(() => void useWorkout.getState().poll(), 100);
@@ -137,6 +147,15 @@ function Shell() {
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Workout history"
+          disabled={active || installing}
+          onClick={() => void navigate({ to: '/history' })}
+        >
+          <HistoryIcon size={18} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           aria-label="Settings"
           onClick={() => setSettings('general')}
         >
@@ -172,26 +191,61 @@ function Shell() {
           </aside>
         )}
       {settings && <Settings initialSection={settings} onClose={() => setSettings(null)} />}
-      {close && (
-        <Dialog title="Close NextRound?" onClose={() => setClose(false)}>
-          <p>
-            This will stop your active workout. Completed workout history is not saved in this
-            version.
-          </p>
+      {resultBlocker.status === 'blocked' && (
+        <Dialog
+          title="Unsaved workout result"
+          onClose={() => {
+            if (!resultBusy) resultBlocker.reset();
+          }}
+        >
+          <p>Save your result on the completion screen, or discard it before leaving.</p>
+          {resultError && <p role="alert">{resultError}</p>}
           <div className="dialog-actions">
-            <Button variant="ghost" onClick={() => setClose(false)}>
-              Keep working out
+            <Button variant="ghost" disabled={resultBusy} onClick={() => resultBlocker.reset()}>
+              Keep result
             </Button>
             <Button
               variant="destructive"
+              disabled={resultBusy}
               onClick={async () => {
+                if (await useWorkout.getState().discardResult()) resultBlocker.proceed();
+              }}
+            >
+              Discard and continue
+            </Button>
+          </div>
+        </Dialog>
+      )}
+      {close && (
+        <Dialog title="Close NextRound?" onClose={() => setClose(false)}>
+          <p>
+            {pendingResult
+              ? 'Your completed result has not been saved. Return to it to save, or discard it and quit.'
+              : 'This will stop your active workout. Partial sessions are not saved to history.'}
+          </p>
+          {resultError && <p role="alert">{resultError}</p>}
+          <div className="dialog-actions">
+            <Button variant="ghost" onClick={() => setClose(false)}>
+              {pendingResult ? 'Keep result' : 'Keep working out'}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={resultBusy}
+              onClick={async () => {
+                if (pendingResult) {
+                  if (await useWorkout.getState().discardResult()) {
+                    setClose(false);
+                    await invoke('quit_app');
+                  }
+                  return;
+                }
                 await control('stop');
                 setClose(false);
                 const session = useWorkout.getState().snapshot;
                 if (session?.phase === 'cancelled') await invoke('quit_app');
               }}
             >
-              Stop and close
+              {pendingResult ? 'Discard and quit' : 'Stop and close'}
             </Button>
           </div>
         </Dialog>
@@ -210,6 +264,11 @@ const rootRoute = createRootRoute({
   ),
 });
 const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Home });
+const historyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/history',
+  component: History,
+});
 const setupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/emom',
@@ -238,6 +297,7 @@ const completeRoute = createRoute({
 const router = createRouter({
   routeTree: rootRoute.addChildren([
     homeRoute,
+    historyRoute,
     setupRoute,
     countdownRoute,
     intervalsRoute,

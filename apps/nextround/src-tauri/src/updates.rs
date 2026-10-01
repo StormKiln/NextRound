@@ -1,4 +1,4 @@
-use crate::{timer::Session, Shared};
+use crate::Shared;
 use tauri::{Emitter, Manager};
 use tauri_plugin_updater::UpdaterExt;
 
@@ -30,7 +30,17 @@ pub async fn install_app_update(app: tauri::AppHandle, version: String) -> Resul
     let state = app.state::<Shared>();
     {
         let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
-        let active = rt.session.as_ref().is_some_and(Session::active);
+        rt.update();
+        if rt
+            .session
+            .as_ref()
+            .is_some_and(|s| s.needs_result_decision())
+        {
+            return Err(
+                "Save or discard your completed result before installing an update.".into(),
+            );
+        }
+        let active = rt.session.as_ref().is_some_and(|s| s.active());
         rt.update_gate.begin(active)?;
     }
     let result = async {

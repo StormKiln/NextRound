@@ -35,6 +35,8 @@ test('lead-in, round and total clocks, pause, completion and repeat', async ({ p
   await page.getByRole('button', { name: 'Resume workout' }).click();
   await page.clock.runFor(51000);
   await expect(page.getByRole('heading', { name: 'Workout complete' })).toBeVisible();
+  await page.getByRole('button', { name: 'Save result', exact: true }).click();
+  await expect(page.getByText('Result saved to history.')).toBeVisible();
   await page.getByRole('button', { name: 'Repeat workout' }).click();
   await expect(page.getByRole('heading', { name: 'Get ready' })).toBeVisible();
 });

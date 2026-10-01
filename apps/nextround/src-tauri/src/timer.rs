@@ -17,6 +17,8 @@ pub struct Target {
 #[serde(rename_all = "camelCase")]
 pub struct Exercise {
     pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
     pub name: String,
     pub description: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -69,7 +71,7 @@ pub struct Snapshot {
     pub config: Config,
 }
 impl Config {
-    fn duration_ms(&self) -> u64 {
+    pub(crate) fn duration_ms(&self) -> u64 {
         match self.mode {
             Mode::Countdown => u64::from(self.duration_seconds.unwrap_or(0)) * 1000,
             Mode::Intervals => {
@@ -111,6 +113,9 @@ pub fn validate(config: &Config) -> Result<(), String> {
         || config.exercises.len() > 100
         || config.exercises.iter().any(|e| {
             e.id.trim().is_empty()
+                || e.catalog_id
+                    .as_ref()
+                    .is_some_and(|id| id.trim().is_empty() || id.chars().count() > 120)
                 || !ids.insert(&e.id)
                 || e.target.as_ref().is_some_and(|target| {
                     target.value == 0
@@ -242,6 +247,7 @@ pub struct Session {
     pub elapsed: u64,
     pub paused: bool,
     pub cancelled: bool,
+    pub result_resolved: bool,
     pub notice: Option<String>,
     last_second: u64,
 }
@@ -253,9 +259,21 @@ impl Session {
             elapsed: 0,
             paused: false,
             cancelled: false,
+            result_resolved: false,
             notice: None,
             last_second: 0,
         })
+    }
+    pub fn needs_result_decision(&self) -> bool {
+        !self.cancelled && !self.result_resolved && self.snapshot().phase == "completed"
+    }
+    pub fn stop(&mut self) -> Result<(), String> {
+        if self.snapshot().phase == "completed" {
+            return Err("Your workout has completed. Save or discard its result.".into());
+        }
+        self.cancelled = true;
+        self.paused = false;
+        Ok(())
     }
     pub fn active(&self) -> bool {
         !self.cancelled && self.snapshot().phase != "completed"
@@ -308,11 +326,35 @@ mod tests {
             exercises: vec![Exercise {
                 id: "a".into(),
                 name: "Squat".into(),
+                catalog_id: None,
                 description: None,
                 target: None,
                 supported_units: None,
             }],
         }
+    }
+    #[test]
+    fn stop_at_completion_preserves_result_until_explicit_resolution() {
+        let mut session = Session::new(config()).unwrap();
+        session.advance(910000, false);
+        assert!(session.stop().is_err());
+        assert_eq!(session.snapshot().phase, "completed");
+        assert!(session.needs_result_decision());
+        let mut active = Session::new(config()).unwrap();
+        assert!(active.stop().is_ok());
+        assert_eq!(active.snapshot().phase, "cancelled");
+    }
+    #[test]
+    fn completed_result_requires_resolution_before_leaving() {
+        let mut s = Session::new(config()).unwrap();
+        assert!(!s.needs_result_decision());
+        s.advance(910000, false);
+        assert!(s.needs_result_decision());
+        s.result_resolved = true;
+        assert!(!s.needs_result_decision());
+        s.result_resolved = false;
+        s.cancelled = true;
+        assert!(!s.needs_result_decision());
     }
     #[test]
     fn intervals_validate_bounds_and_zero_rest() {
@@ -561,6 +603,7 @@ mod tests {
             .map(|i| Exercise {
                 id: i.to_string(),
                 name: format!("Exercise {i}"),
+                catalog_id: None,
                 description: None,
                 target: None,
                 supported_units: None,

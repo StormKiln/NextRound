@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.1.0 macOS release**. Includes EMOM, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, workout history, cloud sync, and recommendations remain planned.
+> Status: **1.2.0 macOS release**. Includes EMOM, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.1.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.2.0.md)
 
 ## Product scope
 
@@ -193,3 +193,11 @@ Red-close minimizes by default and keeps workouts running. General Settings can 
 ### 0.4.0: build once, use again
 
 Home now has matching, clearly labeled workout cards. Exercise selection groups movements into collapsible categories; drag handles support pointer and keyboard reordering. Countdown can include an optional exercise checklist. Save named EMOM/Countdown templates locally and load, search, rename or delete them from Home. Templates persist across restarts; workout history and active-session recovery are still future work. See [0.4.0 release notes](docs/release-notes-0.4.0.md) for update behavior and data boundaries.
+
+### 1.2.0: local workout history
+
+Choose **Save result** after completing EMOM, Countdown or Intervals to keep the date, active duration, configuration, exercise descriptions/targets and countdown checkmarks. The header's **Workout history** button opens your log. View details, load a copy into setup with **Repeat from setup**, or delete a result with confirmation. Completed results stay independent of later template edits.
+
+History is stored offline in a separate versioned JSON document with atomic native writes, alongside existing templates/settings. Retrying a save does not duplicate the session. Unsaved results require save/discard before navigation, another workout, quit or updater installation. Cancelled/partial sessions and process-crash recovery are not included. Targets are prescriptions, not measurements; pause and lead-in time are excluded from active duration (scheduled interval rest remains included). No history existed before 1.2.0, so old sessions cannot be reconstructed.
+
+GitHub and sandboxed Apple builds keep separate app data; changing distribution channels does not transfer history. See [Privacy policy](PRIVACY.md).

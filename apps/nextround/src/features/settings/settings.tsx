@@ -74,7 +74,7 @@ export function Settings({
                 <ExternalLink page="releases">Release notes</ExternalLink>
                 <ExternalLink page="issues">Feedback &amp; support</ExternalLink>
               </div>
-              <p className="muted">Made for macOS. Workout history is not saved in this version.</p>
+              <p className="muted">Made for macOS. Saved workouts and history stay on this Mac.</p>
             </>
           ) : (
             <UpdatePanel />

@@ -1,0 +1,44 @@
+.history-page > h1 {
+  margin-bottom: 0.5rem;
+}
+.history-list {
+  margin-top: 2rem;
+}
+.history-list h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.3rem;
+}
+.history-list p {
+  margin: 0.3rem 0;
+  color: var(--muted);
+}
+.history-empty {
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  margin-top: 2rem;
+}
+.history-exercises {
+  padding-left: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  overflow-wrap: anywhere;
+}
+.history-exercises p {
+  margin: 0.35rem 0;
+}
+.history-detail {
+  text-align: left;
+}
+.result-actions {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.result-actions p {
+  margin: 0;
+}
+.result-actions .dialog {
+  text-align: left;
+}

@@ -21,6 +21,8 @@ test('countdown excludes lead-in, pauses, completes without rounds, and repeats'
   await expect(page.getByRole('heading', { name: 'Workout complete' })).toBeVisible();
   await expect(page.getByText('rounds completed')).toHaveCount(0);
   await expect(page.getByText('00:05', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save result', exact: true }).click();
+  await expect(page.getByText('Result saved to history.')).toBeVisible();
   await page.getByRole('button', { name: 'Repeat workout' }).click();
   await expect(page.getByRole('heading', { name: 'Get ready' })).toBeVisible();
   await page.getByRole('button', { name: 'Stop workout' }).click();

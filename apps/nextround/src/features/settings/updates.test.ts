@@ -117,3 +117,21 @@ test('installation waits for an in-flight check instead of racing its response',
   expect(useUpdates.getState().status).toBe('checking');
   expect(invoke).not.toHaveBeenCalled();
 });
+
+test('unsaved completed results prevent update installation', async () => {
+  useUpdates.setState({ status: 'available', available: { version: '1.2.0', notes: null } });
+  useWorkout.setState({
+    pendingResult: {
+      id: 'pending',
+      completedAt: 1780000000000,
+      elapsedMs: 1000,
+      checkedExerciseIds: [],
+      config: { type: 'countdown', durationSeconds: 1, leadInSeconds: 0, warningSeconds: 0 },
+    },
+  });
+  await useUpdates.getState().install();
+  expect(useUpdates.getState().error).toContain('Save or discard');
+  expect(useUpdates.getState().status).toBe('available');
+  expect(invoke).not.toHaveBeenCalled();
+  useWorkout.setState({ pendingResult: null });
+});

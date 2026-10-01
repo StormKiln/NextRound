@@ -139,7 +139,7 @@ impl TemplateStore {
         Ok(document)
     }
 }
-fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
+pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     let parent = path.parent().ok_or("Saved workout directory unavailable")?;
     fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     let temporary = parent.join(format!(".workout-templates-{}.tmp", unique_id()));

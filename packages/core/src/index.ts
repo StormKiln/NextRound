@@ -2,6 +2,7 @@ export type TargetUnit = 'reps' | 'seconds' | 'metres' | 'calories';
 export type ExerciseTarget = { unit: TargetUnit; value: number };
 export type ExerciseEntry = {
   id: string;
+  catalogId?: string;
   name: string;
   description?: string;
   target?: ExerciseTarget;
