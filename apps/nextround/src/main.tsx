@@ -19,6 +19,7 @@ import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
 import { CountdownSetup } from '@/features/countdown/setup';
 import { Home } from '@/features/home/home';
+import { IntervalsSetup } from '@/features/intervals/setup';
 import { scheduleAutomaticUpdates } from '@/features/settings/automatic-updates';
 import { Settings } from '@/features/settings/settings';
 import { useUpdates } from '@/features/settings/updates';
@@ -219,6 +220,11 @@ const countdownRoute = createRoute({
   path: '/countdown',
   component: CountdownSetup,
 });
+const intervalsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/intervals',
+  component: IntervalsSetup,
+});
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
@@ -234,6 +240,7 @@ const router = createRouter({
     homeRoute,
     setupRoute,
     countdownRoute,
+    intervalsRoute,
     workoutRoute,
     completeRoute,
   ]),

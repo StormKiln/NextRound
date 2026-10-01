@@ -47,12 +47,32 @@ export function Home() {
             </Button>
           </div>
         </section>
+        <section className="workout-choice" aria-labelledby="intervals-title">
+          <div className="workout-choice-copy">
+            <h2 id="intervals-title">Intervals</h2>
+            <h3>Work hard. Recover. Repeat.</h3>
+            <p>
+              Choose your work and rest times. Follow your movements through each round, with room
+              to recover between them.
+            </p>
+            <Button onClick={() => void navigate({ to: '/intervals' })}>
+              Build intervals <ArrowUpRight size={18} />
+            </Button>
+          </div>
+        </section>
       </div>
       <TemplateLibrary
         onLoad={(config) => {
           if (!useWorkout.getState().loadConfig(config))
             throw new Error('Finish your active workout before loading a saved setup.');
-          void navigate({ to: config.type === 'countdown' ? '/countdown' : '/emom' });
+          void navigate({
+            to:
+              config.type === 'intervals'
+                ? '/intervals'
+                : config.type === 'countdown'
+                  ? '/countdown'
+                  : '/emom',
+          });
         }}
       />
     </main>

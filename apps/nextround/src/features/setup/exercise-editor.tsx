@@ -6,7 +6,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { listExercises } from '@/data/exercises';
-import { ExerciseGroups } from './exercise-picker';
+import { ExerciseGroups, matchesExercise } from './exercise-picker';
 import { TargetDialog } from './target-dialog';
 
 export function ExerciseEditor({
@@ -15,12 +15,14 @@ export function ExerciseEditor({
   title = 'Your exercise order',
   description: introduction = 'One movement per minute. Repeat until the clock runs out.',
   rounds,
+  workSeconds,
 }: {
   exercises: ExerciseEntry[];
   onChange: (entries: ExerciseEntry[]) => void;
   title?: string;
   description?: string;
   rounds?: number;
+  workSeconds?: number;
 }) {
   const {
     data: library = [],
@@ -223,7 +225,10 @@ export function ExerciseEditor({
       </section>
       {targetIndex >= 0 && exercises[targetIndex] && (
         <TargetDialog
-          mode={rounds === undefined ? 'countdown' : 'emom'}
+          mode={
+            workSeconds !== undefined ? 'intervals' : rounds === undefined ? 'countdown' : 'emom'
+          }
+          workSeconds={workSeconds}
           exercise={exercises[targetIndex]}
           onClose={() => setTargetId(null)}
           onSave={(target) => {
@@ -305,7 +310,7 @@ export function ExerciseEditor({
                 setSearch('');
               }}
             />
-            {!library.some((e) => e.name.toLowerCase().includes(search.toLowerCase())) && (
+            {!library.some((e) => matchesExercise(e, search)) && (
               <p>No matching exercises. Try another search or add a Custom exercise.</p>
             )}
           </div>

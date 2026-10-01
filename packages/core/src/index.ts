@@ -38,15 +38,33 @@ export type CountdownConfig = {
   exercises?: ExerciseEntry[];
   showChecklist?: boolean;
 };
-export type WorkoutConfig = EmomConfig | CountdownConfig;
-export type WorkoutCue = 'tock' | 'beep' | 'complete';
+export type IntervalsConfig = {
+  type: 'intervals';
+  workSeconds: number;
+  restSeconds: number;
+  rounds: number;
+  leadInSeconds: number;
+  warningSeconds: number;
+  exercises: ExerciseEntry[];
+};
+export type WorkoutConfig = EmomConfig | CountdownConfig | IntervalsConfig;
+export function durationSeconds(config: WorkoutConfig): number {
+  return config.type === 'intervals'
+    ? config.rounds * config.workSeconds + (config.rounds - 1) * config.restSeconds
+    : config.type === 'countdown'
+      ? config.durationSeconds
+      : config.minutes * 60;
+}
+export type WorkoutCue = 'tock' | 'beep' | 'rest' | 'complete';
 export type Workout =
   | { type: 'emom'; config: EmomConfig }
-  | { type: 'countdown'; config: CountdownConfig };
+  | { type: 'countdown'; config: CountdownConfig }
+  | { type: 'intervals'; config: IntervalsConfig };
 export type SessionSnapshot = {
   phase: 'leadIn' | 'running' | 'completed' | 'cancelled';
   remainingMs: number;
   roundRemainingMs: number;
+  intervalPhase?: 'work' | 'rest';
   roundIndex: number;
   exerciseIndex: number;
   elapsedMs: number;
@@ -56,7 +74,18 @@ export type SessionSnapshot = {
 };
 export function validateConfig(config: WorkoutConfig): Record<string, string> {
   const errors: Record<string, string> = {};
-  if (config.type === 'countdown') {
+  if (config.type === 'intervals') {
+    for (const [key, min, max] of [
+      ['workSeconds', 1, 86400],
+      ['restSeconds', 0, 86400],
+      ['rounds', 1, 1440],
+    ] as const) {
+      if (!Number.isInteger(config[key]) || config[key] < min || config[key] > max)
+        errors[key] = `Choose a whole number from ${min} to ${max}.`;
+    }
+    if (!Object.keys(errors).length && durationSeconds(config) > 86400)
+      errors.durationSeconds = 'Keep the total workout within 24 hours.';
+  } else if (config.type === 'countdown') {
     if (
       !Number.isInteger(config.durationSeconds) ||
       config.durationSeconds < 1 ||
@@ -110,12 +139,27 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
 }
 export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnapshot {
   const lead = config.leadInSeconds * 1000;
-  const duration =
-    config.type === 'countdown' ? config.durationSeconds * 1000 : config.minutes * 60000;
+  const duration = durationSeconds(config) * 1000;
   const active = Math.max(0, elapsed - lead);
   const completed = active >= duration;
+  const cycle =
+    config.type === 'intervals' ? (config.workSeconds + config.restSeconds) * 1000 : 60000;
   const roundIndex =
-    config.type === 'countdown' ? 0 : Math.min(config.minutes - 1, Math.floor(active / 60000));
+    config.type === 'countdown'
+      ? 0
+      : Math.min(
+          (config.type === 'intervals' ? config.rounds : config.minutes) - 1,
+          Math.floor(active / cycle),
+        );
+  const resting =
+    config.type === 'intervals' &&
+    !completed &&
+    elapsed >= lead &&
+    active % cycle >= config.workSeconds * 1000;
+  const phaseRemaining =
+    config.type === 'intervals'
+      ? (resting ? cycle : config.workSeconds * 1000) - (active % cycle)
+      : 60000 - (active % 60000);
   return {
     config,
     phase: elapsed < lead ? 'leadIn' : completed ? 'completed' : 'running',
@@ -127,7 +171,10 @@ export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnaps
           ? 0
           : config.type === 'countdown'
             ? duration - active
-            : 60000 - (active % 60000),
+            : phaseRemaining,
+    ...(config.type === 'intervals'
+      ? { intervalPhase: resting ? ('rest' as const) : ('work' as const) }
+      : {}),
     roundIndex,
     exerciseIndex: config.type === 'countdown' ? 0 : roundIndex % config.exercises.length,
     elapsedMs: Math.min(active, duration),
@@ -144,9 +191,19 @@ export function formatTime(ms: number): string {
 export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | null {
   const second = Math.floor(elapsedMs / 1000);
   const lead = config.leadInSeconds;
-  const end = lead + (config.type === 'countdown' ? config.durationSeconds : config.minutes * 60);
+  const end = lead + durationSeconds(config);
   if (second > end) return null;
   if (second === end) return 'complete';
+  if (config.type === 'intervals' && second >= lead) {
+    const inCycle = (second - lead) % (config.workSeconds + config.restSeconds);
+    if (inCycle === 0) return 'beep';
+    if (inCycle === config.workSeconds) return 'rest';
+    const remaining =
+      (inCycle < config.workSeconds
+        ? config.workSeconds
+        : config.workSeconds + config.restSeconds) - inCycle;
+    return remaining <= config.warningSeconds ? 'tock' : null;
+  }
   if (
     second === lead ||
     (config.type !== 'countdown' && second > lead && (second - lead) % 60 === 0)

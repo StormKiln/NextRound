@@ -15,35 +15,51 @@ export function Runner() {
   const [stop, setStop] = useState(false);
   useEffect(() => {
     if (!s || s.phase === 'cancelled')
-      void navigate({ to: s?.config.type === 'countdown' ? '/countdown' : '/emom' });
+      void navigate({
+        to:
+          s?.config.type === 'intervals'
+            ? '/intervals'
+            : s?.config.type === 'countdown'
+              ? '/countdown'
+              : '/emom',
+      });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
   }, [s?.phase, navigate, s]);
   if (!s) return null;
   const lead = s.phase === 'leadIn';
   const countdown = s.config.type === 'countdown';
   const emom = s.config.type !== 'countdown' ? s.config : null;
+  const intervals = s.config.type === 'intervals';
+  const resting = intervals && s.intervalPhase === 'rest' && !lead;
+  const rounds = emom ? (emom.type === 'intervals' ? emom.rounds : emom.minutes) : 0;
   const current = emom?.exercises[s.exerciseIndex];
   const next = emom?.exercises[(s.exerciseIndex + 1) % emom.exercises.length];
   const upcomingTarget = lead
     ? current?.target
-    : emom && s.roundIndex < emom.minutes - 1
+    : emom && s.roundIndex < rounds - 1
       ? next?.target
       : undefined;
   const warning = !s.paused && s.roundRemainingMs <= s.config.warningSeconds * 1000;
   const fraction = lead
     ? s.roundRemainingMs / Math.max(1, s.config.leadInSeconds * 1000)
     : s.roundRemainingMs /
-      (s.config.type === 'countdown' ? s.config.durationSeconds * 1000 : 60000);
+      (s.config.type === 'countdown'
+        ? s.config.durationSeconds * 1000
+        : s.config.type === 'intervals'
+          ? (resting ? s.config.restSeconds : s.config.workSeconds) * 1000
+          : 60000);
   return (
     <main className={`runner ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}>
       <div className="runner-top">
-        <span className="mode-pill">{countdown ? 'Countdown' : 'EMOM'}</span>
+        <span className="mode-pill">
+          {countdown ? 'Countdown' : intervals ? 'Intervals' : 'EMOM'}
+        </span>
         <span>
           {lead
             ? 'Before you begin'
             : countdown
               ? 'Time for your workout'
-              : `Round ${s.roundIndex + 1} of ${emom?.minutes}`}
+              : `Round ${s.roundIndex + 1} of ${rounds}`}
         </span>
         <Button
           variant="ghost"
@@ -71,6 +87,11 @@ export function Runner() {
             />
           </svg>
           <div className="timer-center">
+            {intervals && !lead && (
+              <strong className="mode-pill" data-testid="interval-phase">
+                {resting ? 'Rest' : 'Work'}
+              </strong>
+            )}
             <p>
               {s.paused
                 ? 'Paused'
@@ -94,12 +115,30 @@ export function Runner() {
         </section>
         <section className="movement">
           <p className="eyebrow">
-            {countdown ? 'Your time. Your pace.' : lead ? 'Up first' : 'Your movement'}
+            {countdown
+              ? 'Your time. Your pace.'
+              : lead
+                ? 'Up first'
+                : resting
+                  ? 'Recovery'
+                  : 'Your movement'}
           </p>
-          <h1>{lead ? 'Get ready' : countdown ? 'Make time to move' : current?.name}</h1>
+          <h1>
+            {lead
+              ? 'Get ready'
+              : countdown
+                ? 'Make time to move'
+                : resting
+                  ? 'Take a breath'
+                  : current?.name}
+          </h1>
           {lead && <h2>{current?.name}</h2>}
-          <p className="movement-description">{current?.description}</p>
-          {current?.target && <h2>{formatTarget(current.target)}</h2>}
+          <p className="movement-description">
+            {resting
+              ? 'Recover now. The next work phase starts at the beep.'
+              : current?.description}
+          </p>
+          {!resting && current?.target && <h2>{formatTarget(current.target)}</h2>}
           <div className="total">
             <span>Workout remaining</span>
             <strong data-testid="total-clock" aria-live="off">
@@ -134,11 +173,9 @@ export function Runner() {
           )}
           {emom && (
             <div className="up-next">
-              <span>
-                {s.roundIndex === emom.minutes - 1 && !lead ? 'Last round' : 'Next movement'}
-              </span>
+              <span>{s.roundIndex === rounds - 1 && !lead ? 'Last round' : 'Next movement'}</span>
               <strong>
-                {s.roundIndex === emom.minutes - 1 && !lead
+                {s.roundIndex === rounds - 1 && !lead
                   ? 'Finish strong.'
                   : lead
                     ? current?.name
@@ -161,7 +198,7 @@ export function Runner() {
             ? 'Get ready'
             : countdown
               ? 'Countdown running'
-              : `Round ${s.roundIndex + 1}. ${current?.name}`}
+              : `Round ${s.roundIndex + 1}. ${resting ? 'Rest' : 'Work'}. ${resting ? next?.name : current?.name}`}
       </div>
       <div className="runner-controls">
         <Button
@@ -228,7 +265,7 @@ export function Completion() {
       <div className="complete-stats">
         {s.config.type !== 'countdown' && (
           <div>
-            <strong>{s.config.minutes}</strong>
+            <strong>{s.config.type === 'intervals' ? s.config.rounds : s.config.minutes}</strong>
             <span>rounds completed</span>
           </div>
         )}
@@ -268,7 +305,14 @@ export function Completion() {
             await returnToSetup(
               () => fullscreen(false),
               () => {
-                void navigate({ to: s.config.type === 'countdown' ? '/countdown' : '/emom' });
+                void navigate({
+                  to:
+                    s.config.type === 'intervals'
+                      ? '/intervals'
+                      : s.config.type === 'countdown'
+                        ? '/countdown'
+                        : '/emom',
+                });
               },
               (error) => useWorkout.setState({ error }),
             );

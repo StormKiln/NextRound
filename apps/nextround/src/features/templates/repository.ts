@@ -20,7 +20,10 @@ function nameValue(name: unknown): string {
 export function copyValidatedConfig(value: unknown): WorkoutConfig {
   if (
     !record(value) ||
-    (value.type !== undefined && value.type !== 'emom' && value.type !== 'countdown')
+    (value.type !== undefined &&
+      value.type !== 'emom' &&
+      value.type !== 'countdown' &&
+      value.type !== 'intervals')
   )
     throw new Error('Invalid workout configuration.');
   if (value.type !== 'countdown' || value.exercises !== undefined) {

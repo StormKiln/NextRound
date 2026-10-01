@@ -9,18 +9,24 @@ export function ExternalLink({
   children: ReactNode;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const url = `https://github.com/StormKiln/NextRound/${page === 'privacy' ? 'blob/main/PRIVACY.md' : page}`;
   return (
     <>
       <a
-        href={`https://github.com/StormKiln/NextRound/${page === 'privacy' ? 'blob/main/PRIVACY.md' : page}`}
+        href={url}
         target="_blank"
         rel="noreferrer"
         onClick={(event) => {
+          setError(null);
           if (native) {
             event.preventDefault();
-            void invoke('open_project_page', { page }).catch(() =>
-              setError('Could not open your browser. Visit github.com/StormKiln/NextRound.'),
-            );
+            void invoke('open_project_page', { page })
+              .then(() => setError(null))
+              .catch(() =>
+                setError(
+                  `Could not open your browser. Try this link again, or copy this address into your browser: ${url}`,
+                ),
+              );
           }
         }}
       >

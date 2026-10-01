@@ -175,7 +175,7 @@ export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) =>
             <p>
               {query.data.templates.length
                 ? 'No saved workouts match your search.'
-                : 'Save a workout from EMOM or Countdown setup to see it here.'}
+                : 'Save a workout from any workout setup to see it here.'}
             </p>
           )}
           <ul className="template-list">
@@ -184,9 +184,11 @@ export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) =>
                 <div className="template-summary">
                   <h3>{template.name}</h3>
                   <p>
-                    {template.config.type === 'countdown'
-                      ? `Countdown · ${template.config.durationSeconds} seconds`
-                      : `EMOM · ${template.config.minutes} rounds`}
+                    {template.config.type === 'intervals'
+                      ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
+                      : template.config.type === 'countdown'
+                        ? `Countdown · ${template.config.durationSeconds} seconds`
+                        : `EMOM · ${template.config.minutes} rounds`}
                   </p>
                 </div>
                 <div className="template-actions">

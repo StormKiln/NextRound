@@ -735,7 +735,7 @@ textarea {
 }
 .workout-choices {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 .workout-choice {
@@ -1013,5 +1013,11 @@ textarea {
   }
   .order-number {
     display: none;
+  }
+}
+
+@media (min-width: 651px) and (max-width: 1000px) {
+  .workout-choices {
+    grid-template-columns: 1fr;
   }
 }

@@ -193,6 +193,30 @@ mod tests {
         )
     }
     #[test]
+    fn interval_save_preserves_legacy_templates_across_restart() {
+        let s = store();
+        fs::create_dir_all(s.path.parent().unwrap()).unwrap();
+        let legacy = serde_json::json!({"version":1,"templates":[
+            {"id":"emom","name":"Old EMOM","config":{"minutes":15,"leadInSeconds":10,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat"}]}},
+            {"id":"countdown","name":"Old countdown","config":{"type":"countdown","durationSeconds":30,"leadInSeconds":0,"warningSeconds":3}}
+        ]});
+        fs::write(&s.path, serde_json::to_vec(&legacy).unwrap()).unwrap();
+        let before = s.read().unwrap();
+        let interval: Config=serde_json::from_value(serde_json::json!({"type":"intervals","workSeconds":40,"restSeconds":20,"rounds":8,"leadInSeconds":10,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat","target":{"unit":"seconds","value":90}}]})).unwrap();
+        s.mutate(Mutation::Save {
+            name: "Intervals".into(),
+            config: interval.clone(),
+        })
+        .unwrap();
+        let after = TemplateStore::new(s.path.clone()).read().unwrap();
+        assert_eq!(after.templates.len(), 3);
+        for i in 0..2 {
+            assert_eq!(before.templates[i].config, after.templates[i].config);
+        }
+        assert_eq!(after.templates[2].config, interval);
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
     fn persists_restart_and_preserves_countdown_targets() {
         let s = store();
         let saved = s

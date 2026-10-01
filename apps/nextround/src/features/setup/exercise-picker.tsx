@@ -1,6 +1,9 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { Plus } from 'lucide-react';
 
+export const normalizeSearch = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
+export const matchesExercise = (entry: ExerciseEntry, search: string) =>
+  normalizeSearch(entry.name).includes(normalizeSearch(search));
 const groups = [
   'Kettlebell',
   'Push-ups',
@@ -29,15 +32,14 @@ export function ExerciseGroups({
 }) {
   return groups.map((group) => {
     const entries = library.filter(
-      (entry) =>
-        groupFor(entry) === group && entry.name.toLowerCase().includes(search.toLowerCase()),
+      (entry) => groupFor(entry) === group && matchesExercise(entry, search),
     );
     if (!entries.length) return null;
     return (
       <details
         className="exercise-group"
-        key={`${group}-${search ? 'search' : 'browse'}`}
-        open={search ? true : undefined}
+        key={`${group}-${normalizeSearch(search) ? 'search' : 'browse'}`}
+        open={normalizeSearch(search) ? true : undefined}
       >
         <summary>
           {group} <span>{entries.length}</span>

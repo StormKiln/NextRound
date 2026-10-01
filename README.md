@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.0.0 macOS release**. Includes EMOM and Countdown timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, workout history, cloud sync, and recommendations remain planned.
+> Status: **1.1.0 macOS release**. Includes EMOM, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, workout history, cloud sync, and recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.0.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.1.0.md)
 
 ## Product scope
 
