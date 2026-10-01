@@ -19,7 +19,7 @@ int main(void) {
         assert(CFEqual(CFDictionaryGetValue(properties, kIOPMAssertionTypeKey),
             kIOPMAssertionTypePreventUserIdleDisplaySleep));
         CFRelease(properties);
-        for (NSString *cue in @[@"tock", @"beep", @"complete"]) {
+        for (NSString *cue in @[@"tock", @"beep", @"rest", @"complete"]) {
             NSURL *url = [[NSBundle mainBundle] URLForResource:cue withExtension:@"wav"];
             NSData *data = [NSData dataWithContentsOfURL:url];
             assert(data.length > 0);
@@ -32,7 +32,7 @@ int main(void) {
         }
         assert(nr_awake_release(assertion) == 0);
         assert(IOPMAssertionCopyProperties(assertion) == NULL);
-        puts("Sandbox media smoke passed: three cues started; display-idle assertion created and released.");
+        puts("Sandbox media smoke passed: four cues started; display-idle assertion created and released.");
     }
     return 0;
 }
