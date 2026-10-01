@@ -1,7 +1,7 @@
 import { formatTarget, formatTime } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { fullscreen } from '@/native/adapter';
@@ -24,6 +24,15 @@ export function History() {
     onSuccess: () => client.invalidateQueries({ queryKey: historyKey }),
   });
   const navigate = useNavigate();
+  const repeatLock = useRef(false);
+  const mounted = useRef(true);
+  const [repeating, setRepeating] = useState(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [detail, setDetail] = useState<WorkoutResult | null>(null);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +57,7 @@ export function History() {
         </section>
       )}
       <ul className="template-list history-list">
-        {results.map((result) => (
+        {results.map((result, index) => (
           <li key={result.id}>
             <div className="template-summary">
               <h2>{modeName(result)}</h2>
@@ -65,6 +74,7 @@ export function History() {
             <div className="template-actions">
               <Button
                 variant="secondary"
+                aria-label={`View result: ${modeName(result)}, ${new Date(result.completedAt).toLocaleString()}, session ${index + 1}`}
                 onClick={() => {
                   setError(null);
                   setDetail(result);
@@ -74,6 +84,7 @@ export function History() {
               </Button>
               <Button
                 variant="ghost"
+                aria-label={`Delete result: ${modeName(result)}, ${new Date(result.completedAt).toLocaleString()}, session ${index + 1}`}
                 onClick={() => {
                   setError(null);
                   setDeleting(result);
@@ -88,7 +99,9 @@ export function History() {
       {detail && (
         <Dialog
           title={`${modeName(detail)} result`}
-          onClose={() => setDetail(null)}
+          onClose={() => {
+            if (!repeatLock.current) setDetail(null);
+          }}
           className="history-detail"
         >
           <p>
@@ -128,22 +141,28 @@ export function History() {
           {!detail.config.exercises?.length && <p>No exercises were specified.</p>}
           {error && <p role="alert">{error}</p>}
           <div className="dialog-actions">
-            <Button variant="ghost" onClick={() => setDetail(null)}>
+            <Button variant="ghost" disabled={repeating} onClick={() => setDetail(null)}>
               Close
             </Button>
             <Button
+              disabled={repeating}
               onClick={async () => {
+                if (repeatLock.current) return;
+                repeatLock.current = true;
+                setRepeating(true);
                 setError(null);
                 try {
                   const latest = (await readHistory()).results.find(
                     (result) => result.id === detail.id,
                   );
+                  if (!mounted.current) return;
                   if (!latest)
                     throw new Error('This result no longer exists. Refresh and try again.');
                   const copy = copyResult(latest);
                   if (!useWorkout.getState().loadConfig(copy.config))
                     throw new Error('Finish your workout and save or discard its result first.');
                   await fullscreen(false);
+                  if (!mounted.current) return;
                   void navigate({
                     to:
                       copy.config.type === 'intervals'
@@ -153,11 +172,14 @@ export function History() {
                           : '/emom',
                   });
                 } catch (e) {
-                  setError(String(e));
+                  if (mounted.current) setError(String(e));
+                } finally {
+                  repeatLock.current = false;
+                  if (mounted.current) setRepeating(false);
                 }
               }}
             >
-              Repeat from setup
+              {repeating ? 'Loading workout…' : 'Repeat from setup'}
             </Button>
           </div>
         </Dialog>

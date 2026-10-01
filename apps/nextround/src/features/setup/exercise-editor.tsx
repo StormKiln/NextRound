@@ -6,7 +6,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { listExercises } from '@/data/exercises';
-import { ExerciseGroups, matchesExercise } from './exercise-picker';
+import { ExerciseRecommendations } from './exercise-recommendations';
 import { TargetDialog } from './target-dialog';
 
 export function ExerciseEditor({
@@ -327,7 +327,8 @@ export function ExerciseEditor({
           )}
           <div className="library-list">
             {!isPending && !isError && (
-              <ExerciseGroups
+              <ExerciseRecommendations
+                selected={exercises}
                 library={library}
                 search={search}
                 onSelect={(entry) => {
@@ -339,9 +340,6 @@ export function ExerciseEditor({
                   setSearch('');
                 }}
               />
-            )}
-            {!isPending && !isError && !library.some((e) => matchesExercise(e, search)) && (
-              <p>No matching exercises. Try another search or add a Custom exercise.</p>
             )}
           </div>
           <div className="dialog-actions">

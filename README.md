@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.2.0 macOS release**. Includes EMOM, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and recommendations remain planned.
+> Status: **1.3.0 macOS release**. Includes EMOM, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.2.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.3.0.md)
 
 ## Product scope
 
@@ -201,3 +201,11 @@ Choose **Save result** after completing EMOM, Countdown or Intervals to keep the
 History is stored offline in a separate versioned JSON document with atomic native writes, alongside existing templates/settings. Retrying a save does not duplicate the session. Unsaved results require save/discard before navigation, another workout, quit or updater installation. Cancelled/partial sessions and process-crash recovery are not included. Targets are prescriptions, not measurements; pause and lead-in time are excluded from active duration (scheduled interval rest remains included). No history existed before 1.2.0, so old sessions cannot be reconstructed.
 
 GitHub and sandboxed Apple builds keep separate app data; changing distribution channels does not transfer history. See [Privacy policy](PRIVACY.md).
+
+### 1.3.0: exercise suggestions from saved history
+
+The exercise picker displays how many retained saved workouts contain each catalog exercise, once per session regardless of repeated rounds or entries. Choose **My favorites**, **Try something new**, or **Mix it up** to review up to three suggestions before adding one. Existing search applies and suggestions exclude catalog exercises already in the current setup; manual repeats remain available.
+
+Ranking is deterministic: favorites sorts by descending count, new by ascending count, with English name/ID ties. Mix partitions eligible exercises into a lower-count half (rounded up) and the remaining higher-count half, then alternates higher/lower/higher with fallback if a pool runs out. With all-zero eligible counts, use neutral alphabetical ordering. These heuristics offer variety, not balanced programming or personalized coaching.
+
+Counts derive from local retained history; deleting a saved result removes its contribution. Custom and legacy entries without catalog identity are excluded and disclosed, never matched by name. Catalog identity survives templates and repeat flows. A read failure shows unavailable usage and retry, not fabricated zero counts. No new backend, account, AI service or data upload is involved.

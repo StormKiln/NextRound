@@ -1021,3 +1021,61 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.exercise-suggestions {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.suggestion-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+.suggestion-presets [aria-pressed="true"] {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.suggestion-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.suggestion-list button {
+  width: 100%;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 0.75rem;
+}
+.suggestion-list small {
+  display: block;
+  margin-top: 0.25rem;
+}
+.library-list .suggestion-presets button {
+  width: auto;
+  flex: 1 1 110px;
+  padding: 10px 8px;
+  font-size: 12px;
+  border: 1px solid #5d5147;
+  border-radius: 8px;
+  white-space: normal;
+}
+.library-list .suggestion-presets [aria-pressed="true"] {
+  background: #453124;
+  color: #ffb07b;
+  border-color: #ff994f;
+}
+.exercise-suggestions {
+  padding: 0;
+  border: 0;
+}
+.usage-explanation {
+  margin-block: 12px;
+  font-size: 12px;
+  color: #bdb2a8;
+}

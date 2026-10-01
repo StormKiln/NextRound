@@ -1,9 +1,10 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { Plus } from 'lucide-react';
 
-export const normalizeSearch = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
-export const matchesExercise = (entry: ExerciseEntry, search: string) =>
-  normalizeSearch(entry.name).includes(normalizeSearch(search));
+import { matchesExercise, normalizeSearch } from './exercise-suggestions';
+
+export { matchesExercise } from './exercise-suggestions';
+
 const groups = [
   'Kettlebell',
   'Push-ups',
@@ -25,7 +26,9 @@ export function ExerciseGroups({
   library,
   search,
   onSelect,
+  counts,
 }: {
+  counts?: Map<string, number>;
   library: ExerciseEntry[];
   search: string;
   onSelect: (entry: ExerciseEntry) => void;
@@ -49,6 +52,11 @@ export function ExerciseGroups({
             <span>
               <strong>{entry.name}</strong>
               <small>{entry.description}</small>
+              <small>
+                {counts
+                  ? `Used in ${counts.get(entry.id) ?? 0} saved workouts`
+                  : 'Usage unavailable'}
+              </small>
             </span>
             <Plus size={20} />
           </button>
