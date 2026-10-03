@@ -5,8 +5,12 @@ export type SuggestionPreset = 'favorites' | 'new' | 'mix';
 export const normalizeSearch = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
 const searchAlias = (value: string) =>
   normalizeSearch(value)
+    .replace(/[‐‑–-]/g, ' ')
     .replace(/\bpush[ -]?ups?\b/g, 'pushup')
-    .replace(/\bkettle[ -]?bells?\b/g, 'kettlebell');
+    .replace(/\bkettle[ -]?bells?\b/g, 'kettlebell')
+    .replace(/\bdead[ -]?bugs?\b/g, 'deadbug')
+    .replace(/\bbird[ -]?dogs?\b/g, 'birddog')
+    .replace(/\binch[ -]?worms?\b/g, 'inchworm');
 export const matchesExercise = (entry: ExerciseEntry, search: string) =>
   normalizeSearch(entry.name).includes(normalizeSearch(search)) ||
   searchAlias(entry.name).includes(searchAlias(search)) ||

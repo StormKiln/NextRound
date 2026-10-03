@@ -3,13 +3,14 @@ import type { ExerciseEntry } from '@nextround/core';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { createElement as h } from 'react';
+import { createElement as h, useState } from 'react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ read: vi.fn() }));
 vi.mock('../history/repository', () => ({ readHistory: mocks.read }));
 
 import { ExerciseRecommendations } from './exercise-recommendations';
+import type { SuggestionPreset } from './exercise-suggestions';
 
 const library: ExerciseEntry[] = [
   { id: 'a', name: 'Air squat' },
@@ -22,16 +23,22 @@ const doc = {
 };
 let client: QueryClient;
 let onSelect = vi.fn<(entry: ExerciseEntry) => void>();
-function setup(search = '', selected: typeof library = []) {
+function setup(search = '', selected: typeof library = [], eligible = library) {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   onSelect = vi.fn();
-  return render(
-    h(
-      QueryClientProvider,
-      { client },
-      h(ExerciseRecommendations, { library, search, selected, onSelect }),
-    ),
-  );
+  function PickerSession() {
+    const [preset, setPreset] = useState<SuggestionPreset | null>(null);
+    return h(ExerciseRecommendations, {
+      library: eligible,
+      search,
+      selected,
+      onSelect,
+      preset,
+      onPreset: setPreset,
+      view: 'type',
+    });
+  }
+  return render(h(QueryClientProvider, { client }, h(PickerSession)));
 }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -91,4 +98,28 @@ it('does not show cached counts after a failed refresh', async () => {
   await screen.findByRole('alert');
   expect(screen.queryByRole('button', { name: 'My favorites' })).toBeNull();
   expect(screen.queryByText(/Used in 1/)).toBeNull();
+});
+
+it('distinguishes globally attributed history from a filtered unused catalog', async () => {
+  setup('', [], [library[0]]);
+  await screen.findByRole('button', { name: 'My favorites' });
+  expect(screen.queryByText(/No attributed exercise history yet/)).toBeNull();
+  expect(screen.getByText(/None of the eligible exercises have saved usage/)).toBeTruthy();
+});
+it('does not call an empty eligible set unused or erase global usage', async () => {
+  setup('', [], []);
+  fireEvent.click(await screen.findByRole('button', { name: 'My favorites' }));
+  expect(screen.queryByText(/No attributed exercise history yet/)).toBeNull();
+  expect(screen.queryByText(/None of the eligible exercises/)).toBeNull();
+  expect(screen.getByText(/No eligible suggestions/)).toBeTruthy();
+});
+it('explains custom-only history without inventing catalog counts', async () => {
+  mocks.read.mockResolvedValue({
+    version: 1,
+    results: [{ config: { exercises: [{ id: 'custom', name: 'Custom' }] } }],
+  });
+  setup();
+  await screen.findByRole('button', { name: 'My favorites' });
+  expect(screen.getByText(/No attributed exercise history yet/)).toBeTruthy();
+  expect(screen.getByText(/1 saved exercise entries have no catalog link/)).toBeTruthy();
 });

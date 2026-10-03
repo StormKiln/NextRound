@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { eligibleExercise, equipmentNote } from '@/data/equipment';
 import { listExercises } from '@/data/exercises';
+import { type FocusArea, matchesFocus, type PickerView } from '@/data/focus';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget, rotationNotice } from './emom-defaults';
 import { ExerciseRecommendations } from './exercise-recommendations';
+import type { SuggestionPreset } from './exercise-suggestions';
+import { FocusControls } from './focus-controls';
 import { TargetDialog } from './target-dialog';
 
 export function ExerciseEditor({
@@ -39,6 +42,9 @@ export function ExerciseEditor({
     refetch,
   } = useQuery({ queryKey: ['exercises'], queryFn: listExercises, retry: false });
   const equipment = useEquipment();
+  const [preset, setPreset] = useState<SuggestionPreset | null>(null);
+  const [view, setView] = useState<PickerView>('type');
+  const [areas, setAreas] = useState<FocusArea[]>([]);
   const [equipmentSettings, setEquipmentSettings] = useState(false);
   const [showAllEquipment, setShowAllEquipment] = useState(false);
   const effectiveSelection = equipment.loaded ? equipment.selection : null;
@@ -49,7 +55,12 @@ export function ExerciseEditor({
   const [picker, setPicker] = useState(false);
   useEffect(() => {
     if (picker) equipment.load();
-    else setShowAllEquipment(false);
+    else {
+      setShowAllEquipment(false);
+      setPreset(null);
+      setView('type');
+      setAreas([]);
+    }
   }, [picker, equipment.load]);
   const [targetId, setTargetId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -373,78 +384,88 @@ export function ExerciseEditor({
         <Settings initialSection="equipment" onClose={() => setEquipmentSettings(false)} />
       )}
       {picker && !equipmentSettings && (
-        <Dialog title="Choose an exercise" onClose={() => setPicker(false)}>
+        <Dialog
+          title="Choose an exercise"
+          className="picker-dialog"
+          onClose={() => setPicker(false)}
+        >
           <Input
             aria-label="Search exercises"
             placeholder="Find a movement…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="equipment-filter">
-            <p>
-              {effectiveSelection === null
-                ? 'Equipment is not configured. All equipment is shown.'
-                : 'Showing movements for your saved equipment.'}
-            </p>
-            {equipment.error && (
+          <div className="picker-body">
+            <FocusControls view={view} onView={setView} selected={areas} onChange={setAreas} />
+            <div className="equipment-filter">
+              <p>
+                {effectiveSelection === null
+                  ? 'Equipment is not configured. All equipment is shown.'
+                  : 'Showing movements for your saved equipment.'}
+              </p>
+              {equipment.error && (
+                <div role="alert">
+                  <p>{equipment.error}</p>
+                  <Button onClick={equipment.load}>Retry equipment settings</Button>
+                </div>
+              )}
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showAllEquipment}
+                  onChange={(event) => setShowAllEquipment(event.target.checked)}
+                />{' '}
+                Show all equipment
+              </label>
+              <Button variant="secondary" onClick={() => setEquipmentSettings(true)}>
+                Change equipment settings
+              </Button>
+              <p className="hint">
+                This override lasts until you close the picker. Custom exercise requirements are
+                unknown and are not filtered.
+              </p>
+              {!showAllEquipment && availableLibrary.length < library.length && (
+                <p>
+                  {library.length - availableLibrary.length} exercises hidden by equipment settings.
+                  Show all equipment to include them.
+                </p>
+              )}
+            </div>
+            {isPending && <p role="status">Loading exercises…</p>}
+            {isError && (
               <div role="alert">
-                <p>{equipment.error}</p>
-                <Button onClick={equipment.load}>Retry equipment settings</Button>
+                <p>Exercises could not be loaded.</p>
+                <Button onClick={() => void refetch()}>Retry loading exercises</Button>
               </div>
             )}
-            <label>
-              <input
-                type="checkbox"
-                checked={showAllEquipment}
-                onChange={(event) => setShowAllEquipment(event.target.checked)}
-              />{' '}
-              Show all equipment
-            </label>
-            <Button variant="secondary" onClick={() => setEquipmentSettings(true)}>
-              Change equipment settings
-            </Button>
-            <p className="hint">
-              This override lasts until you close the picker. Custom exercise requirements are
-              unknown and are not filtered.
-            </p>
-            {!showAllEquipment && availableLibrary.length < library.length && (
-              <p>
-                {library.length - availableLibrary.length} exercises hidden by equipment settings.
-                Show all equipment to include them.
-              </p>
-            )}
-          </div>
-          {isPending && <p role="status">Loading exercises…</p>}
-          {isError && (
-            <div role="alert">
-              <p>Exercises could not be loaded.</p>
-              <Button onClick={() => void refetch()}>Retry loading exercises</Button>
+            <div className="library-list">
+              {!isPending && !isError && (
+                <ExerciseRecommendations
+                  selected={exercises}
+                  preset={preset}
+                  onPreset={setPreset}
+                  view={view}
+                  library={availableLibrary.filter((entry) => matchesFocus(entry, areas))}
+                  note={(entry) => equipmentNote(entry, effectiveSelection)}
+                  search={search}
+                  onSelect={(entry) => {
+                    onChange([
+                      ...exercises,
+                      {
+                        ...entry,
+                        catalogId: entry.id,
+                        id: crypto.randomUUID(),
+                        ...((emomDefaults || requireTargets) && !entry.target
+                          ? { target: defaultEmomTarget(entry) }
+                          : {}),
+                      },
+                    ]);
+                    setPicker(false);
+                    setSearch('');
+                  }}
+                />
+              )}
             </div>
-          )}
-          <div className="library-list">
-            {!isPending && !isError && (
-              <ExerciseRecommendations
-                selected={exercises}
-                library={availableLibrary}
-                note={(entry) => equipmentNote(entry, effectiveSelection)}
-                search={search}
-                onSelect={(entry) => {
-                  onChange([
-                    ...exercises,
-                    {
-                      ...entry,
-                      catalogId: entry.id,
-                      id: crypto.randomUUID(),
-                      ...((emomDefaults || requireTargets) && !entry.target
-                        ? { target: defaultEmomTarget(entry) }
-                        : {}),
-                    },
-                  ]);
-                  setPicker(false);
-                  setSearch('');
-                }}
-              />
-            )}
           </div>
           <div className="dialog-actions">
             <Button variant="ghost" onClick={() => setPicker(false)}>

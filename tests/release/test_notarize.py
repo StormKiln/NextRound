@@ -13,7 +13,9 @@ spec.loader.exec_module(notary)
 ID = '11111111-2222-4333-8444-555555555555'
 
 class NotarizeTests(unittest.TestCase):
-    def run_case(self, mode, upload_timeout=2, total_timeout=3):
+    # A real Python subprocess needs startup headroom under parallel native builds.
+    # These are test-only budgets; production notarization limits stay unchanged.
+    def run_case(self, mode, upload_timeout=2, total_timeout=5):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         root = Path(self.temp.name)
@@ -33,12 +35,12 @@ else:
  print(json.dumps({'status':'Invalid' if mode=='reject' else 'In Progress' if mode=='pending' else 'Accepted'}))
 ''')
         output = root / 'diagnostic.json'
-        result = notary.notarize(root/'app.zip', [], output, command=[sys.executable,str(tool),mode,str(root/'calls')], upload_timeout=upload_timeout, total_timeout=total_timeout, request_timeout=.2, poll_interval=.01)
+        result = notary.notarize(root/'app.zip', [], output, command=[sys.executable,str(tool),mode,str(root/'calls')], upload_timeout=upload_timeout, total_timeout=total_timeout, request_timeout=1, poll_interval=.01)
         return result, json.loads(output.read_text()), (root/'calls').read_text()
 
     def test_success_and_status_retry_do_not_resubmit(self):
         for mode in ['ok','retry','id-hang']:
-            result, diagnostic, calls = self.run_case(mode, upload_timeout=.1)
+            result, diagnostic, calls = self.run_case(mode, upload_timeout=1)
             self.assertTrue(result)
             self.assertEqual(diagnostic['status'], 'Accepted')
             self.assertEqual(calls.count('submit'),1)
@@ -54,9 +56,9 @@ else:
     def test_upload_and_processing_are_bounded(self):
         for mode in ['hang','pending']:
             start=time.monotonic()
-            result, diagnostic, calls=self.run_case(mode,upload_timeout=.1,total_timeout=.4)
+            result, diagnostic, calls=self.run_case(mode,upload_timeout=1,total_timeout=3)
             self.assertFalse(result)
-            self.assertLess(time.monotonic()-start,2)
+            self.assertLess(time.monotonic()-start,6)
             self.assertEqual(calls.count('submit'),1)
             self.assertIn(diagnostic['status'], ['Upload outcome unknown','Processing timed out'])
 

@@ -440,6 +440,146 @@ export const exercises: ExerciseEntry[] = [
       'Use a non-bouncing ball rated for slams and a suitable clear floor area. Lift the ball overhead, then drive it down. Bend through hips and knees to retrieve it; each slam is one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'reverse-crunch',
+    name: 'Reverse crunch',
+    description:
+      'Lie on your back with knees bent. Curl your pelvis to bring the knees toward your chest, then lower slowly without swinging. Each controlled curl is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bicycle-crunch',
+    name: 'Bicycle crunch',
+    description:
+      'Lie on your back, lightly supporting your head. Turn your torso toward the opposite bent knee while extending the other leg. Alternate sides; each side counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'supine-heel-reach',
+    name: 'Supine lateral heel reach',
+    description:
+      'Lie on your back with knees bent and feet down. Lift your shoulders slightly and reach toward one heel, then the other. Keep the neck relaxed; each side is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-knee-tuck',
+    name: 'Seated knee tuck',
+    description:
+      'Sit on the floor with hands beside your hips. Lean back slightly, draw your bent knees toward your chest, then extend them within a controlled range. One tuck and extension is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'flutter-kicks',
+    name: 'Flutter kicks',
+    description:
+      'Lie on your back and brace your trunk. Alternate small up-and-down leg movements without arching your lower back. Bend your knees or raise your legs to scale. Use a time target.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'lying-leg-raise',
+    name: 'Lying leg raise',
+    description:
+      'Lie on your back with legs together. Raise and lower them slowly within a range that keeps your lower back controlled. Bend the knees to scale. Each raise and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'single-leg-glute-bridge',
+    name: 'Single-leg glute bridge',
+    description:
+      'Lie on your back with one foot planted and the other leg lifted. Press through the planted foot to lift your hips, then lower. Reps apply to the working side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'glute-bridge-march',
+    name: 'Glute bridge march',
+    description:
+      'Lift your hips into a bridge with both feet planted. Keeping the pelvis steady, lift one foot briefly, replace it, and alternate. Each foot lift is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bodyweight-lateral-lunge',
+    name: 'Bodyweight lateral lunge',
+    description:
+      'Step sideways and bend that knee while sending your hips back; keep the other leg long. Push back to standing and alternate sides. Each side counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'forward-lunge',
+    name: 'Forward lunge',
+    description:
+      'Step forward and bend both knees through a comfortable range. Push through the front foot to return to standing, then alternate legs. Each forward step and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bodyweight-good-morning',
+    name: 'Bodyweight good morning',
+    description:
+      'Stand with soft knees and hands across your chest. Hinge at the hips, sending them back while keeping your back controlled, then stand tall. Each hinge and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'side-lying-leg-raise',
+    name: 'Side-lying leg raise',
+    description:
+      'Lie on your side with legs long and hips stacked. Lift the upper leg without rolling the pelvis, then lower slowly. Reps apply to that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'unbanded-clamshell',
+    name: 'Unbanded clamshell',
+    description:
+      'Lie on your side with hips and knees bent and feet together. Keep the pelvis stacked as you open the upper knee, then close it. Reps apply to that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'quadruped-donkey-kick',
+    name: 'Quadruped donkey kick',
+    description:
+      'On hands and knees, keep one knee bent and lift that thigh behind you without arching your back. Lower with control. Reps apply to that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'fire-hydrant',
+    name: 'Fire hydrant',
+    description:
+      'On hands and knees, lift one bent knee out to the side while keeping your trunk steady, then lower. Reps apply to that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bear-crawl',
+    name: 'Bear crawl',
+    description:
+      'Start on hands and toes with bent knees hovering near the floor. Take small opposite-hand-and-foot steps while keeping hips steady. Use a time target and clear floor space.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'crab-walk',
+    name: 'Crab walk',
+    description:
+      'Sit with feet planted and hands behind you. Lift your hips and take small hand-and-foot steps through a comfortable shoulder range. Use a time target and clear floor space.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'standing-knee-drive',
+    name: 'Standing alternating knee drive',
+    description:
+      'Stand tall and lift one knee toward waist height, then lower and alternate. Keep the supporting foot on the floor; each knee lift is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'step-jack',
+    name: 'Step jack',
+    description:
+      'Step one foot out as you raise your arms, then bring it back as you lower them. Alternate sides without jumping. Each step out and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'jumping-jack',
+    name: 'Jumping jack',
+    description:
+      'Jump your feet apart as your arms rise, then jump them together as your arms lower. Land softly. One out-and-back cycle is one rep; choose step jacks for a no-jump option.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 export async function listExercises() {
   return exercises;
