@@ -7,11 +7,19 @@ use std::{collections::HashSet, fs, path::PathBuf, sync::Mutex};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkoutResult {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amrap_progress: Option<AmrapProgress>,
     pub id: String,
     pub completed_at: u64,
     pub elapsed_ms: u64,
     pub config: Config,
     pub checked_exercise_ids: Vec<String>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AmrapProgress {
+    pub completed_movements: u32,
+    pub partial_value: u32,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -31,6 +39,22 @@ pub struct HistoryStore {
 }
 fn validate_result(result: &WorkoutResult) -> Result<(), String> {
     timer::validate(&result.config)?;
+    match (&result.config.mode, &result.amrap_progress) {
+        (Mode::Amrap, Some(score)) if score.completed_movements <= 999999 => {
+            let current = &result.config.exercises
+                [score.completed_movements as usize % result.config.exercises.len()];
+            if !current
+                .target
+                .as_ref()
+                .is_some_and(|t| score.partial_value < t.value)
+            {
+                return Err("Invalid AMRAP partial progress.".into());
+            }
+        }
+        (Mode::Amrap, _) => return Err("AMRAP result requires valid progress.".into()),
+        (_, Some(_)) => return Err("Progress applies only to AMRAP.".into()),
+        _ => {}
+    }
     let mut checked = HashSet::new();
     if result.id.trim().is_empty()
         || result.id.chars().count() > 120
@@ -134,6 +158,27 @@ pub fn mutate_workout_history(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn amrap_score_roundtrips_and_rejects_invalid_partial_units() {
+        let raw = serde_json::json!({"id":"amrap", "completedAt":1780000000000u64,"elapsedMs":60000,"checkedExerciseIds":[], "amrapProgress":{"completedMovements":3,"partialValue":40},"config":{"type":"amrap","durationSeconds":60,"leadInSeconds":0,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat","target":{"unit":"reps","value":10}},{"id":"b","name":"Row","target":{"unit":"metres","value":100}}]}});
+        let r: WorkoutResult = serde_json::from_value(raw.clone()).unwrap();
+        let s = store();
+        s.mutate(Mutation::Save { result: r.clone() }).unwrap();
+        assert_eq!(
+            HistoryStore::new(s.path.clone()).read().unwrap().results[0],
+            r
+        );
+        for score in [
+            serde_json::json!({"completedMovements":3,"partialValue":100}),
+            serde_json::json!({"completedMovements":1000000,"partialValue":0}),
+            serde_json::Value::Null,
+        ] {
+            let mut invalid = raw.clone();
+            invalid["amrapProgress"] = score;
+            assert!(validate_result(&serde_json::from_value(invalid).unwrap()).is_err());
+        }
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
     fn result() -> WorkoutResult {
         serde_json::from_value(serde_json::json!({"id":"session-1","completedAt":1780000000000u64,"elapsedMs":30000,"checkedExerciseIds":["entry"],"config":{"type":"countdown","durationSeconds":30,"leadInSeconds":5,"warningSeconds":3,"showChecklist":true,"exercises":[{"id":"entry","catalogId":"pushup","name":"Push-up","target":{"unit":"reps","value":10}}]}})).unwrap()
     }

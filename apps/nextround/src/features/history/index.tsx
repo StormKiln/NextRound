@@ -1,4 +1,4 @@
-import { formatTarget, formatTime } from '@nextround/core';
+import { formatAmrapProgress, formatTarget, formatTime } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
@@ -11,11 +11,13 @@ import '../templates/templates.css';
 import './history.css';
 export const historyKey = ['workout-history'];
 const modeName = (result: WorkoutResult) =>
-  result.config.type === 'countdown'
-    ? 'Countdown'
-    : result.config.type === 'intervals'
-      ? 'Intervals'
-      : 'EMOM';
+  result.config.type === 'amrap'
+    ? 'AMRAP'
+    : result.config.type === 'countdown'
+      ? 'Countdown'
+      : result.config.type === 'intervals'
+        ? 'Intervals'
+        : 'EMOM';
 export function History() {
   const query = useQuery({ queryKey: historyKey, queryFn: readHistory, retry: false });
   const client = useQueryClient();
@@ -109,11 +111,13 @@ export function History() {
             workout time
           </p>
           <p>
-            {detail.config.type === 'intervals'
-              ? `${detail.config.rounds} rounds · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
-              : detail.config.type !== 'countdown'
-                ? `${detail.config.minutes} one-minute rounds`
-                : `${detail.config.durationSeconds}s countdown`}
+            {detail.config.type === 'amrap' && detail.amrapProgress
+              ? formatAmrapProgress(detail.config, detail.amrapProgress)
+              : detail.config.type === 'intervals'
+                ? `${detail.config.rounds} rounds · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
+                : detail.config.type !== 'countdown' && detail.config.type !== 'amrap'
+                  ? `${detail.config.minutes} one-minute rounds`
+                  : `${detail.config.durationSeconds}s countdown`}
           </p>
           <p>
             Lead-in: {detail.config.leadInSeconds}s · Warning: {detail.config.warningSeconds}s
@@ -165,11 +169,13 @@ export function History() {
                   if (!mounted.current) return;
                   void navigate({
                     to:
-                      copy.config.type === 'intervals'
-                        ? '/intervals'
-                        : copy.config.type === 'countdown'
-                          ? '/countdown'
-                          : '/emom',
+                      copy.config.type === 'amrap'
+                        ? '/amrap'
+                        : copy.config.type === 'intervals'
+                          ? '/intervals'
+                          : copy.config.type === 'countdown'
+                            ? '/countdown'
+                            : '/emom',
                   });
                 } catch (e) {
                   if (mounted.current) setError(String(e));

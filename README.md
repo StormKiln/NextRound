@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.3.0 macOS release**. Includes EMOM, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
+> Status: **1.4.0 macOS release**. Includes EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.3.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.4.0.md)
 
 ## Product scope
 
@@ -209,3 +209,7 @@ The exercise picker displays how many retained saved workouts contain each catal
 Ranking is deterministic: favorites sorts by descending count, new by ascending count, with English name/ID ties. Mix partitions eligible exercises into a lower-count half (rounded up) and the remaining higher-count half, then alternates higher/lower/higher with fallback if a pool runs out. With all-zero eligible counts, use neutral alphabetical ordering. These heuristics offer variety, not balanced programming or personalized coaching.
 
 Counts derive from local retained history; deleting a saved result removes its contribution. Custom and legacy entries without catalog identity are excluded and disclosed, never matched by name. Catalog identity survives templates and repeat flows. A read failure shows unavailable usage and retry, not fabricated zero counts. No new backend, account, AI service or data upload is involved.
+
+### 1.4.0: AMRAP and workout setup fixes
+
+AMRAP adds a fixed time cap, ordered circuit, explicit movement completion/undo and mixed-unit partial progress. Review scores before saving; targets are planned work, not measured performance. Stop confirmation pauses the timer until a decision. New EMOM entries receive editable defaults, uneven rotations are explained, and long exercise lists scroll with add controls outside the list. Existing templates/history are preserved. See the [release notes](docs/release-notes-1.4.0.md) for defaults and limitations.

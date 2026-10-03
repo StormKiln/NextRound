@@ -1,4 +1,9 @@
-import { durationSeconds, type WorkoutConfig } from '@nextround/core';
+import {
+  type AmrapProgress,
+  durationSeconds,
+  validAmrapProgress,
+  type WorkoutConfig,
+} from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { copyValidatedConfig, type TemplateStorage } from '../templates/repository';
 export type WorkoutResult = {
@@ -7,6 +12,7 @@ export type WorkoutResult = {
   elapsedMs: number;
   config: WorkoutConfig;
   checkedExerciseIds: string[];
+  amrapProgress?: AmrapProgress;
 };
 export type HistoryDocument = { version: 1; results: WorkoutResult[] };
 export type HistoryMutation =
@@ -18,7 +24,15 @@ export function copyResult(value: unknown): WorkoutResult {
   if (!value || typeof value !== 'object') throw new Error(invalid);
   if (
     Object.keys(value).some(
-      (key) => !['id', 'completedAt', 'elapsedMs', 'config', 'checkedExerciseIds'].includes(key),
+      (key) =>
+        ![
+          'id',
+          'completedAt',
+          'elapsedMs',
+          'config',
+          'checkedExerciseIds',
+          'amrapProgress',
+        ].includes(key),
     )
   )
     throw new Error(invalid);
@@ -44,7 +58,12 @@ export function copyResult(value: unknown): WorkoutResult {
     )
   )
     throw new Error(invalid);
+  if (config.type === 'amrap') {
+    if (!entry.amrapProgress || !validAmrapProgress(config, entry.amrapProgress))
+      throw new Error(invalid);
+  } else if (entry.amrapProgress !== undefined) throw new Error(invalid);
   return {
+    ...(entry.amrapProgress ? { amrapProgress: { ...entry.amrapProgress } } : {}),
     id: entry.id,
     completedAt: entry.completedAt,
     elapsedMs: entry.elapsedMs,

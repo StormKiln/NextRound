@@ -4,6 +4,7 @@ const key = 'nextround.workout-history.v1';
 test('completed countdown saves checks once, survives reload, repeats and deletes', async ({
   page,
 }) => {
+  await page.clock.install();
   await page.goto('/countdown');
   await page.getByLabel('Minutes', { exact: true }).fill('0');
   await page.getByLabel('Seconds', { exact: true }).fill('4');
@@ -11,7 +12,6 @@ test('completed countdown saves checks once, survives reload, repeats and delete
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('Push-up');
   await page.getByRole('button', { name: /^Push-up / }).click();
-  await page.clock.install();
   await page.getByRole('button', { name: 'Start countdown', exact: true }).click();
   await page.getByRole('checkbox').check();
   await page.clock.runFor(4100);

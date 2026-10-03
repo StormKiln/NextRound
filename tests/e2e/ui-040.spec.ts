@@ -61,7 +61,7 @@ test('pointer reorder preserves duplicate movement targets', async ({ page }) =>
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('Air squat');
   await page.getByRole('button', { name: /^Air squat/ }).click();
-  await page.getByRole('button', { name: 'Set target for Air squat', exact: true }).last().click();
+  await page.getByRole('button', { name: 'Edit target for Air squat', exact: true }).last().click();
   await page.getByLabel('Target amount', { exact: true }).fill('5');
   await page.getByRole('button', { name: 'Save target', exact: true }).click();
   const handle = page.getByRole('button', { name: 'Reorder Air squat', exact: true }).last();

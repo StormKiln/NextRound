@@ -1,15 +1,18 @@
 import {
+  type AmrapProgress,
   type ExerciseEntry,
   type SessionSnapshot,
+  validAmrapProgress,
   validateConfig,
   type WorkoutConfig,
 } from '@nextround/core';
 import { create } from 'zustand';
 import { exercises } from '@/data/exercises';
 import { copyResult, mutateHistory, type WorkoutResult } from '@/features/history/repository';
+import { defaultEmomTarget } from '@/features/setup/emom-defaults';
 import * as adapter from '@/native/adapter';
 
-type WorkoutMode = 'emom' | 'countdown' | 'intervals';
+type WorkoutMode = 'emom' | 'countdown' | 'intervals' | 'amrap';
 type IntervalsDraft = {
   workSeconds: string;
   restSeconds: string;
@@ -33,6 +36,15 @@ type CountdownDraft = {
   warningSeconds: string;
 };
 type State = {
+  amrapDraft: CountdownDraft;
+  setAmrapDraft: (patch: Partial<CountdownDraft>) => void;
+  amrapProgress: AmrapProgress;
+  scoreLocked: boolean;
+  setAmrapProgress: (score: AmrapProgress) => void;
+  stopConfirmation: boolean;
+  resumeAfterStop: boolean;
+  requestStop: () => Promise<void>;
+  cancelStop: () => Promise<void>;
   sessionId: string | null;
   pendingResult: WorkoutResult | null;
   resultStatus: 'none' | 'pending' | 'saved' | 'discarded';
@@ -53,19 +65,70 @@ type State = {
   error: string | null;
   setDraft: (patch: Partial<Draft>) => void;
   start: (repeat?: boolean, mode?: WorkoutMode) => Promise<boolean>;
-  control: (action: 'pause' | 'resume' | 'stop') => Promise<void>;
+  control: (action: 'pause' | 'resume' | 'stop') => Promise<boolean>;
   poll: () => Promise<void>;
 };
 let generation = 0;
 let polling = false;
 export const useWorkout = create<State>((set, get) => ({
+  amrapDraft: {
+    minutes: '10',
+    seconds: '0',
+    leadInSeconds: '10',
+    warningSeconds: '3',
+    showChecklist: false,
+    exercises: exercises
+      .slice(0, 3)
+      .map((entry) => ({ ...entry, catalogId: entry.id, target: defaultEmomTarget(entry) })),
+  },
+  setAmrapDraft: (patch) => set((s) => ({ amrapDraft: { ...s.amrapDraft, ...patch }, errors: {} })),
+  amrapProgress: { completedMovements: 0, partialValue: 0 },
+  scoreLocked: false,
+  setAmrapProgress: (score) => {
+    const { snapshot, busy, pendingResult, resultStatus, scoreLocked, stopConfirmation } = get();
+    if (
+      busy ||
+      scoreLocked ||
+      stopConfirmation ||
+      snapshot?.config.type !== 'amrap' ||
+      !(
+        snapshot.phase === 'running' ||
+        (snapshot.phase === 'completed' && resultStatus === 'pending')
+      ) ||
+      !validAmrapProgress(snapshot.config, score)
+    )
+      return;
+    set({
+      amrapProgress: { ...score },
+      ...(pendingResult
+        ? { pendingResult: { ...pendingResult, amrapProgress: { ...score } } }
+        : {}),
+    });
+  },
+  stopConfirmation: false,
+  resumeAfterStop: false,
+  requestStop: async () => {
+    const { snapshot, busy, stopConfirmation } = get();
+    if (busy || stopConfirmation || !snapshot || !['running', 'leadIn'].includes(snapshot.phase))
+      return;
+    const resumeAfterStop = !snapshot.paused;
+    if (resumeAfterStop && !(await get().control('pause'))) return;
+    const current = get().snapshot;
+    if (current && ['running', 'leadIn'].includes(current.phase))
+      set({ stopConfirmation: true, resumeAfterStop });
+  },
+  cancelStop: async () => {
+    if (get().busy || !get().stopConfirmation) return;
+    if (get().resumeAfterStop && !(await get().control('resume'))) return;
+    set({ stopConfirmation: false, resumeAfterStop: false });
+  },
   sessionId: null,
   pendingResult: null,
   resultStatus: 'none',
   saveResult: async () => {
     const { pendingResult, busy } = get();
     if (!pendingResult || busy) return false;
-    set({ busy: true, error: null });
+    set({ busy: true, error: null, scoreLocked: true });
     try {
       await mutateHistory({ action: 'save', result: pendingResult });
       await adapter.resolveResult();
@@ -97,7 +160,9 @@ export const useWorkout = create<State>((set, get) => ({
     minutes: '15',
     leadInSeconds: '10',
     warningSeconds: '3',
-    exercises: exercises.slice(0, 3).map((entry) => ({ ...entry, catalogId: entry.id })),
+    exercises: exercises
+      .slice(0, 3)
+      .map((entry) => ({ ...entry, catalogId: entry.id, target: defaultEmomTarget(entry) })),
   },
   intervalsDraft: {
     workSeconds: '40',
@@ -141,7 +206,15 @@ export const useWorkout = create<State>((set, get) => ({
     });
   },
   getDraftConfig: (mode) => {
-    const { draft, countdownDraft, intervalsDraft } = get();
+    const { draft, countdownDraft, intervalsDraft, amrapDraft } = get();
+    if (mode === 'amrap')
+      return {
+        type: 'amrap',
+        durationSeconds: countdownDuration(amrapDraft),
+        leadInSeconds: numeric(amrapDraft.leadInSeconds),
+        warningSeconds: numeric(amrapDraft.warningSeconds),
+        exercises: structuredClone(amrapDraft.exercises),
+      };
     if (mode === 'intervals')
       return {
         type: 'intervals',
@@ -180,7 +253,20 @@ export const useWorkout = create<State>((set, get) => ({
         return false;
       }
       const copy = structuredClone(config);
-      if (copy.type === 'intervals') {
+      if (copy.type === 'amrap') {
+        set({
+          amrapDraft: {
+            minutes: String(Math.floor(copy.durationSeconds / 60)),
+            seconds: String(copy.durationSeconds % 60),
+            leadInSeconds: String(copy.leadInSeconds),
+            warningSeconds: String(copy.warningSeconds),
+            exercises: copy.exercises,
+            showChecklist: false,
+          },
+          errors: {},
+          error: null,
+        });
+      } else if (copy.type === 'intervals') {
         set({
           intervalsDraft: {
             workSeconds: String(copy.workSeconds),
@@ -238,6 +324,9 @@ export const useWorkout = create<State>((set, get) => ({
       set({
         snapshot,
         checkedExerciseIds: [],
+        amrapProgress: { completedMovements: 0, partialValue: 0 },
+        scoreLocked: false,
+        stopConfirmation: false,
         sessionId: crypto.randomUUID(),
         pendingResult: null,
         resultStatus: 'none',
@@ -256,15 +345,20 @@ export const useWorkout = create<State>((set, get) => ({
     }
   },
   control: async (action) => {
-    if (get().busy) return;
+    if (get().busy) return false;
     generation++;
     set({ busy: true });
     try {
       const snapshot = await adapter.controlWorkout(action);
       set({ snapshot });
-      if (action === 'stop') await adapter.fullscreen(false);
+      if (action === 'stop') {
+        set({ stopConfirmation: false, resumeAfterStop: false });
+        await adapter.fullscreen(false);
+      }
+      return true;
     } catch (error) {
       set({ error: String(error) });
+      return false;
     } finally {
       set({ busy: false });
     }
@@ -284,6 +378,7 @@ export const useWorkout = create<State>((set, get) => ({
             elapsedMs: snapshot.elapsedMs,
             config: snapshot.config,
             checkedExerciseIds: state.checkedExerciseIds,
+            ...(snapshot.config.type === 'amrap' ? { amrapProgress: state.amrapProgress } : {}),
           });
           set({ snapshot, pendingResult: result, resultStatus: 'pending' });
         } else set({ snapshot });

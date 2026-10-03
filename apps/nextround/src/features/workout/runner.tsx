@@ -1,9 +1,10 @@
 import { formatTarget, formatTime } from '@nextround/core';
 import { useNavigate } from '@tanstack/react-router';
 import { Check, Maximize, Pause, Play, RotateCw, Square } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
+import { AmrapProgressPanel } from '@/features/amrap/progress';
 import { ResultActions } from '@/features/history';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
@@ -13,23 +14,26 @@ import { returnToSetup } from './navigation';
 export function Runner() {
   const { snapshot: s, control, busy, error, checkedExerciseIds, toggleChecked } = useWorkout();
   const navigate = useNavigate();
-  const [stop, setStop] = useState(false);
+  const { stopConfirmation: stop, requestStop, cancelStop } = useWorkout();
   useEffect(() => {
     if (!s || s.phase === 'cancelled')
       void navigate({
         to:
-          s?.config.type === 'intervals'
-            ? '/intervals'
-            : s?.config.type === 'countdown'
-              ? '/countdown'
-              : '/emom',
+          s?.config.type === 'amrap'
+            ? '/amrap'
+            : s?.config.type === 'intervals'
+              ? '/intervals'
+              : s?.config.type === 'countdown'
+                ? '/countdown'
+                : '/emom',
       });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
   }, [s?.phase, navigate, s]);
   if (!s) return null;
   const lead = s.phase === 'leadIn';
+  const amrap = s.config.type === 'amrap';
   const countdown = s.config.type === 'countdown';
-  const emom = s.config.type !== 'countdown' ? s.config : null;
+  const emom = s.config.type !== 'countdown' && s.config.type !== 'amrap' ? s.config : null;
   const intervals = s.config.type === 'intervals';
   const resting = intervals && s.intervalPhase === 'rest' && !lead;
   const rounds = emom ? (emom.type === 'intervals' ? emom.rounds : emom.minutes) : 0;
@@ -44,21 +48,23 @@ export function Runner() {
   const fraction = lead
     ? s.roundRemainingMs / Math.max(1, s.config.leadInSeconds * 1000)
     : s.roundRemainingMs /
-      (s.config.type === 'countdown'
+      (s.config.type === 'countdown' || s.config.type === 'amrap'
         ? s.config.durationSeconds * 1000
         : s.config.type === 'intervals'
           ? (resting ? s.config.restSeconds : s.config.workSeconds) * 1000
           : 60000);
   return (
-    <main className={`runner ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}>
+    <main
+      className={`runner ${amrap ? 'amrap-runner' : ''} ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}
+    >
       <div className="runner-top">
         <span className="mode-pill">
-          {countdown ? 'Countdown' : intervals ? 'Intervals' : 'EMOM'}
+          {amrap ? 'AMRAP' : countdown ? 'Countdown' : intervals ? 'Intervals' : 'EMOM'}
         </span>
         <span>
           {lead
             ? 'Before you begin'
-            : countdown
+            : countdown || amrap
               ? 'Time for your workout'
               : `Round ${s.roundIndex + 1} of ${rounds}`}
         </span>
@@ -74,7 +80,7 @@ export function Runner() {
       <div className="runner-content">
         <section
           className="timer-face"
-          aria-label={countdown ? 'Countdown timer' : 'Current round'}
+          aria-label={countdown || amrap ? 'Countdown timer' : 'Current round'}
         >
           <svg viewBox="0 0 400 400" aria-hidden="true">
             <circle className="track" cx="200" cy="200" r="184" />
@@ -98,7 +104,7 @@ export function Runner() {
                 ? 'Paused'
                 : lead
                   ? 'Starting in'
-                  : countdown
+                  : countdown || amrap
                     ? 'Time remaining'
                     : 'This round'}
             </p>
@@ -114,9 +120,9 @@ export function Runner() {
             </span>
           </div>
         </section>
-        <section className="movement">
+        <section className="movement" aria-label={amrap ? 'Circuit and progress' : undefined}>
           <p className="eyebrow">
-            {countdown
+            {countdown || amrap
               ? 'Your time. Your pace.'
               : lead
                 ? 'Up first'
@@ -127,11 +133,13 @@ export function Runner() {
           <h1>
             {lead
               ? 'Get ready'
-              : countdown
-                ? 'Make time to move'
-                : resting
-                  ? 'Take a breath'
-                  : current?.name}
+              : amrap
+                ? 'Keep your circuit going'
+                : countdown
+                  ? 'Make time to move'
+                  : resting
+                    ? 'Take a breath'
+                    : current?.name}
           </h1>
           {lead && <h2>{current?.name}</h2>}
           <p className="movement-description">
@@ -172,6 +180,7 @@ export function Runner() {
               </ol>
             </section>
           )}
+          {amrap && <AmrapProgressPanel />}
           {emom && (
             <div className="up-next">
               <span>{s.roundIndex === rounds - 1 && !lead ? 'Last round' : 'Next movement'}</span>
@@ -197,7 +206,7 @@ export function Runner() {
           ? 'Workout paused'
           : lead
             ? 'Get ready'
-            : countdown
+            : countdown || amrap
               ? 'Countdown running'
               : `Round ${s.roundIndex + 1}. ${resting ? 'Rest' : 'Work'}. ${resting ? next?.name : current?.name}`}
       </div>
@@ -214,7 +223,7 @@ export function Runner() {
           variant="ghost"
           disabled={busy}
           aria-label="Stop workout"
-          onClick={() => setStop(true)}
+          onClick={() => void requestStop()}
         >
           <Square size={16} />
           Stop
@@ -222,17 +231,21 @@ export function Runner() {
         <span>Escape exits full screen. Your workout keeps running.</span>
       </div>
       {stop && (
-        <Dialog title="End this workout?" onClose={() => setStop(false)}>
-          <p>Your workout will stop. Your setup will be kept so you can start again.</p>
+        <Dialog title="End this workout?" onClose={() => void cancelStop()}>
+          {error && <p role="alert">{error}</p>}
+          <p>
+            Your workout is paused. Your workout will stop. Your setup will be kept so you can start
+            again.
+          </p>
           <div className="dialog-actions">
-            <Button variant="ghost" onClick={() => setStop(false)}>
+            <Button variant="ghost" disabled={busy} onClick={() => void cancelStop()}>
               Keep going
             </Button>
             <Button
               variant="destructive"
+              disabled={busy}
               onClick={async () => {
                 await control('stop');
-                setStop(false);
               }}
             >
               End workout
@@ -264,7 +277,7 @@ export function Completion() {
       <h1>Workout complete</h1>
       <p>You showed up. You put in the work.</p>
       <div className="complete-stats">
-        {s.config.type !== 'countdown' && (
+        {s.config.type !== 'countdown' && s.config.type !== 'amrap' && (
           <div>
             <strong>{s.config.type === 'intervals' ? s.config.rounds : s.config.minutes}</strong>
             <span>rounds completed</span>
@@ -276,6 +289,7 @@ export function Completion() {
         </div>
       </div>
       {(s.notice || error) && <p role="alert">{s.notice || error}</p>}
+      {s.config.type === 'amrap' && <AmrapProgressPanel />}
       <ResultActions />
       <div className="complete-actions">
         <Button
@@ -309,11 +323,13 @@ export function Completion() {
               () => {
                 void navigate({
                   to:
-                    s.config.type === 'intervals'
-                      ? '/intervals'
-                      : s.config.type === 'countdown'
-                        ? '/countdown'
-                        : '/emom',
+                    s.config.type === 'amrap'
+                      ? '/amrap'
+                      : s.config.type === 'intervals'
+                        ? '/intervals'
+                        : s.config.type === 'countdown'
+                          ? '/countdown'
+                          : '/emom',
                 });
               },
               (error) => useWorkout.setState({ error }),
