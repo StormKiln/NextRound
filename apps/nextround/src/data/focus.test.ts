@@ -86,3 +86,31 @@ it('finds audited common plural names of every new movement', () => {
     expect(matchesExercise(entry, queries[index])).toBe(true);
   });
 });
+
+it('resolves complete plural display names to the same catalog identity', () => {
+  const queries = [
+    'reverse crunches',
+    'bicycle crunches',
+    'supine lateral heel reaches',
+    'seated knee tucks',
+    'flutter kicks',
+    'lying leg raises',
+    'single-leg glute bridges',
+    'glute bridge marches',
+    'bodyweight lateral lunges',
+    'forward lunges',
+    'bodyweight good mornings',
+    'side-lying leg raises',
+    'unbanded clamshells',
+    'quadruped donkey kicks',
+    'fire hydrants',
+    'bear crawls',
+    'crab walks',
+    'standing alternating knee drives',
+    'step jacks',
+    'jumping jacks',
+  ];
+  exercises.slice(63).forEach((entry, index) => {
+    expect(matchesExercise(entry, queries[index])).toBe(true);
+  });
+});

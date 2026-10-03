@@ -387,13 +387,13 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
   'supine-heel-reach': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['heel reaches'],
+    aliases: ['heel reaches', 'supine lateral heel reaches'],
     targetAreas: ['core'],
   },
   'seated-knee-tuck': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['knee tucks'],
+    aliases: ['knee tucks', 'seated knee tucks'],
     targetAreas: ['core'],
   },
   'flutter-kicks': {
@@ -405,13 +405,13 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
   'lying-leg-raise': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['leg raises'],
+    aliases: ['leg raises', 'lying leg raises'],
     targetAreas: ['core'],
   },
   'single-leg-glute-bridge': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['single leg glute bridges'],
+    aliases: ['single leg glute bridges', 'single-leg glute bridges'],
     targetAreas: ['glutes', 'legs'],
   },
   'glute-bridge-march': {
@@ -423,7 +423,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
   'bodyweight-lateral-lunge': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['lateral lunges'],
+    aliases: ['lateral lunges', 'bodyweight lateral lunges'],
     targetAreas: ['legs', 'glutes'],
   },
   'forward-lunge': {
@@ -435,25 +435,25 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
   'bodyweight-good-morning': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['good mornings'],
+    aliases: ['good mornings', 'bodyweight good mornings'],
     targetAreas: ['legs', 'glutes', 'back'],
   },
   'side-lying-leg-raise': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['side lying leg raises'],
+    aliases: ['side lying leg raises', 'side-lying leg raises'],
     targetAreas: ['glutes'],
   },
   'unbanded-clamshell': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['clamshells'],
+    aliases: ['clamshells', 'unbanded clamshells'],
     targetAreas: ['glutes'],
   },
   'quadruped-donkey-kick': {
     equipment: [],
     category: 'Other bodyweight',
-    aliases: ['donkey kicks'],
+    aliases: ['donkey kicks', 'quadruped donkey kicks'],
     targetAreas: ['glutes'],
   },
   'fire-hydrant': {
@@ -477,7 +477,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
   'standing-knee-drive': {
     equipment: [],
     category: 'Cardio',
-    aliases: ['knee drives'],
+    aliases: ['knee drives', 'standing alternating knee drives'],
     targetAreas: ['legs', 'core'],
   },
   'step-jack': {
