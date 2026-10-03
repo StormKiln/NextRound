@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('exercise prescriptions follow ordering into the workout', async ({ page }) => {
   await page.goto('/emom');
-  await page.getByRole('button', { name: 'Set target for Push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit target for Push-up', exact: true }).click();
   await page.getByLabel('Target amount', { exact: true }).fill('10');
   await page.getByLabel('Target unit', { exact: true }).selectOption('reps');
   await page.getByRole('button', { name: 'Save target', exact: true }).click();
@@ -23,7 +23,7 @@ test('rowing supports seconds, calories and metres and targets can be cleared', 
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('rowing');
   await page.getByRole('button', { name: /^Rowing machine/ }).click();
-  await page.getByRole('button', { name: 'Set target for Rowing machine', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit target for Rowing machine', exact: true }).click();
   await expect(page.getByLabel('Target unit').locator('option')).toHaveText([
     'Seconds',
     'Metres',
@@ -40,7 +40,7 @@ test('rowing supports seconds, calories and metres and targets can be cleared', 
 
 test('invalid targets stay editable and time targets display clearly', async ({ page }) => {
   await page.goto('/emom');
-  await page.getByRole('button', { name: 'Set target for Push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit target for Push-up', exact: true }).click();
   await page.getByLabel('Target amount').fill('0');
   await page.getByRole('button', { name: 'Save target', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('positive whole number');
@@ -55,7 +55,7 @@ test('custom exercise supports all prescription units', async ({ page }) => {
   await page.getByRole('button', { name: 'Custom exercise', exact: true }).click();
   await page.getByLabel('Exercise name').fill('Ski erg');
   await page.getByRole('button', { name: 'Add custom exercise', exact: true }).click();
-  await page.getByRole('button', { name: 'Set target for Ski erg', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit target for Ski erg', exact: true }).click();
   await expect(page.getByLabel('Target unit').locator('option')).toHaveText([
     'Repetitions',
     'Seconds',

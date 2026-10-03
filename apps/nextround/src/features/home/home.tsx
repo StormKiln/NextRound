@@ -60,6 +60,19 @@ export function Home() {
             </Button>
           </div>
         </section>
+        <section className="workout-choice" aria-labelledby="amrap-title">
+          <div className="workout-choice-copy">
+            <h2 id="amrap-title">AMRAP</h2>
+            <h3>Your circuit. As many rounds as possible.</h3>
+            <p>
+              Keep moving through your exercises until time runs out. Track your rounds and partial
+              progress at your own pace.
+            </p>
+            <Button onClick={() => void navigate({ to: '/amrap' })}>
+              Build an AMRAP <ArrowUpRight size={18} />
+            </Button>
+          </div>
+        </section>
       </div>
       <TemplateLibrary
         onLoad={(config) => {
@@ -67,11 +80,13 @@ export function Home() {
             throw new Error('Finish your active workout before loading a saved setup.');
           void navigate({
             to:
-              config.type === 'intervals'
-                ? '/intervals'
-                : config.type === 'countdown'
-                  ? '/countdown'
-                  : '/emom',
+              config.type === 'amrap'
+                ? '/amrap'
+                : config.type === 'intervals'
+                  ? '/intervals'
+                  : config.type === 'countdown'
+                    ? '/countdown'
+                    : '/emom',
           });
         }}
       />

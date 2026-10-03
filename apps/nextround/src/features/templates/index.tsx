@@ -1,4 +1,5 @@
 import type { WorkoutConfig } from '@nextround/core';
+import { formatTime } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { Dialog } from '@/components/dialog';
@@ -185,11 +186,13 @@ export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) =>
                 <div className="template-summary">
                   <h3>{template.name}</h3>
                   <p>
-                    {template.config.type === 'intervals'
-                      ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
-                      : template.config.type === 'countdown'
-                        ? `Countdown · ${template.config.durationSeconds} seconds`
-                        : `EMOM · ${template.config.minutes} rounds`}
+                    {template.config.type === 'amrap'
+                      ? `AMRAP · ${formatTime(template.config.durationSeconds * 1000)} cap`
+                      : template.config.type === 'intervals'
+                        ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
+                        : template.config.type === 'countdown'
+                          ? `Countdown · ${template.config.durationSeconds} seconds`
+                          : `EMOM · ${template.config.minutes} rounds`}
                   </p>
                 </div>
                 <div className="template-actions">

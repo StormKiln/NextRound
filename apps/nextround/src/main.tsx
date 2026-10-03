@@ -17,6 +17,7 @@ import ReactDOM from 'react-dom/client';
 import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
+import { AmrapSetup } from '@/features/amrap/setup';
 import { CountdownSetup } from '@/features/countdown/setup';
 import { History } from '@/features/history';
 import { Home } from '@/features/home/home';
@@ -284,6 +285,11 @@ const intervalsRoute = createRoute({
   path: '/intervals',
   component: IntervalsSetup,
 });
+const amrapRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/amrap',
+  component: AmrapSetup,
+});
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
@@ -301,6 +307,7 @@ const router = createRouter({
     setupRoute,
     countdownRoute,
     intervalsRoute,
+    amrapRoute,
     workoutRoute,
     completeRoute,
   ]),

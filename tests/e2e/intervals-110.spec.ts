@@ -60,7 +60,7 @@ test('padded search matches and whitespace-only search collapses groups', async 
 test('oversized EMOM target warns without blocking intentional saving', async ({ page }) => {
   await page.goto('/emom');
   await page
-    .getByRole('button', { name: /Set target/ })
+    .getByRole('button', { name: /Edit target/ })
     .first()
     .click();
   await page.getByLabel('Target unit').selectOption('seconds');

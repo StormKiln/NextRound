@@ -6,7 +6,7 @@ test('cancel keyboard reorder preserves intervening target edits', async ({ page
   await handle.focus();
   await page.keyboard.press('Space');
   await page.keyboard.press('ArrowUp');
-  await page.getByRole('button', { name: 'Set target for Push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit target for Push-up', exact: true }).click();
   await page.getByLabel('Target amount', { exact: true }).fill('12');
   await page.getByRole('button', { name: 'Save target', exact: true }).click();
   await handle.focus();

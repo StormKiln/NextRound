@@ -119,6 +119,7 @@ export function Setup() {
         </section>
         <div>
           <ExerciseEditor
+            emomDefaults
             exercises={draft.exercises}
             onChange={(exercises) => setDraft({ exercises })}
             rounds={validDuration ? minutes : undefined}

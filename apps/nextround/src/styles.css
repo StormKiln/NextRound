@@ -289,6 +289,10 @@ textarea {
   padding: 4px;
 }
 .exercise-list {
+  max-height: clamp(150px, 36vh, 430px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   list-style: none;
   padding: 0;
   margin: 22px 0 0;
@@ -1078,4 +1082,45 @@ textarea {
   margin-block: 12px;
   font-size: 12px;
   color: #bdb2a8;
+}
+
+.rotation-notice {
+  color: #f1c192;
+  background: #33251b;
+  border: 1px solid #765236;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.amrap-progress {
+  max-width: 650px;
+  margin: 20px auto;
+  padding: 18px;
+  border: 1px solid #494139;
+  border-radius: 12px;
+  text-align: left;
+}
+.amrap-progress h2 {
+  font-size: 20px;
+}
+.amrap-progress label {
+  display: block;
+  margin-top: 18px;
+}
+.amrap-circuit {
+  max-height: 180px;
+  overflow: auto;
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.amrap-circuit li {
+  padding: 8px;
+  font-size: 14px;
+}
+.amrap-circuit [aria-current] {
+  background: #38291f;
+  border-left: 3px solid #ff9d55;
 }

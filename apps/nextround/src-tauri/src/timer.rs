@@ -32,6 +32,7 @@ pub enum Mode {
     #[default]
     Emom,
     Countdown,
+    Amrap,
     Intervals,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -73,7 +74,7 @@ pub struct Snapshot {
 impl Config {
     pub(crate) fn duration_ms(&self) -> u64 {
         match self.mode {
-            Mode::Countdown => u64::from(self.duration_seconds.unwrap_or(0)) * 1000,
+            Mode::Countdown | Mode::Amrap => u64::from(self.duration_seconds.unwrap_or(0)) * 1000,
             Mode::Intervals => {
                 let rounds = u64::from(self.rounds.unwrap_or(0));
                 (rounds * u64::from(self.work_seconds.unwrap_or(0))
@@ -95,7 +96,7 @@ pub fn validate(config: &Config) -> Result<(), String> {
         {
             return Err("Choose work 1–86400 seconds, rest 0–86400, rounds 1–1440 and a total within 24 hours.".into());
         }
-    } else if config.mode == Mode::Countdown {
+    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
         if !config
             .duration_seconds
             .is_some_and(|s| (1..=86400).contains(&s))
@@ -117,6 +118,7 @@ pub fn validate(config: &Config) -> Result<(), String> {
                     .as_ref()
                     .is_some_and(|id| id.trim().is_empty() || id.chars().count() > 120)
                 || !ids.insert(&e.id)
+                || (config.mode == Mode::Amrap && e.target.is_none())
                 || e.target.as_ref().is_some_and(|target| {
                     target.value == 0
                         || target.value
@@ -154,7 +156,7 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         && !completed
         && elapsed >= lead
         && active % cycle >= u64::from(config.work_seconds.unwrap()) * 1000;
-    let round = if config.mode == Mode::Countdown {
+    let round = if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
         0
     } else {
         ((active / cycle) as u32).min(if config.mode == Mode::Intervals {
@@ -177,7 +179,7 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
             lead - elapsed
         } else if completed {
             0
-        } else if config.mode == Mode::Countdown {
+        } else if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
             duration - active
         } else {
             (if config.mode == Mode::Intervals && !resting {
@@ -189,7 +191,7 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         interval_phase: (config.mode == Mode::Intervals)
             .then(|| if resting { "rest" } else { "work" }.into()),
         round_index: round,
-        exercise_index: if config.mode == Mode::Countdown {
+        exercise_index: if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
             0
         } else {
             round as usize % config.exercises.len()
@@ -230,7 +232,7 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
     }
     let remaining = if second < lead {
         lead - second
-    } else if config.mode == Mode::Countdown {
+    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
         end - second
     } else {
         60 - (second - lead) % 60
@@ -312,6 +314,21 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn amrap_has_one_cap_and_requires_targets() {
+        let mut raw = serde_json::json!({"type":"amrap","durationSeconds":125,"leadInSeconds":2,"warningSeconds":3,"exercises":[{"id":"a","name":"Row","target":{"unit":"metres","value":100}}]});
+        let c: Config = serde_json::from_value(raw.clone()).unwrap();
+        assert!(validate(&c).is_ok());
+        assert_eq!(snapshot(&c, 62000).remaining_ms, 65000);
+        assert_eq!(snapshot(&c, 62000).round_remaining_ms, 65000);
+        assert_eq!(cue_at(&c, 62000), None);
+        assert_eq!(cue_at(&c, 127000), Some("complete"));
+        raw["exercises"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("target");
+        assert!(validate(&serde_json::from_value(raw).unwrap()).is_err());
+    }
     fn config() -> Config {
         Config {
             mode: Mode::Emom,

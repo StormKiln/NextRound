@@ -1,5 +1,10 @@
 import { expect, it } from 'vitest';
-import { createHistoryRepository, parseHistoryDocument, type WorkoutResult } from './repository';
+import {
+  copyResult,
+  createHistoryRepository,
+  parseHistoryDocument,
+  type WorkoutResult,
+} from './repository';
 
 const result: WorkoutResult = {
   id: 'session-1',
@@ -132,4 +137,32 @@ it('treats explicit null catalog identity as absent, matching native optional fi
   value.config.exercises[0].catalogId = null;
   const parsed = parseHistoryDocument({ version: 1, results: [value] });
   expect(parsed.results[0].config.exercises?.[0].catalogId).toBeUndefined();
+});
+
+it('roundtrips mixed-unit AMRAP progress and rejects invalid scores', () => {
+  const raw = {
+    id: 'amrap-result',
+    completedAt: 1780000000000,
+    elapsedMs: 60000,
+    checkedExerciseIds: [],
+    config: {
+      type: 'amrap',
+      durationSeconds: 60,
+      leadInSeconds: 0,
+      warningSeconds: 3,
+      exercises: [
+        { id: 'a', name: 'Squat', target: { unit: 'reps', value: 10 } },
+        { id: 'b', name: 'Row', target: { unit: 'metres', value: 100 } },
+      ],
+    },
+    amrapProgress: { completedMovements: 3, partialValue: 40 },
+  };
+  expect(copyResult(raw)).toEqual(raw);
+  expect(() =>
+    copyResult({ ...raw, amrapProgress: { completedMovements: 3, partialValue: 100 } }),
+  ).toThrow();
+  expect(() =>
+    copyResult({ ...raw, amrapProgress: { completedMovements: -1, partialValue: 0 } }),
+  ).toThrow();
+  expect(() => copyResult({ ...raw, amrapProgress: undefined })).toThrow();
 });

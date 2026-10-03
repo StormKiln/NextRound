@@ -48,11 +48,38 @@ export type IntervalsConfig = {
   warningSeconds: number;
   exercises: ExerciseEntry[];
 };
-export type WorkoutConfig = EmomConfig | CountdownConfig | IntervalsConfig;
+export type AmrapConfig = {
+  type: 'amrap';
+  durationSeconds: number;
+  leadInSeconds: number;
+  warningSeconds: number;
+  exercises: ExerciseEntry[];
+};
+export type AmrapProgress = { completedMovements: number; partialValue: number };
+export function validAmrapProgress(config: AmrapConfig, score: AmrapProgress): boolean {
+  const target = config.exercises[score.completedMovements % config.exercises.length]?.target;
+  return (
+    Object.keys(score).every((key) => ['completedMovements', 'partialValue'].includes(key)) &&
+    Number.isSafeInteger(score.completedMovements) &&
+    score.completedMovements >= 0 &&
+    score.completedMovements <= 999999 &&
+    Number.isSafeInteger(score.partialValue) &&
+    score.partialValue >= 0 &&
+    !!target &&
+    score.partialValue < target.value
+  );
+}
+export function formatAmrapProgress(config: AmrapConfig, score: AmrapProgress): string {
+  const rounds = Math.floor(score.completedMovements / config.exercises.length);
+  const extra = score.completedMovements % config.exercises.length;
+  const current = config.exercises[extra];
+  return `${rounds} completed ${rounds === 1 ? 'round' : 'rounds'} + ${extra} completed ${extra === 1 ? 'movement' : 'movements'}${score.partialValue && current.target ? ` + ${formatTarget({ ...current.target, value: score.partialValue })} of ${current.name}` : ''}`;
+}
+export type WorkoutConfig = EmomConfig | CountdownConfig | IntervalsConfig | AmrapConfig;
 export function durationSeconds(config: WorkoutConfig): number {
   return config.type === 'intervals'
     ? config.rounds * config.workSeconds + (config.rounds - 1) * config.restSeconds
-    : config.type === 'countdown'
+    : config.type === 'countdown' || config.type === 'amrap'
       ? config.durationSeconds
       : config.minutes * 60;
 }
@@ -60,7 +87,8 @@ export type WorkoutCue = 'tock' | 'beep' | 'rest' | 'complete';
 export type Workout =
   | { type: 'emom'; config: EmomConfig }
   | { type: 'countdown'; config: CountdownConfig }
-  | { type: 'intervals'; config: IntervalsConfig };
+  | { type: 'intervals'; config: IntervalsConfig }
+  | { type: 'amrap'; config: AmrapConfig };
 export type SessionSnapshot = {
   phase: 'leadIn' | 'running' | 'completed' | 'cancelled';
   remainingMs: number;
@@ -86,7 +114,7 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
     }
     if (!Object.keys(errors).length && durationSeconds(config) > 86400)
       errors.durationSeconds = 'Keep the total workout within 24 hours.';
-  } else if (config.type === 'countdown') {
+  } else if (config.type === 'countdown' || config.type === 'amrap') {
     if (
       !Number.isInteger(config.durationSeconds) ||
       config.durationSeconds < 1 ||
@@ -125,7 +153,8 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
           e.description !== null &&
           (typeof e.description !== 'string' || e.description.length > 2000)) ||
         (e.supportedUnits !== undefined && !Array.isArray(e.supportedUnits)) ||
-        !validTarget(e),
+        !validTarget(e) ||
+        (config.type === 'amrap' && !e.target),
     ) ||
     new Set(entries.map((e) => e.id)).size !== entries.length
   )
@@ -146,7 +175,7 @@ export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnaps
   const cycle =
     config.type === 'intervals' ? (config.workSeconds + config.restSeconds) * 1000 : 60000;
   const roundIndex =
-    config.type === 'countdown'
+    config.type === 'countdown' || config.type === 'amrap'
       ? 0
       : Math.min(
           (config.type === 'intervals' ? config.rounds : config.minutes) - 1,
@@ -170,14 +199,17 @@ export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnaps
         ? lead - elapsed
         : completed
           ? 0
-          : config.type === 'countdown'
+          : config.type === 'countdown' || config.type === 'amrap'
             ? duration - active
             : phaseRemaining,
     ...(config.type === 'intervals'
       ? { intervalPhase: resting ? ('rest' as const) : ('work' as const) }
       : {}),
     roundIndex,
-    exerciseIndex: config.type === 'countdown' ? 0 : roundIndex % config.exercises.length,
+    exerciseIndex:
+      config.type === 'countdown' || config.type === 'amrap'
+        ? 0
+        : roundIndex % config.exercises.length,
     elapsedMs: Math.min(active, duration),
     paused: false,
   };
@@ -207,13 +239,16 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
   }
   if (
     second === lead ||
-    (config.type !== 'countdown' && second > lead && (second - lead) % 60 === 0)
+    (config.type !== 'countdown' &&
+      config.type !== 'amrap' &&
+      second > lead &&
+      (second - lead) % 60 === 0)
   )
     return 'beep';
   const remaining =
     second < lead
       ? lead - second
-      : config.type === 'countdown'
+      : config.type === 'countdown' || config.type === 'amrap'
         ? end - second
         : 60 - ((second - lead) % 60);
   return remaining <= config.warningSeconds ? 'tock' : null;

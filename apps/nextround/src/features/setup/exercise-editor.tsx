@@ -6,6 +6,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { listExercises } from '@/data/exercises';
+import { defaultEmomTarget, rotationNotice } from './emom-defaults';
 import { ExerciseRecommendations } from './exercise-recommendations';
 import { TargetDialog } from './target-dialog';
 
@@ -16,6 +17,8 @@ export function ExerciseEditor({
   description: introduction = 'One movement per minute. Repeat until the clock runs out.',
   rounds,
   workSeconds,
+  emomDefaults = false,
+  requireTargets = false,
 }: {
   exercises: ExerciseEntry[];
   onChange: (entries: ExerciseEntry[]) => void;
@@ -23,6 +26,8 @@ export function ExerciseEditor({
   description?: string;
   rounds?: number;
   workSeconds?: number;
+  emomDefaults?: boolean;
+  requireTargets?: boolean;
 }) {
   const {
     data: library = [],
@@ -38,6 +43,19 @@ export function ExerciseEditor({
   const [customError, setCustomError] = useState('');
   const [search, setSearch] = useState('');
 
+  const listRef = useRef<HTMLOListElement>(null);
+  const previousLength = useRef(exercises.length);
+  useEffect(() => {
+    if (exercises.length > previousLength.current)
+      listRef.current?.lastElementChild?.scrollIntoView({ block: 'nearest' });
+    previousLength.current = exercises.length;
+  }, [exercises.length]);
+  useEffect(() => {
+    if (dragId && !pointerActive.current)
+      listRef.current
+        ?.querySelector(`[data-entry-id="${CSS.escape(dragId)}"]`)
+        ?.scrollIntoView({ block: 'nearest' });
+  });
   const headingId = useId();
   const helpId = useId();
   const [announcement, setAnnouncement] = useState('');
@@ -105,10 +123,28 @@ export function ExerciseEditor({
         <p role="status" className="sr-only">
           {announcement}
         </p>
+        {emomDefaults && (
+          <p className="hint">
+            Targets are editable starting suggestions. Adjust the work and load to leave time to
+            recover. For a custom movement, the starting suggestion is 30 seconds.
+          </p>
+        )}
+        {emomDefaults && rotationNotice(minutes, exercises) && (
+          <p role="status" className="rotation-notice">
+            {rotationNotice(minutes, exercises)}
+          </p>
+        )}
         <ol
+          ref={listRef}
+          aria-label="Ordered exercises"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: The bounded scroll region must be keyboard scrollable.
+          tabIndex={0}
           className="exercise-list"
           onPointerMove={(event) => {
             if (!pointerActive.current || !dragId) return;
+            const bounds = event.currentTarget.getBoundingClientRect();
+            if (event.clientY < bounds.top + 45) event.currentTarget.scrollTop -= 16;
+            else if (event.clientY > bounds.bottom - 45) event.currentTarget.scrollTop += 16;
             const rows = event.currentTarget.querySelectorAll('li');
             const target = Array.from(rows).findIndex((row) => {
               const rect = row.getBoundingClientRect();
@@ -245,7 +281,13 @@ export function ExerciseEditor({
       {targetIndex >= 0 && exercises[targetIndex] && (
         <TargetDialog
           mode={
-            workSeconds !== undefined ? 'intervals' : rounds === undefined ? 'countdown' : 'emom'
+            requireTargets
+              ? 'amrap'
+              : workSeconds !== undefined
+                ? 'intervals'
+                : rounds === undefined
+                  ? 'countdown'
+                  : 'emom'
           }
           workSeconds={workSeconds}
           exercise={exercises[targetIndex]}
@@ -272,6 +314,9 @@ export function ExerciseEditor({
                 {
                   id: crypto.randomUUID(),
                   name: name.trim(),
+                  ...(emomDefaults || requireTargets
+                    ? { target: { unit: 'seconds' as const, value: 30 } }
+                    : {}),
                   description: description.trim() || undefined,
                 },
               ]);
@@ -334,7 +379,14 @@ export function ExerciseEditor({
                 onSelect={(entry) => {
                   onChange([
                     ...exercises,
-                    { ...entry, catalogId: entry.id, id: crypto.randomUUID() },
+                    {
+                      ...entry,
+                      catalogId: entry.id,
+                      id: crypto.randomUUID(),
+                      ...((emomDefaults || requireTargets) && !entry.target
+                        ? { target: defaultEmomTarget(entry) }
+                        : {}),
+                    },
                   ]);
                   setPicker(false);
                   setSearch('');
