@@ -5,30 +5,20 @@ import { matchesExercise, normalizeSearch } from './exercise-suggestions';
 
 export { matchesExercise } from './exercise-suggestions';
 
-const groups = [
-  'Kettlebell',
-  'Push-ups',
-  'Planks',
-  'Squats',
-  'Cardio',
-  'Other bodyweight',
-] as const;
+import { categories as groups, metadataFor } from '@/data/equipment';
+
 function groupFor(entry: ExerciseEntry) {
-  const name = entry.name.toLowerCase();
-  if (name.includes('kettlebell')) return 'Kettlebell';
-  if (name.includes('push-up')) return 'Push-ups';
-  if (name.includes('plank')) return 'Planks';
-  if (name.includes('squat')) return 'Squats';
-  if (['Burpee', 'Jump rope', 'Rowing machine'].includes(entry.name)) return 'Cardio';
-  return 'Other bodyweight';
+  return metadataFor(entry)?.category ?? 'Uncategorized';
 }
 export function ExerciseGroups({
   library,
   search,
   onSelect,
   counts,
+  note,
 }: {
   counts?: Map<string, number>;
+  note?: (entry: ExerciseEntry) => string;
   library: ExerciseEntry[];
   search: string;
   onSelect: (entry: ExerciseEntry) => void;
@@ -52,6 +42,7 @@ export function ExerciseGroups({
             <span>
               <strong>{entry.name}</strong>
               <small>{entry.description}</small>
+              {note && <small>{note(entry)}</small>}
               <small>
                 {counts
                   ? `Used in ${counts.get(entry.id) ?? 0} saved workouts`

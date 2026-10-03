@@ -1,4 +1,5 @@
 import type { ExerciseEntry } from '@nextround/core';
+import { metadataFor } from '@/data/equipment';
 import type { HistoryDocument } from '../history/repository';
 export type SuggestionPreset = 'favorites' | 'new' | 'mix';
 export const normalizeSearch = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
@@ -8,7 +9,9 @@ const searchAlias = (value: string) =>
     .replace(/\bkettle[ -]?bells?\b/g, 'kettlebell');
 export const matchesExercise = (entry: ExerciseEntry, search: string) =>
   normalizeSearch(entry.name).includes(normalizeSearch(search)) ||
-  searchAlias(entry.name).includes(searchAlias(search));
+  searchAlias(entry.name).includes(searchAlias(search)) ||
+  (metadataFor(entry)?.aliases.some((alias) => searchAlias(alias).includes(searchAlias(search))) ??
+    false);
 export function deriveUsage(document: HistoryDocument) {
   const counts = new Map<string, number>();
   let unattributedEntries = 0;

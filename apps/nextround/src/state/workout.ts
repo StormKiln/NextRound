@@ -63,6 +63,8 @@ type State = {
   errors: Record<string, string>;
   busy: boolean;
   error: string | null;
+  controlError: string | null;
+  readError: string | null;
   setDraft: (patch: Partial<Draft>) => void;
   start: (repeat?: boolean, mode?: WorkoutMode) => Promise<boolean>;
   control: (action: 'pause' | 'resume' | 'stop') => Promise<boolean>;
@@ -188,6 +190,8 @@ export const useWorkout = create<State>((set, get) => ({
   errors: {},
   busy: false,
   error: null,
+  controlError: null,
+  readError: null,
   setDraft: (patch) => set((state) => ({ draft: { ...state.draft, ...patch }, errors: {} })),
   checkedExerciseIds: [],
   toggleChecked: (id) => {
@@ -318,7 +322,7 @@ export const useWorkout = create<State>((set, get) => ({
     set({ errors });
     if (Object.keys(errors).length) return false;
     generation++;
-    set({ busy: true, error: null });
+    set({ busy: true, error: null, controlError: null, readError: null });
     try {
       const snapshot = await adapter.startWorkout(config);
       set({
@@ -350,14 +354,18 @@ export const useWorkout = create<State>((set, get) => ({
     set({ busy: true });
     try {
       const snapshot = await adapter.controlWorkout(action);
-      set({ snapshot });
+      set({ snapshot, controlError: null });
       if (action === 'stop') {
         set({ stopConfirmation: false, resumeAfterStop: false });
-        await adapter.fullscreen(false);
+        try {
+          await adapter.fullscreen(false);
+        } catch {
+          set({ error: 'Could not leave full screen. The workout has stopped.' });
+        }
       }
       return true;
     } catch (error) {
-      set({ error: String(error) });
+      set({ controlError: String(error) });
       return false;
     } finally {
       set({ busy: false });
@@ -370,6 +378,7 @@ export const useWorkout = create<State>((set, get) => ({
     try {
       const snapshot = await adapter.readWorkout();
       if (ticket === generation && snapshot) {
+        set({ readError: null });
         const state = get();
         if (snapshot.phase === 'completed' && state.resultStatus === 'none') {
           const result = copyResult({
@@ -384,7 +393,8 @@ export const useWorkout = create<State>((set, get) => ({
         } else set({ snapshot });
       }
     } catch (error) {
-      if (ticket === generation) set({ error: `The timer could not be read: ${String(error)}` });
+      if (ticket === generation)
+        set({ readError: `The timer could not be read: ${String(error)}` });
     } finally {
       polling = false;
     }
@@ -404,4 +414,9 @@ function countdownDuration(draft: CountdownDraft) {
     seconds <= 59
     ? minutes * 60 + seconds
     : Number.NaN;
+}
+
+// Keep failures from independent operations visible until their own retry succeeds.
+export function workoutError(state: Pick<State, 'error' | 'controlError' | 'readError'>) {
+  return [state.error, state.controlError, state.readError].filter(Boolean).join(' ') || null;
 }

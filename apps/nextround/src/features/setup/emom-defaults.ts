@@ -3,6 +3,25 @@ import type { ExerciseEntry, ExerciseTarget } from '@nextround/core';
 // Starting suggestions, not pace estimates. Unilateral counts apply to the chosen side;
 // alternating movements count each repetition. Unknown movements default to time.
 const reps: Record<string, number> = {
+  'glute-bridge': 10,
+  'mountain-climber': 20,
+  'dead-bug': 8,
+  'bird-dog': 8,
+  'standing-calf-raise': 15,
+  'inchworm-walkout': 5,
+  'dumbbell-goblet-squat': 8,
+  'dumbbell-reverse-lunge': 8,
+  'dumbbell-romanian-deadlift': 10,
+  'dumbbell-single-arm-row': 8,
+  'dumbbell-floor-press': 8,
+  'dumbbell-strict-press': 6,
+  'dumbbell-push-press': 8,
+  'dumbbell-thruster': 6,
+  'box-step-up': 8,
+  'box-jump': 5,
+  'pull-up': 4,
+  'medicine-ball-slam': 8,
+
   squat: 10,
   pushup: 8,
   situp: 10,

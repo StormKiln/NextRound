@@ -5,7 +5,10 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { eligibleExercise, equipmentNote } from '@/data/equipment';
 import { listExercises } from '@/data/exercises';
+import { useEquipment } from '@/features/settings/equipment-store';
+import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget, rotationNotice } from './emom-defaults';
 import { ExerciseRecommendations } from './exercise-recommendations';
 import { TargetDialog } from './target-dialog';
@@ -35,8 +38,19 @@ export function ExerciseEditor({
     isPending,
     refetch,
   } = useQuery({ queryKey: ['exercises'], queryFn: listExercises, retry: false });
+  const equipment = useEquipment();
+  const [equipmentSettings, setEquipmentSettings] = useState(false);
+  const [showAllEquipment, setShowAllEquipment] = useState(false);
+  const effectiveSelection = equipment.loaded ? equipment.selection : null;
+  const availableLibrary = showAllEquipment
+    ? library
+    : library.filter((entry) => eligibleExercise(entry, effectiveSelection));
   const [custom, setCustom] = useState(false);
   const [picker, setPicker] = useState(false);
+  useEffect(() => {
+    if (picker) equipment.load();
+    else setShowAllEquipment(false);
+  }, [picker, equipment.load]);
   const [targetId, setTargetId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -355,7 +369,10 @@ export function ExerciseEditor({
           </form>
         </Dialog>
       )}
-      {picker && (
+      {equipmentSettings && (
+        <Settings initialSection="equipment" onClose={() => setEquipmentSettings(false)} />
+      )}
+      {picker && !equipmentSettings && (
         <Dialog title="Choose an exercise" onClose={() => setPicker(false)}>
           <Input
             aria-label="Search exercises"
@@ -363,6 +380,40 @@ export function ExerciseEditor({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <div className="equipment-filter">
+            <p>
+              {effectiveSelection === null
+                ? 'Equipment is not configured. All equipment is shown.'
+                : 'Showing movements for your saved equipment.'}
+            </p>
+            {equipment.error && (
+              <div role="alert">
+                <p>{equipment.error}</p>
+                <Button onClick={equipment.load}>Retry equipment settings</Button>
+              </div>
+            )}
+            <label>
+              <input
+                type="checkbox"
+                checked={showAllEquipment}
+                onChange={(event) => setShowAllEquipment(event.target.checked)}
+              />{' '}
+              Show all equipment
+            </label>
+            <Button variant="secondary" onClick={() => setEquipmentSettings(true)}>
+              Change equipment settings
+            </Button>
+            <p className="hint">
+              This override lasts until you close the picker. Custom exercise requirements are
+              unknown and are not filtered.
+            </p>
+            {!showAllEquipment && availableLibrary.length < library.length && (
+              <p>
+                {library.length - availableLibrary.length} exercises hidden by equipment settings.
+                Show all equipment to include them.
+              </p>
+            )}
+          </div>
           {isPending && <p role="status">Loading exercises…</p>}
           {isError && (
             <div role="alert">
@@ -374,7 +425,8 @@ export function ExerciseEditor({
             {!isPending && !isError && (
               <ExerciseRecommendations
                 selected={exercises}
-                library={library}
+                library={availableLibrary}
+                note={(entry) => equipmentNote(entry, effectiveSelection)}
                 search={search}
                 onSelect={(entry) => {
                   onChange([

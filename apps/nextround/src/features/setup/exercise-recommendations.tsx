@@ -29,8 +29,10 @@ export function ExerciseRecommendations({
   search,
   selected,
   onSelect,
+  note,
 }: {
   library: ExerciseEntry[];
+  note?: (entry: ExerciseEntry) => string;
   search: string;
   selected: ExerciseEntry[];
   onSelect: (entry: ExerciseEntry) => void;
@@ -93,6 +95,7 @@ export function ExerciseRecommendations({
                       <span>
                         <strong>{entry.name}</strong>
                         <small>Used in {counts.get(entry.id) ?? 0} saved workouts</small>
+                        {note && <small>{note(entry)}</small>}
                       </span>
                     </Button>
                   </li>
@@ -103,8 +106,8 @@ export function ExerciseRecommendations({
                   {suggestions.length
                     ? 'Fewer than three eligible exercises match.'
                     : 'No eligible suggestions.'}{' '}
-                  Search and exercises already in your workout limit these choices. You can still
-                  add repeats manually below.
+                  Search, equipment settings and exercises already in your workout limit these
+                  choices. You can still add repeats manually below.
                 </p>
               )}
               <p className="muted">
@@ -124,7 +127,13 @@ export function ExerciseRecommendations({
           </details>
         </section>
       )}
-      <ExerciseGroups library={library} search={search} counts={counts} onSelect={onSelect} />
+      <ExerciseGroups
+        library={library}
+        search={search}
+        counts={counts}
+        onSelect={onSelect}
+        note={note}
+      />
       {!library.some((entry) => matchesExercise(entry, search)) && (
         <p>No matching exercises. Try another search or add a Custom exercise.</p>
       )}

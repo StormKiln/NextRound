@@ -300,6 +300,146 @@ export const exercises: ExerciseEntry[] = [
     description:
       'Push with your legs, hinge back slightly, then pull the handle toward your lower ribs. Return arms first, then hinge forward and bend your knees. Keep your wrists relaxed.',
   },
+  {
+    id: 'glute-bridge',
+    name: 'Glute bridge',
+    description:
+      'Lie on your back with knees bent and feet planted. Lift your hips by pressing through your feet, then lower with control. Keep the ribs down.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'mountain-climber',
+    name: 'Mountain climber',
+    description:
+      'From a high plank, bring one knee toward your chest, return it, then alternate. Keep the trunk steady. Count each knee drive as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dead-bug',
+    name: 'Dead bug',
+    description:
+      'Lie on your back with arms up and hips and knees bent. Extend an opposite arm and leg within a controlled range, return, then alternate. Count each extension as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bird-dog',
+    name: 'Bird dog',
+    description:
+      'From hands and knees, reach an opposite arm and leg away without twisting your trunk. Return with control and alternate. Count each reach as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'hollow-body-hold',
+    name: 'Hollow-body hold',
+    description:
+      'Lie on your back and brace your trunk, lifting shoulders and legs slightly. Keep your lower back supported against the floor; bend your knees to reduce the lever. Breathe throughout.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'superman-hold',
+    name: 'Superman hold',
+    description:
+      'Lie face down and gently lift your arms and legs a short distance. Keep your neck aligned and avoid forcing your lower back into a large arch. Breathe steadily.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'standing-calf-raise',
+    name: 'Standing calf raise',
+    description:
+      'Stand tall on a level floor. Rise onto the balls of both feet, pause briefly, then lower your heels with control. Use a comfortable range.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'inchworm-walkout',
+    name: 'Inchworm walkout',
+    description:
+      'Hinge forward, bend your knees as needed and walk your hands into a high plank. Walk them back and stand. One full walkout and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-goblet-squat',
+    name: 'Dumbbell goblet squat',
+    description:
+      'Hold one dumbbell securely at your chest with both hands. Squat through a comfortable range with heels grounded, then stand tall.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-reverse-lunge',
+    name: 'Dumbbell reverse lunge',
+    description:
+      'Hold one dumbbell at your chest. Step back into a lunge, return to standing and alternate legs. Count each lunge as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-romanian-deadlift',
+    name: 'Dumbbell Romanian deadlift',
+    description:
+      'Hold one dumbbell in both hands in front of your thighs. With soft knees, move your hips back and lower the weight close to your legs. Stand by extending your hips.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-single-arm-row',
+    name: 'Dumbbell single-arm row',
+    description:
+      'Hold one dumbbell and hinge with a staggered stance, resting the free hand on your thigh. Pull the weight toward your hip, then lower. Choose one side for the interval; targets are per side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-floor-press',
+    name: 'Dumbbell floor press',
+    description:
+      'Lie on the floor with knees bent and one dumbbell above your chest. Lower until the upper arm gently meets the floor, then press. Choose one side for the interval; targets are per side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-strict-press',
+    name: 'Dumbbell strict press',
+    description:
+      'Stand with one dumbbell at your shoulder. Brace and press overhead without using your legs, then lower with control. Choose one side for the interval; targets are per side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-push-press',
+    name: 'Dumbbell push press',
+    description:
+      'Hold one dumbbell at your shoulder. Dip through your knees, drive upward and finish pressing overhead. Lower under control. Choose one side for the interval; targets are per side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-thruster',
+    name: 'Dumbbell thruster',
+    description:
+      'Hold one dumbbell at a shoulder. Squat, then stand and use that drive to press overhead. Return to the shoulder before repeating. Choose one side for the interval; targets are per side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'box-step-up',
+    name: 'Box step-up',
+    description:
+      'Use a stable platform suited to your ability. Place one whole foot on top, step up to stand, then step down under control. Alternate the leading leg; each ascent is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'box-jump',
+    name: 'Box jump',
+    description:
+      'Use a stable jump-rated box of a manageable height. Jump up with both feet, land softly with feet fully supported, then stand and step down. Each ascent is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pull-up',
+    name: 'Pull-up',
+    description:
+      'Hang from a secure overhead bar. Pull until your chin clears it without swinging, then lower with control. Use a range and variation appropriate to your ability.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'medicine-ball-slam',
+    name: 'Medicine-ball slam',
+    description:
+      'Use a non-bouncing ball rated for slams and a suitable clear floor area. Lift the ball overhead, then drive it down. Bend through hips and knees to retrieve it; each slam is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 export async function listExercises() {
   return exercises;

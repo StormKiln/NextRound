@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { AmrapProgressPanel } from '@/features/amrap/progress';
 import { ResultActions } from '@/features/history';
 import { fullscreen } from '@/native/adapter';
-import { useWorkout } from '@/state/workout';
+import { useWorkout, workoutError } from '@/state/workout';
 import '../countdown/checklist.css';
 import { returnToSetup } from './navigation';
 
 export function Runner() {
-  const { snapshot: s, control, busy, error, checkedExerciseIds, toggleChecked } = useWorkout();
+  const { snapshot: s, control, busy, checkedExerciseIds, toggleChecked } = useWorkout();
+  const error = useWorkout(workoutError);
   const navigate = useNavigate();
   const { stopConfirmation: stop, requestStop, cancelStop } = useWorkout();
   useEffect(() => {
@@ -198,7 +199,7 @@ export function Runner() {
       </div>
       {(s.notice || error) && (
         <p role="alert" className="runner-notice">
-          {s.notice || error}
+          {[s.notice, error].filter(Boolean).join(' ')}
         </p>
       )}
       <div aria-live="polite" className="sr-only">
@@ -257,7 +258,8 @@ export function Runner() {
   );
 }
 export function Completion() {
-  const { snapshot: s, start, busy, error, pendingResult } = useWorkout();
+  const { snapshot: s, start, busy, pendingResult } = useWorkout();
+  const error = useWorkout(workoutError);
   const navigate = useNavigate();
   if (s?.phase !== 'completed')
     return (
@@ -288,7 +290,7 @@ export function Completion() {
           <span>active workout time</span>
         </div>
       </div>
-      {(s.notice || error) && <p role="alert">{s.notice || error}</p>}
+      {(s.notice || error) && <p role="alert">{[s.notice, error].filter(Boolean).join(' ')}</p>}
       {s.config.type === 'amrap' && <AmrapProgressPanel />}
       <ResultActions />
       <div className="complete-actions">

@@ -5,6 +5,7 @@ import { ExternalLink } from '@/components/external-link';
 import { Button } from '@/components/ui/button';
 import icon from '../../../../../assets/icons/ios/AppIcon.appiconset/AppIcon.png';
 import { version } from '../../../package.json';
+import { EquipmentSettings } from './equipment-settings';
 import { GeneralSettings } from './general';
 import { UpdatePanel } from './update-panel';
 import { useUpdates } from './updates';
@@ -14,13 +15,15 @@ export function Settings({
   initialSection = 'general',
 }: {
   onClose: () => void;
-  initialSection?: 'general' | 'updates';
+  initialSection?: 'general' | 'updates' | 'equipment';
 }) {
   const installing = useUpdates((s) => ['downloading', 'installing'].includes(s.status));
   const dismiss = () => {
     if (!installing) onClose();
   };
-  const [section, setSection] = useState<'general' | 'updates' | 'about'>(initialSection);
+  const [section, setSection] = useState<'general' | 'updates' | 'about' | 'equipment'>(
+    initialSection,
+  );
   return (
     <Dialog title="Settings" onClose={dismiss} className="settings-dialog">
       <div className="settings-layout">
@@ -49,6 +52,13 @@ export function Settings({
             <Info size={17} />
             About
           </Button>
+          <Button
+            variant="ghost"
+            aria-pressed={section === 'equipment'}
+            onClick={() => setSection('equipment')}
+          >
+            <Settings2 size={17} /> Equipment
+          </Button>
         </nav>
         <section className="settings-content">
           <Button
@@ -63,6 +73,8 @@ export function Settings({
           </Button>
           {section === 'general' ? (
             <GeneralSettings />
+          ) : section === 'equipment' ? (
+            <EquipmentSettings />
           ) : section === 'about' ? (
             <>
               <img className="about-icon" src={icon} alt="" />
