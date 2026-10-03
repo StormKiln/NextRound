@@ -93,7 +93,7 @@ it('does not open Stop confirmation if pausing fails or completion wins the race
   vi.mocked(adapter.controlWorkout).mockRejectedValueOnce(new Error('Unavailable'));
   await useWorkout.getState().requestStop();
   expect(useWorkout.getState().stopConfirmation).toBe(false);
-  expect(useWorkout.getState().error).toContain('Unavailable');
+  expect(useWorkout.getState().controlError).toContain('Unavailable');
   vi.mocked(adapter.controlWorkout).mockResolvedValueOnce(snapshotAt(config, 125000));
   await useWorkout.getState().requestStop();
   expect(useWorkout.getState().stopConfirmation).toBe(false);
@@ -132,4 +132,44 @@ it('tracks explicit AMRAP movements and corrections without conflating mixed tar
   await useWorkout.getState().discardResult();
   await useWorkout.getState().start(true);
   expect(useWorkout.getState().amrapProgress).toEqual({ completedMovements: 0, partialValue: 0 });
+});
+
+it('clears recovered timer errors independently and preserves unrelated operation errors', async () => {
+  const adapter = await import('@/native/adapter');
+  useWorkout.setState({ error: 'Could not save a result', pendingResult: null, busy: false });
+  vi.mocked(adapter.controlWorkout).mockRejectedValueOnce(new Error('Pause unavailable'));
+  await useWorkout.getState().control('pause');
+  expect(useWorkout.getState().controlError).toContain('Pause unavailable');
+  vi.mocked(adapter.readWorkout).mockRejectedValueOnce(new Error('Read unavailable'));
+  await useWorkout.getState().poll();
+  expect(useWorkout.getState().readError).toContain('Read unavailable');
+  vi.mocked(adapter.readWorkout).mockResolvedValue(snapshotAt(config, 1000));
+  await useWorkout.getState().poll();
+  expect(useWorkout.getState().readError).toBeNull();
+  expect(useWorkout.getState().controlError).toContain('Pause unavailable');
+  vi.mocked(adapter.controlWorkout).mockResolvedValue(snapshotAt(config, 1000));
+  await useWorkout.getState().control('pause');
+  expect(useWorkout.getState().controlError).toBeNull();
+  expect(useWorkout.getState().error).toBe('Could not save a result');
+});
+it('ignores an obsolete read success after a control advances the session generation', async () => {
+  const adapter = await import('@/native/adapter');
+  let finish!: (value: ReturnType<typeof snapshotAt>) => void;
+  vi.mocked(adapter.readWorkout).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  useWorkout.setState({ readError: 'Existing read failure', busy: false });
+  const pending = useWorkout.getState().poll();
+  vi.mocked(adapter.controlWorkout).mockResolvedValue({
+    ...snapshotAt(config, 1000),
+    paused: true,
+  });
+  await useWorkout.getState().control('pause');
+  finish(snapshotAt(config, 0));
+  await pending;
+  expect(useWorkout.getState().snapshot?.paused).toBe(true);
+  expect(useWorkout.getState().readError).toBe('Existing read failure');
 });

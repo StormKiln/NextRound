@@ -28,6 +28,7 @@ stage=''
 trap 'rm -rf "$sign_dir"; if [ -n "$stage" ]; then rm -rf "$stage"; fi' EXIT
 sign_config="$sign_dir/signing.json"
 python3 -c 'import json,os,sys; json.dump({"bundle":{"macOS":{"signingIdentity":os.environ["APPLE_SIGNING_IDENTITY"]}}},open(sys.argv[1],"w"))' "$sign_config"
+printf '%s\n' 'Release stage: Build and sign application'
 make build-app NEXTROUND_CONFIG_PATH="$sign_config"
 app=apps/nextround/src-tauri/target/release/bundle/macos/NextRound.app
 codesign --verify --deep --strict "$app"
@@ -38,8 +39,9 @@ if [ -e release/SHA256SUMS ]; then
   echo "Move the previous release/ output aside before packaging again." >&2; exit 1
 fi
 ditto -c -k --keepParent "$app" release/NextRound-notarization.zip
-xcrun notarytool submit release/NextRound-notarization.zip "${notary_args[@]}" --wait --timeout 30m --output-format json > release/app-notarization.json
+python3 scripts/notarize.py release/NextRound-notarization.zip release/app-notarization.json "${notary_args[@]}"
 python3 -c 'import json; assert json.load(open("release/app-notarization.json"))["status"] == "Accepted", "App notarization was not accepted"'
+printf '%s\n' 'Release stage: Staple and verify application'
 xcrun stapler staple "$app"
 xcrun stapler validate "$app"
 spctl --assess --type execute --verbose "$app"
@@ -48,14 +50,19 @@ ditto "$app" "$stage/NextRound.app"
 ln -s /Applications "$stage/Applications"
 version=$(node -p 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
 dmg="release/NextRound_${version}_aarch64.dmg"
+printf '%s\n' 'Release stage: Create disk image'
 hdiutil create -volname NextRound -srcfolder "$stage" -ov -format UDZO "$dmg"
+printf '%s\n' 'Release stage: Sign disk image'
 codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
-xcrun notarytool submit "$dmg" "${notary_args[@]}" --wait --timeout 30m --output-format json > release/dmg-notarization.json
+printf '%s\n' 'Release stage: Upload disk image for notarization'
+python3 scripts/notarize.py "$dmg" release/dmg-notarization.json "${notary_args[@]}"
 python3 -c 'import json; assert json.load(open("release/dmg-notarization.json"))["status"] == "Accepted", "DMG notarization was not accepted"'
+printf '%s\n' 'Release stage: Staple and verify disk image'
 xcrun stapler staple "$dmg"
 xcrun stapler validate "$dmg"
 spctl --assess --type open --context context:primary-signature --verbose "$dmg"
 # Package only after stapling the app; sign these final archive bytes.
+printf '%s\n' 'Release stage: Sign and verify updater archive'
 archive="release/NextRound_${version}_aarch64.app.tar.gz"
 tar -czf "$archive" -C "$(dirname "$app")" NextRound.app
 npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm tauri signer sign --app-version "$version" "$PWD/$archive"

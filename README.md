@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.4.0 macOS release**. Includes EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
+> Status: **1.5.0 macOS release**. Includes EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.4.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.5.0.md)
 
 ## Product scope
 
@@ -213,3 +213,9 @@ Counts derive from local retained history; deleting a saved result removes its c
 ### 1.4.0: AMRAP and workout setup fixes
 
 AMRAP adds a fixed time cap, ordered circuit, explicit movement completion/undo and mixed-unit partial progress. Review scores before saving; targets are planned work, not measured performance. Stop confirmation pauses the timer until a decision. New EMOM entries receive editable defaults, uneven rotations are explained, and long exercise lists scroll with add controls outside the list. Existing templates/history are preserved. See the [release notes](docs/release-notes-1.4.0.md) for defaults and limitations.
+
+### 1.5.0: equipment-aware exercise selection
+
+Save your available equipment in **Settings → Equipment** to filter browsing and suggestions. Unconfigured settings show all equipment; saving an empty selection shows known no-equipment exercises. **Show all equipment** temporarily overrides filtering until the picker closes. Changing equipment never removes entries from a workout, template or history. Custom movements remain available, with unassessed equipment requirements.
+
+The catalog now has 63 exercises, including 20 new bodyweight, single-dumbbell and equipment movements. Long AMRAP circuits keep the active movement visible on advance, undo and wrap. Recovered timer read/control errors clear independently. See [1.5.0 release notes](docs/release-notes-1.5.0.md).

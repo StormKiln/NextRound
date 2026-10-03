@@ -1,4 +1,5 @@
 import { formatAmrapProgress, formatTarget } from '@nextround/core';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useWorkout } from '@/state/workout';
@@ -13,6 +14,19 @@ export function AmrapProgressPanel() {
     stopConfirmation,
     resultStatus,
   } = useWorkout();
+  const circuit = useRef<HTMLOListElement>(null);
+  const movement = score.completedMovements;
+  useEffect(() => {
+    const list = circuit.current;
+    const row = list?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (!list || !row || movement < 0) return;
+    const bounds = list.getBoundingClientRect();
+    const item = row.getBoundingClientRect();
+    const top = bounds.top + list.clientTop;
+    const bottom = top + list.clientHeight;
+    if (item.top < top) list.scrollTop += item.top - top;
+    else if (item.bottom > bottom) list.scrollTop += item.bottom - bottom;
+  }, [movement]);
   if (snapshot?.config.type !== 'amrap') return null;
   const config = snapshot.config;
   const currentIndex = score.completedMovements % config.exercises.length;
@@ -27,11 +41,7 @@ export function AmrapProgressPanel() {
     <section className="amrap-progress" aria-label="AMRAP progress">
       <h2>Your progress</h2>
       <p role="status">{formatAmrapProgress(config, score)}</p>
-      <p className="hint">
-        Record only work you completed. The timer does not measure repetitions. Use Undo to correct
-        a completed movement.
-      </p>
-      <ol className="amrap-circuit">
+      <ol ref={circuit} className="amrap-circuit">
         {config.exercises.map((e, i) => (
           <li key={e.id} aria-current={i === currentIndex ? 'step' : undefined}>
             <strong>
@@ -76,10 +86,18 @@ export function AmrapProgressPanel() {
           setAmrapProgress({ ...score, partialValue: Number(event.target.value) })
         }
       />
-      <p className="hint">
-        Enter 0–{(current.target?.value ?? 1) - 1} {current.target?.unit}. Once you finish the full
-        target, choose Complete movement. Marking or undoing a movement resets its partial progress.
-      </p>
+      <details className="amrap-help">
+        <summary>How to record progress</summary>
+        <p className="hint">
+          Record only work you completed. The timer does not measure repetitions. Use Undo to
+          correct a completed movement.
+        </p>
+        <p className="hint">
+          Enter 0–{(current.target?.value ?? 1) - 1} {current.target?.unit}. Once you finish the
+          full target, choose Complete movement. Marking or undoing a movement resets its partial
+          progress.
+        </p>
+      </details>
       {snapshot.phase === 'completed' && editable && (
         <p>Review and correct your progress before saving the result.</p>
       )}
