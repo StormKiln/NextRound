@@ -54,7 +54,9 @@ export function Runner() {
           ? (resting ? s.config.restSeconds : s.config.workSeconds) * 1000
           : 60000);
   return (
-    <main className={`runner ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}>
+    <main
+      className={`runner ${amrap ? 'amrap-runner' : ''} ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}
+    >
       <div className="runner-top">
         <span className="mode-pill">
           {amrap ? 'AMRAP' : countdown ? 'Countdown' : intervals ? 'Intervals' : 'EMOM'}
@@ -118,7 +120,7 @@ export function Runner() {
             </span>
           </div>
         </section>
-        <section className="movement">
+        <section className="movement" aria-label={amrap ? 'Circuit and progress' : undefined}>
           <p className="eyebrow">
             {countdown || amrap
               ? 'Your time. Your pace.'

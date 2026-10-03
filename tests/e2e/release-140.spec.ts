@@ -100,3 +100,37 @@ test('EMOM additions have targets, uneven rotations warn and long lists scroll i
   await page.getByLabel('Total minutes').fill('2');
   await expect(page.getByText(/will not run/)).toBeVisible();
 });
+for (const viewport of [
+  { width: 760, height: 620 },
+  { width: 1180, height: 820 },
+]) {
+  test(`AMRAP keeps its timer and controls visible at ${viewport.width}×${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/amrap');
+    for (let i = 0; i < 10; i++) {
+      await page.getByRole('button', { name: 'Custom exercise', exact: true }).click();
+      await page.getByLabel('Exercise name').fill(`Circuit movement ${i}`);
+      await page.getByRole('button', { name: 'Add custom exercise', exact: true }).click();
+    }
+    await page.getByLabel('Lead-in seconds').fill('0');
+    await page.getByRole('button', { name: 'Start AMRAP', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Pause workout' })).toBeInViewport({ ratio: 1 });
+    await expect(page.getByRole('button', { name: 'Stop workout', exact: true })).toBeInViewport({
+      ratio: 1,
+    });
+    await expect(page.getByTestId('round-clock')).toBeInViewport({ ratio: 1 });
+    await page
+      .getByRole('button', { name: 'Complete movement', exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.getByRole('button', { name: 'Complete movement', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('status')).toContainText('1 completed movement');
+    await page.getByLabel('Partial progress for Push-up (reps)').focus();
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByLabel('Partial progress for Push-up (reps)')).toHaveValue('1');
+    await expect(page.getByRole('button', { name: 'Pause workout' })).toBeInViewport({ ratio: 1 });
+    await expect(page.getByTestId('round-clock')).toBeInViewport({ ratio: 1 });
+  });
+}

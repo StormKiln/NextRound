@@ -1124,3 +1124,34 @@ textarea {
   background: #38291f;
   border-left: 3px solid #ff9d55;
 }
+
+/* AMRAP progress scrolls separately so the timer and workout controls stay in view. */
+@media (min-width: 581px) {
+  .amrap-runner {
+    height: calc(100dvh - 80px);
+    display: flex;
+    flex-direction: column;
+  }
+  .amrap-runner .runner-top,
+  .amrap-runner .runner-controls {
+    flex-shrink: 0;
+  }
+  .amrap-runner .runner-content {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    padding: 12px 0;
+  }
+  .amrap-runner .timer-face {
+    width: min(100%, calc(100dvh - 300px));
+    justify-self: center;
+  }
+  .amrap-runner .movement {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 4px 6px;
+  }
+}

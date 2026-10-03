@@ -24,3 +24,7 @@ Packaged UI, signed upgrade and distribution evidence remains pending and is tra
 ## CI clock-test correction (#103)
 
 The first PR CI run passed 49 scenarios, but four Stop-confirmation cases exhausted the 30-second test deadline while replaying 70 seconds of polling callbacks. A throttled local diagnostic preserved the paused clock at 00:59 but spent 15,120 ms in `runFor`. Using `fastForward` for the same 70-second paused interval took 21 ms and passed the unchanged assertions within the original timeout. Running-clock progression tests still use `runFor`; only the long paused interval jumps.
+
+## AMRAP layout correction (#104)
+
+Geometry tests first failed with Pause outside the viewport at 760×620 and 1180×820. The AMRAP runner now bounds its height and scrolls its circuit/progress pane independently. Both sizes pass with a 13-movement circuit, keyboard completion and partial-progress entry; visual inspection confirms the main timer and Pause/Stop remain visible. Full validation after the fix: `make check` passed (96 TypeScript,31 Rust,11 release tests); all55 browser tests passed.

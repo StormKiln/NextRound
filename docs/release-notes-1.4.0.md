@@ -9,6 +9,7 @@ Review and correct progress before saving a completed result. Saved templates an
 - Stop confirmation pauses the timer and cues while you decide. Keep going restores the prior state; a workout that was already paused remains paused.
 - Newly added EMOM movements receive editable starting targets. Existing saved workouts and user-edited targets are preserved.
 - Uneven EMOM rotations explain which slots receive extra rounds, or will not run at all. They remain valid workouts.
+- AMRAP keeps the timer and Pause/Stop controls visible while circuit and progress details scroll.
 - Exercise lists scroll independently, keeping add controls outside the list and retaining keyboard/pointer reordering.
 
 ## Target defaults
