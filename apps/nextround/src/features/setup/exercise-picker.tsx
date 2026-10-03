@@ -1,5 +1,6 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { Plus } from 'lucide-react';
+import { expandedAreasFor, focusAreas, type PickerView } from '@/data/focus';
 
 import { matchesExercise, normalizeSearch } from './exercise-suggestions';
 
@@ -16,22 +17,32 @@ export function ExerciseGroups({
   onSelect,
   counts,
   note,
+  view = 'type',
 }: {
+  view?: PickerView;
   counts?: Map<string, number>;
   note?: (entry: ExerciseEntry) => string;
   library: ExerciseEntry[];
   search: string;
   onSelect: (entry: ExerciseEntry) => void;
 }) {
-  return groups.map((group) => {
-    const entries = library.filter(
-      (entry) => groupFor(entry) === group && matchesExercise(entry, search),
-    );
+  const groupLabels = view === 'focus' ? [...Object.values(focusAreas), 'Unspecified'] : groups;
+  return groupLabels.map((group) => {
+    const entries = library.filter((entry) => {
+      const areas = expandedAreasFor(entry);
+      const inGroup =
+        view === 'type'
+          ? groupFor(entry) === group
+          : areas.length
+            ? areas.some((area) => focusAreas[area] === group)
+            : group === 'Unspecified';
+      return inGroup && matchesExercise(entry, search);
+    });
     if (!entries.length) return null;
     return (
       <details
         className="exercise-group"
-        key={`${group}-${normalizeSearch(search) ? 'search' : 'browse'}`}
+        key={`${view}-${group}-${normalizeSearch(search) ? 'search' : 'browse'}`}
         open={normalizeSearch(search) ? true : undefined}
       >
         <summary>

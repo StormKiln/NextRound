@@ -1,7 +1,7 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import type { PickerView } from '@/data/focus';
 import { readHistory } from '../history/repository';
 import { ExerciseGroups } from './exercise-picker';
 import {
@@ -30,7 +30,13 @@ export function ExerciseRecommendations({
   selected,
   onSelect,
   note,
+  preset,
+  onPreset,
+  view,
 }: {
+  preset: SuggestionPreset | null;
+  onPreset: (preset: SuggestionPreset) => void;
+  view: PickerView;
   library: ExerciseEntry[];
   note?: (entry: ExerciseEntry) => string;
   search: string;
@@ -38,7 +44,6 @@ export function ExerciseRecommendations({
   onSelect: (entry: ExerciseEntry) => void;
 }) {
   const query = useQuery({ queryKey: ['workout-history'], queryFn: readHistory, retry: false });
-  const [preset, setPreset] = useState<SuggestionPreset | null>(null);
   const usage = query.data ? deriveUsage(query.data) : undefined;
   // Never present stale successful data as current statistics after a failed refresh.
   const counts = !query.isError && !query.isPending ? usage?.counts : undefined;
@@ -47,7 +52,8 @@ export function ExerciseRecommendations({
     (entry) => !selectedIds.has(entry.id) && matchesExercise(entry, search),
   );
   const suggestions = preset && counts ? suggestExercises(candidates, counts, preset) : [];
-  const hasUsage = !!counts && library.some((entry) => (counts.get(entry.id) ?? 0) > 0);
+  const hasUsage = !!counts && [...counts.values()].some((count) => count > 0);
+  const hasEligibleUsage = !!counts && candidates.some((entry) => (counts.get(entry.id) ?? 0) > 0);
   return (
     <>
       {query.isPending && <p role="status">Loading exercise usage…</p>}
@@ -66,7 +72,7 @@ export function ExerciseRecommendations({
                 key={item.id}
                 variant="secondary"
                 aria-pressed={preset === item.id}
-                onClick={() => setPreset(item.id)}
+                onClick={() => onPreset(item.id)}
               >
                 {item.label}
               </Button>
@@ -76,6 +82,12 @@ export function ExerciseRecommendations({
             <p>
               No attributed exercise history yet. Suggestions are alphabetical until you save
               catalog exercises.
+            </p>
+          )}
+          {hasUsage && candidates.length > 0 && !hasEligibleUsage && (
+            <p>
+              None of the eligible exercises have saved usage. Suggestions are alphabetical within
+              the current filters.
             </p>
           )}
           {preset && (
@@ -106,8 +118,8 @@ export function ExerciseRecommendations({
                   {suggestions.length
                     ? 'Fewer than three eligible exercises match.'
                     : 'No eligible suggestions.'}{' '}
-                  Search, equipment settings and exercises already in your workout limit these
-                  choices. You can still add repeats manually below.
+                  Search, focus areas, equipment settings and exercises already in your workout
+                  limit these choices. You can still add repeats manually below.
                 </p>
               )}
               <p className="muted">
@@ -128,6 +140,7 @@ export function ExerciseRecommendations({
         </section>
       )}
       <ExerciseGroups
+        view={view}
         library={library}
         search={search}
         counts={counts}

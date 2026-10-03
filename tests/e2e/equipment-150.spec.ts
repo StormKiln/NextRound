@@ -91,7 +91,7 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap']) {
     await page.goto(`/${mode}`);
     await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
     await page.getByLabel('Search exercises').fill('glute bridge');
-    await page.getByRole('button', { name: /^Glute bridge / }).click();
+    await page.getByRole('button', { name: /^Glute bridge Lie / }).click();
     await expect(
       page.getByRole('button', { name: /^(Edit|Set) target for Glute bridge$/ }),
     ).toBeVisible();
@@ -113,7 +113,7 @@ test('new exercises preserve identity through templates, history, repeat and usa
   await page.getByLabel('Lead-in seconds').fill('0');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('glute bridge');
-  await page.getByRole('button', { name: /^Glute bridge / }).click();
+  await page.getByRole('button', { name: /^Glute bridge Lie / }).click();
   await page.getByRole('button', { name: 'Set target for Glute bridge', exact: true }).click();
   await page.getByLabel('Target unit').selectOption('reps');
   await page.getByLabel('Target amount').fill('12');
@@ -149,7 +149,7 @@ test('new exercises preserve identity through templates, history, repeat and usa
   expect(records.result).toEqual(records.template);
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('glute bridge');
-  await expect(page.getByRole('button', { name: /^Glute bridge / })).toContainText(
+  await expect(page.getByRole('button', { name: /^Glute bridge Lie / })).toContainText(
     'Used in 1 saved workouts',
   );
 });

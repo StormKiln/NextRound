@@ -3,9 +3,9 @@ import baseline from './catalog-baseline.json';
 import { exercises } from './exercises';
 
 it('adds twenty distinct exercises without changing the original catalog identities', () => {
-  expect(exercises).toHaveLength(63);
+  expect(exercises).toHaveLength(83);
   expect(exercises.slice(0, 43).map((e) => e.id)).toEqual(baseline);
-  expect(exercises.slice(43).map((e) => e.name)).toEqual([
+  expect(exercises.slice(43, 63).map((e) => e.name)).toEqual([
     'Glute bridge',
     'Mountain climber',
     'Dead bug',
