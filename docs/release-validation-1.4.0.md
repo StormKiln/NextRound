@@ -20,3 +20,7 @@ The Mac was locked at the first attempted native check; an unlock was requested 
 - Independent whole-branch source review: no actionable findings. Active-session crash recovery and cloud sync remain explicitly outside this release.
 
 Packaged UI, signed upgrade and distribution evidence remains pending and is tracked in #101.
+
+## CI clock-test correction (#103)
+
+The first PR CI run passed 49 scenarios, but four Stop-confirmation cases exhausted the 30-second test deadline while replaying 70 seconds of polling callbacks. A throttled local diagnostic preserved the paused clock at 00:59 but spent 15,120 ms in `runFor`. Using `fastForward` for the same 70-second paused interval took 21 ms and passed the unchanged assertions within the original timeout. Running-clock progression tests still use `runFor`; only the long paused interval jumps.

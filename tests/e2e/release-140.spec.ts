@@ -55,7 +55,8 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap']) {
     await page.getByRole('button', { name: 'Stop workout', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     const time = await page.getByTestId('round-clock').textContent();
-    await page.clock.runFor(70000);
+    // Cross a round boundary without replaying every polling tick on slow CI runners.
+    await page.clock.fastForward(70000);
     await expect(page.getByTestId('round-clock')).toHaveText(time ?? 'missing clock');
     await page.getByRole('button', { name: 'Keep going' }).click();
     await expect(page.getByRole('button', { name: 'Pause workout' })).toBeVisible();
