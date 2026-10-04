@@ -8,6 +8,8 @@ use std::{collections::HashSet, fs, path::PathBuf, sync::Mutex};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkoutResult {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ladder_completed_movements: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub outcome: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub amrap_progress: Option<AmrapProgress>,
@@ -57,12 +59,16 @@ fn validate_result(result: &WorkoutResult) -> Result<(), String> {
         (_, Some(_)) => return Err("Progress applies only to AMRAP.".into()),
         _ => {}
     }
+    if result.config.mode == Mode::Ladder {
+        let done=result.ladder_completed_movements.ok_or("Ladder progress required.")?;
+        if done > result.config.ladder_total() || (result.outcome.as_deref()==Some("finished") && done!=result.config.ladder_total()) {return Err("Invalid Ladder progress.".into());}
+    } else if result.ladder_completed_movements.is_some() {return Err("Progress applies only to Ladder.".into());}
     let mut checked = HashSet::new();
     if result.id.trim().is_empty()
         || result.id.chars().count() > 120
         || result.completed_at == 0
         || result.completed_at > 8_640_000_000_000_000
-        || if result.config.mode == Mode::ForTime {
+        || if matches!(result.config.mode,Mode::ForTime | Mode::Ladder) {
             result.elapsed_ms > 9_007_199_254_740_991
                 || match result.outcome.as_deref() {
                     Some("finished") => result.elapsed_ms >= result.config.duration_ms(),
@@ -192,6 +198,13 @@ mod tests {
             assert!(validate_result(&serde_json::from_value(invalid).unwrap()).is_err());
         }
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn ladder_result_requires_valid_progress() {
+        let raw=serde_json::json!({"id":"ladder","completedAt":1780000000000u64,"elapsedMs":1234,"outcome":"finished","ladderCompletedMovements":2,"checkedExerciseIds":[],"config":{"type":"ladder","ladder":{"direction":"ascending","startReps":2,"increment":2,"rungs":2},"leadInSeconds":0,"warningSeconds":0,"exercises":[{"id":"a","name":"Squat"}]}});
+        let result:WorkoutResult=serde_json::from_value(raw.clone()).unwrap();assert!(validate_result(&result).is_ok());
+        for done in [0,1,3] {let mut bad=result.clone();bad.ladder_completed_movements=Some(done);assert!(validate_result(&bad).is_err());}
+        let mut capped=result;capped.config.time_cap_seconds=Some(5);capped.outcome=Some("timeCapReached".into());capped.elapsed_ms=5000;capped.ladder_completed_movements=Some(1);assert!(validate_result(&capped).is_ok());
     }
     #[test]
     fn for_time_results_roundtrip_with_exact_outcomes_and_preserve_invalid_data() {

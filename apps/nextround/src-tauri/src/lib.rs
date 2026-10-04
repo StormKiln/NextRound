@@ -101,6 +101,7 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
     let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
     rt.update();
     let session = rt.session.as_mut().ok_or("No active workout")?;
+    let mut movement_cue = None;
     match action.as_str() {
         "pause" if session.active() => session.paused = true,
         "resume" if session.active() => {
@@ -109,12 +110,14 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
         }
         "stop" => session.stop()?,
         "finish" => session.finish()?,
+        "advance" => movement_cue = session.progress(false)?,
+        "undo" => movement_cue = session.progress(true)?,
         _ => return Err("This action is not available.".into()),
     }
     let result = session.snapshot();
     rt.audio.stop();
-    if action == "finish" {
-        if let Err(error) = rt.audio.play("complete") {
+    if let Some(cue) = if action == "finish" { Some("complete") } else { movement_cue } {
+        if let Err(error) = rt.audio.play(cue) {
             if let Some(session) = rt.session.as_mut() {
                 session.notice = Some(error);
             }
