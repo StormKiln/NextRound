@@ -23,7 +23,7 @@ export function useSetupValidation(mode: WorkoutMode) {
 }
 export function SetupErrors({ errors, mode }: { errors: Record<string, string>; mode: string }) {
   return (
-    <div>
+    <div role={Object.keys(errors).some((key) => key !== 'exercises') ? 'alert' : undefined}>
       {Object.entries(errors)
         .filter(([key]) => key !== 'exercises')
         .map(([key, message]) => (

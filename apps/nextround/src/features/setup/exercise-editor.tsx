@@ -452,9 +452,9 @@ export function ExerciseEditor({
                 This override lasts until you close the picker. Custom exercise requirements are
                 unknown and are not filtered.
               </p>
-              {!showAllEquipment && availableLibrary.length < library.length && (
+              {!showAllEquipment && equipmentLibrary.length < library.length && (
                 <p>
-                  {library.length - availableLibrary.length} exercises hidden by equipment settings.
+                  {library.length - equipmentLibrary.length} exercises hidden by equipment settings.
                   Show all equipment to include them.
                 </p>
               )}

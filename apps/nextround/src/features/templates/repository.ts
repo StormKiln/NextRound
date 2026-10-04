@@ -18,6 +18,10 @@ function nameValue(name: unknown): string {
     throw new Error('Enter a workout name from 1 to 120 characters.');
   return name.trim();
 }
+function rejectUnknown(value: Record<string, unknown>, allowed: string[]) {
+  if (Object.keys(value).some((key) => !allowed.includes(key)))
+    throw new Error('This workout contains unsupported fields. Existing data has been preserved.');
+}
 export function copyValidatedConfig(value: unknown): WorkoutConfig {
   if (
     !record(value) ||
@@ -30,6 +34,33 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
       value.type !== 'ladder')
   )
     throw new Error('Invalid workout configuration.');
+  rejectUnknown(value, [
+    'type',
+    'minutes',
+    'durationSeconds',
+    'workSeconds',
+    'restSeconds',
+    'rounds',
+    'leadInSeconds',
+    'warningSeconds',
+    'exercises',
+    'showChecklist',
+    'timeCapSeconds',
+    'ladder',
+  ]);
+  if (Array.isArray(value.exercises))
+    for (const exercise of value.exercises) {
+      if (!record(exercise)) continue;
+      rejectUnknown(exercise, [
+        'id',
+        'catalogId',
+        'name',
+        'description',
+        'target',
+        'supportedUnits',
+      ]);
+      if (record(exercise.target)) rejectUnknown(exercise.target, ['unit', 'value']);
+    }
   if (
     (value.type !== 'countdown' && value.type !== 'forTime' && value.type !== 'ladder') ||
     value.exercises !== undefined

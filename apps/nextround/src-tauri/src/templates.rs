@@ -253,6 +253,46 @@ mod tests {
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     #[test]
+    fn unknown_nested_source_fields_preserve_original_bytes() {
+        for path in [
+            vec!["config", "future"],
+            vec!["config", "exercises", "0", "future"],
+            vec!["config", "exercises", "0", "target", "future"],
+        ] {
+            let s = store();
+            let original = s
+                .mutate(Mutation::Save {
+                    name: "Original".into(),
+                    config: config(),
+                })
+                .unwrap()
+                .templates[0]
+                .clone();
+            let mut document = serde_json::to_value(s.read().unwrap()).unwrap();
+            let mut field = &mut document["templates"][0];
+            for key in path {
+                field = if key == "0" {
+                    &mut field[0]
+                } else {
+                    &mut field[key]
+                };
+            }
+            *field = serde_json::json!(true);
+            let raw = serde_json::to_vec(&document).unwrap();
+            fs::write(&s.path, &raw).unwrap();
+            assert!(s
+                .mutate(Mutation::Update {
+                    id: original.id.clone(),
+                    expected: original,
+                    name: "Changed".into(),
+                    config: config()
+                })
+                .is_err());
+            assert_eq!(fs::read(&s.path).unwrap(), raw);
+            fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+        }
+    }
+    #[test]
     fn update_checks_loaded_source_before_atomic_replacement() {
         let s = store();
         let original = s

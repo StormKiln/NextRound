@@ -27,3 +27,25 @@ test('invalid exercise list is explained and focused from Save', async ({ page }
     /.+/,
   );
 });
+
+for (const [path, start] of [
+  ['emom', 'Start workout'],
+  ['countdown', 'Start countdown'],
+  ['amrap', 'Start AMRAP'],
+  ['intervals', 'Start intervals'],
+  ['for-time', 'Start For Time'],
+  ['ladder', 'Start Ladder'],
+]) {
+  test(`${path} links its timing error and focuses it at minimum window size`, async ({ page }) => {
+    await page.setViewportSize({ width: 760, height: 620 });
+    await page.goto(`/${path}`);
+    const input = page.getByLabel('Lead-in seconds');
+    await input.fill('-1');
+    await page.getByRole('button', { name: start, exact: true }).click();
+    await expect(input).toBeFocused();
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    const ids = (await input.getAttribute('aria-describedby'))?.split(' ') ?? [];
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) await expect(page.locator(`[id="${id}"]`)).toBeVisible();
+  });
+}

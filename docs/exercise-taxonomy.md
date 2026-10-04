@@ -1,7 +1,7 @@
 # Exercise vocabulary and content policy
 
 ## Stable catalog identity
-The bundled catalog has103 movements. Exercise IDs identify movements; workout entries have independent IDs and optional catalogId. Saved templates and results retain copied names, descriptions and prescribed targets. Catalog metadata or alias changes never rewrite performed snapshots. Workout-local Custom entries are user-authored and have no inferred catalog equipment/focus metadata.
+The bundled catalog has 103 movements. Exercise IDs identify movements; workout entries have independent IDs and optional catalogId. Saved templates and results retain copied names, descriptions and prescribed targets. Catalog metadata or alias changes never rewrite performed snapshots. Workout-local Custom entries are user-authored and have no inferred catalog equipment/focus metadata.
 
 ## Equipment, type and focus
 Canonical equipment IDs (data/equipment.ts): kettlebell, dumbbell, jump-rope, rower, raised-surface, jump-box, pullup-bar and slam-ball. Every required item must be available. An empty list means no mandatory equipment; mats may be optional. Equipment type does not encode quantity: instructions explicitly identify two dumbbells, a stable surface or a non-rolling pair when required. Unconfigured equipment preferences show everything; a saved empty selection means bodyweight only. Unknown Custom metadata is not proof of no equipment.
@@ -14,7 +14,7 @@ Use low, moderate and high only as contextual descriptors for a specified workou
 - Prescribed workout effort: a future author-selected low/moderate/high descriptor with the intended load/pace/rest context. Low means an intentionally easy pace, moderate a sustained controlled effort, and high a deliberately demanding effort; these are qualitative labels, not measured physiological thresholds.
 - Actual perceived effort: a future user report recorded separately from the prescription, never inferred from timer completion.
 
-Neither intensity editing nor an effort-rating field is added in1.8.0. Recommendations (#20), editable catalog (#15) and workout scoring (#18/#19) must adopt these distinctions rather than silently inventing scores.
+Neither intensity editing nor an effort-rating field is added in 1.8.0. Recommendations (#20), editable catalog (#15) and workout scoring (#18/#19) must adopt these distinctions rather than silently inventing scores.
 
 ## Prescriptions, results and time
 Targets support reps, seconds, metres and calories only when the movement supports that unit. Calories refer to equipment readouts, not estimated calories burned by NextRound. Repetitions follow the movement's documented side/counting convention. Targets are planned work; checkmarks and advancement are user declarations, not sensor measurements. Do not sum mixed units into a rep score.

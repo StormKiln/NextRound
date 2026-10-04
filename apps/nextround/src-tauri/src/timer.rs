@@ -9,12 +9,13 @@ pub enum TargetUnit {
     Calories,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct Target {
     pub unit: TargetUnit,
     pub value: u32,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Exercise {
     pub id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -76,7 +77,7 @@ impl LadderPattern {
     }
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Config {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ladder: Option<LadderPattern>,

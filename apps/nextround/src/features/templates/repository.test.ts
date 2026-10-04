@@ -153,3 +153,34 @@ it('failed template update preserves the saved document', async () => {
   ).rejects.toThrow(/Disk full/);
   expect(f.raw()).toBe(before);
 });
+
+it('unsupported nested config fields preserve the original document on every mutation', async () => {
+  for (const path of [
+    ['config'],
+    ['config', 'exercises', 0],
+    ['config', 'exercises', 0, 'target'],
+  ]) {
+    const f = fixture();
+    const original = (await f.repo.mutate({ action: 'save', name: 'Original', config }))
+      .templates[0];
+    const d = JSON.parse(f.raw() ?? 'null');
+    let nested = d.templates[0];
+    for (const key of path) nested = nested[key];
+    nested.future = true;
+    const raw = JSON.stringify(d);
+    f.corrupt(raw);
+    await expect(
+      f.repo.mutate({
+        action: 'update',
+        id: original.id,
+        expected: original,
+        name: 'Edited',
+        config,
+      }),
+    ).rejects.toThrow();
+    await expect(
+      f.repo.mutate({ action: 'rename', id: original.id, name: 'Renamed' }),
+    ).rejects.toThrow();
+    expect(f.raw()).toBe(raw);
+  }
+});

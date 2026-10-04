@@ -80,3 +80,55 @@ test('Ladder filters non-rep exercises and preserves partial progress at the cap
   await page.getByRole('button', { name: 'Repeat from setup', exact: true }).click();
   await page.screenshot({ path: '/tmp/nextround-180-ladder-setup-small.png', fullPage: true });
 });
+
+test('long Ladder movement list keeps keyboard controls reachable and freezes under Stop', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 620 });
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'nextround.workout-templates.v1',
+      JSON.stringify({
+        version: 1,
+        templates: [
+          {
+            id: 'long-ladder',
+            name: 'Long ladder',
+            config: {
+              type: 'ladder',
+              ladder: { direction: 'pyramid', startReps: 2, increment: 2, rungs: 50 },
+              leadInSeconds: 0,
+              warningSeconds: 0,
+              exercises: Array.from({ length: 30 }, (_, i) => ({
+                id: `x${i}`,
+                name: `Movement ${i + 1}`,
+                description:
+                  'Controlled movement with enough space and an intentionally long description to wrap.',
+              })),
+            },
+          },
+        ],
+      }),
+    ),
+  );
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Load Long ladder', exact: true }).click();
+  await page.getByRole('button', { name: 'Load workout', exact: true }).click();
+  await expect(page.getByTestId('ladder-preview')).toContainText('99 rungs');
+  await page.getByRole('button', { name: 'Start Ladder', exact: true }).click();
+  const complete = page.getByRole('button', { name: 'Complete movement', exact: true });
+  await complete.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('ladder-progress')).toContainText('1 of 2970 movements');
+  await page.getByRole('button', { name: 'Stop workout', exact: true }).click();
+  await page.clock.runFor(5000);
+  await expect(page.getByTestId('round-clock')).toHaveText('00:00');
+  await expect(complete).toBeDisabled();
+  await page.getByRole('button', { name: 'Keep going', exact: true }).click();
+  await complete.scrollIntoViewIfNeeded();
+  const box = await complete.boundingBox();
+  expect(box).toBeTruthy();
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(620);
+  await page.screenshot({ path: '/tmp/nextround-180-ladder-running-small.png' });
+});
