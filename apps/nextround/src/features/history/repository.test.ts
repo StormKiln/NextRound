@@ -202,3 +202,33 @@ it('preserves For Time outcomes and validates manual elapsed separately from a c
     }).elapsedMs,
   ).toBe(90000000);
 });
+it('preserves Ladder progress and rejects incomplete success or unrelated progress', () => {
+  const entry = {
+    id: 'ladder-result',
+    completedAt: 1780000000000,
+    elapsedMs: 1234,
+    checkedExerciseIds: [],
+    outcome: 'finished',
+    ladderCompletedMovements: 2,
+    config: {
+      type: 'ladder',
+      ladder: { direction: 'ascending', startReps: 2, increment: 2, rungs: 2 },
+      leadInSeconds: 0,
+      warningSeconds: 0,
+      exercises: [{ id: 'a', name: 'Squat' }],
+    },
+  };
+  expect(copyResult(entry)).toMatchObject({ ladderCompletedMovements: 2, outcome: 'finished' });
+  expect(() => copyResult({ ...entry, ladderCompletedMovements: 1 })).toThrow();
+  expect(() => copyResult({ ...entry, ladderCompletedMovements: 3 })).toThrow();
+  expect(
+    copyResult({
+      ...entry,
+      elapsedMs: 5000,
+      outcome: 'timeCapReached',
+      ladderCompletedMovements: 1,
+      config: { ...entry.config, timeCapSeconds: 5 },
+    }),
+  ).toMatchObject({ ladderCompletedMovements: 1 });
+  expect(() => copyResult({ ...result, ladderCompletedMovements: 1 })).toThrow();
+});

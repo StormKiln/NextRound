@@ -1,6 +1,8 @@
 import {
   type AmrapProgress,
   type ExerciseEntry,
+  type LadderPattern,
+  ladderTotalMovements,
   type SessionSnapshot,
   validAmrapProgress,
   validateConfig,
@@ -11,8 +13,10 @@ import { exercises } from '@/data/exercises';
 import { copyResult, mutateHistory, type WorkoutResult } from '@/features/history/repository';
 import { defaultEmomTarget } from '@/features/setup/emom-defaults';
 import * as adapter from '@/native/adapter';
+import { useValidationAttempts } from './setup-validation';
+import { useTemplateSources } from './template-source';
 
-type WorkoutMode = 'forTime' | 'emom' | 'countdown' | 'intervals' | 'amrap';
+export type WorkoutMode = 'ladder' | 'forTime' | 'emom' | 'countdown' | 'intervals' | 'amrap';
 type IntervalsDraft = {
   workSeconds: string;
   restSeconds: string;
@@ -36,7 +40,15 @@ type CountdownDraft = {
   warningSeconds: string;
 };
 type ForTimeDraft = CountdownDraft & { capped: boolean };
+type LadderDraft = ForTimeDraft & {
+  direction: LadderPattern['direction'];
+  startReps: string;
+  increment: string;
+  rungs: string;
+};
 type State = {
+  ladderDraft: LadderDraft;
+  setLadderDraft: (patch: Partial<LadderDraft>) => void;
   forTimeDraft: ForTimeDraft;
   setForTimeDraft: (patch: Partial<ForTimeDraft>) => void;
   finishConfirmation: boolean;
@@ -74,12 +86,29 @@ type State = {
   readError: string | null;
   setDraft: (patch: Partial<Draft>) => void;
   start: (repeat?: boolean, mode?: WorkoutMode) => Promise<boolean>;
-  control: (action: 'pause' | 'resume' | 'stop' | 'finish') => Promise<boolean>;
+  control: (
+    action: 'pause' | 'resume' | 'stop' | 'finish' | 'advance' | 'undo',
+  ) => Promise<boolean>;
   poll: () => Promise<void>;
 };
 let generation = 0;
 let polling = false;
 export const useWorkout = create<State>((set, get) => ({
+  ladderDraft: {
+    direction: 'ascending',
+    startReps: '2',
+    increment: '2',
+    rungs: '5',
+    minutes: '10',
+    seconds: '0',
+    capped: false,
+    leadInSeconds: '10',
+    warningSeconds: '3',
+    exercises: [],
+    showChecklist: false,
+  },
+  setLadderDraft: (patch) =>
+    set((s) => ({ ladderDraft: { ...s.ladderDraft, ...patch }, errors: {} })),
   forTimeDraft: {
     minutes: '10',
     seconds: '0',
@@ -99,7 +128,9 @@ export const useWorkout = create<State>((set, get) => ({
       busy ||
       finishConfirmation ||
       stopConfirmation ||
-      snapshot?.config.type !== 'forTime' ||
+      (snapshot?.config.type !== 'forTime' && snapshot?.config.type !== 'ladder') ||
+      (snapshot?.config.type === 'ladder' &&
+        snapshot.ladderCompletedMovements !== ladderTotalMovements(snapshot.config)) ||
       snapshot.phase !== 'running'
     )
       return;
@@ -258,7 +289,21 @@ export const useWorkout = create<State>((set, get) => ({
     });
   },
   getDraftConfig: (mode) => {
-    const { draft, countdownDraft, intervalsDraft, amrapDraft, forTimeDraft } = get();
+    const { draft, countdownDraft, intervalsDraft, amrapDraft, forTimeDraft, ladderDraft } = get();
+    if (mode === 'ladder')
+      return {
+        type: 'ladder',
+        ladder: {
+          direction: ladderDraft.direction,
+          startReps: numeric(ladderDraft.startReps),
+          increment: numeric(ladderDraft.increment),
+          rungs: numeric(ladderDraft.rungs),
+        },
+        ...(ladderDraft.capped ? { timeCapSeconds: countdownDuration(ladderDraft) } : {}),
+        leadInSeconds: numeric(ladderDraft.leadInSeconds),
+        warningSeconds: numeric(ladderDraft.warningSeconds),
+        exercises: structuredClone(ladderDraft.exercises),
+      };
     if (mode === 'forTime')
       return {
         type: 'forTime',
@@ -314,7 +359,27 @@ export const useWorkout = create<State>((set, get) => ({
         return false;
       }
       const copy = structuredClone(config);
-      if (copy.type === 'forTime') {
+      useValidationAttempts.getState().reset(copy.type ?? 'emom');
+      useTemplateSources.getState().setSource(copy.type ?? 'emom');
+      if (copy.type === 'ladder') {
+        set({
+          ladderDraft: {
+            direction: copy.ladder.direction,
+            startReps: String(copy.ladder.startReps),
+            increment: String(copy.ladder.increment),
+            rungs: String(copy.ladder.rungs),
+            minutes: String(Math.floor((copy.timeCapSeconds ?? 600) / 60)),
+            seconds: String((copy.timeCapSeconds ?? 600) % 60),
+            capped: copy.timeCapSeconds !== undefined,
+            leadInSeconds: String(copy.leadInSeconds),
+            warningSeconds: String(copy.warningSeconds),
+            exercises: copy.exercises,
+            showChecklist: false,
+          },
+          errors: {},
+          error: null,
+        });
+      } else if (copy.type === 'forTime') {
         set({
           forTimeDraft: {
             minutes: String(Math.floor((copy.timeCapSeconds ?? 600) / 60)),
@@ -422,7 +487,13 @@ export const useWorkout = create<State>((set, get) => ({
     }
   },
   control: async (action) => {
-    if (get().busy) return false;
+    if (
+      get().busy ||
+      ((action === 'advance' || action === 'undo') &&
+        (get().stopConfirmation || get().finishConfirmation))
+    )
+      return false;
+    const wasPaused = get().snapshot?.paused ?? false;
     generation++;
     set({ busy: true });
     try {
@@ -434,6 +505,13 @@ export const useWorkout = create<State>((set, get) => ({
           ? { pendingResult: resultFromSnapshot(snapshot, get()), resultStatus: 'pending' as const }
           : {}),
       });
+      if (
+        action === 'advance' &&
+        snapshot.config.type === 'ladder' &&
+        snapshot.phase === 'running' &&
+        snapshot.ladderCompletedMovements === ladderTotalMovements(snapshot.config)
+      )
+        set({ finishConfirmation: true, resumeAfterFinish: !wasPaused });
       if (action === 'finish') set({ finishConfirmation: false, resumeAfterFinish: false });
       if (action === 'stop') {
         set({ stopConfirmation: false, resumeAfterStop: false });
@@ -502,6 +580,9 @@ function resultFromSnapshot(
     id: state.sessionId ?? crypto.randomUUID(),
     completedAt: Date.now(),
     elapsedMs: snapshot.elapsedMs,
+    ...(snapshot.config.type === 'ladder'
+      ? { ladderCompletedMovements: snapshot.ladderCompletedMovements }
+      : {}),
     ...(snapshot.outcome ? { outcome: snapshot.outcome } : {}),
     config: snapshot.config,
     checkedExerciseIds: state.checkedExerciseIds,

@@ -105,3 +105,82 @@ describe('saved workout repository', () => {
     expect((await f.repo.read()).templates).toHaveLength(100);
   });
 });
+it('updates the exact loaded template and rejects stale or deleted sources without replacing data', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  const updated = await f.repo.mutate({
+    action: 'update',
+    id: original.id,
+    expected: original,
+    name: 'Changed',
+    config: { ...config, minutes: 5 },
+  });
+  expect(updated.templates).toHaveLength(1);
+  expect(updated.templates[0]).toMatchObject({
+    id: original.id,
+    name: 'Changed',
+    config: { minutes: 5 },
+  });
+  const before = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'update', id: original.id, expected: original, name: 'Stale', config }),
+  ).rejects.toThrow(/changed/);
+  expect(f.raw()).toBe(before);
+  await f.repo.mutate({ action: 'delete', id: original.id });
+  await expect(
+    f.repo.mutate({
+      action: 'update',
+      id: original.id,
+      expected: original,
+      name: 'Missing',
+      config,
+    }),
+  ).rejects.toThrow(/no longer/);
+});
+it('failed template update preserves the saved document', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  const before = f.raw();
+  f.fail();
+  await expect(
+    f.repo.mutate({
+      action: 'update',
+      id: original.id,
+      expected: original,
+      name: 'Changed',
+      config: { ...config, minutes: 5 },
+    }),
+  ).rejects.toThrow(/Disk full/);
+  expect(f.raw()).toBe(before);
+});
+
+it('unsupported nested config fields preserve the original document on every mutation', async () => {
+  for (const path of [
+    ['config'],
+    ['config', 'exercises', 0],
+    ['config', 'exercises', 0, 'target'],
+  ]) {
+    const f = fixture();
+    const original = (await f.repo.mutate({ action: 'save', name: 'Original', config }))
+      .templates[0];
+    const d = JSON.parse(f.raw() ?? 'null');
+    let nested = d.templates[0];
+    for (const key of path) nested = nested[key];
+    nested.future = true;
+    const raw = JSON.stringify(d);
+    f.corrupt(raw);
+    await expect(
+      f.repo.mutate({
+        action: 'update',
+        id: original.id,
+        expected: original,
+        name: 'Edited',
+        config,
+      }),
+    ).rejects.toThrow();
+    await expect(
+      f.repo.mutate({ action: 'rename', id: original.id, name: 'Renamed' }),
+    ).rejects.toThrow();
+    expect(f.raw()).toBe(raw);
+  }
+});

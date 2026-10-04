@@ -8,6 +8,8 @@ use std::{collections::HashSet, fs, path::PathBuf, sync::Mutex};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkoutResult {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ladder_completed_movements: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub outcome: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub amrap_progress: Option<AmrapProgress>,
@@ -32,7 +34,7 @@ pub struct HistoryDocument {
 #[derive(Deserialize)]
 #[serde(tag = "action", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Mutation {
-    Save { result: WorkoutResult },
+    Save { result: Box<WorkoutResult> },
     Delete { id: String },
 }
 pub struct HistoryStore {
@@ -57,12 +59,25 @@ fn validate_result(result: &WorkoutResult) -> Result<(), String> {
         (_, Some(_)) => return Err("Progress applies only to AMRAP.".into()),
         _ => {}
     }
+    if result.config.mode == Mode::Ladder {
+        let done = result
+            .ladder_completed_movements
+            .ok_or("Ladder progress required.")?;
+        if done > result.config.ladder_total()
+            || (result.outcome.as_deref() == Some("finished")
+                && done != result.config.ladder_total())
+        {
+            return Err("Invalid Ladder progress.".into());
+        }
+    } else if result.ladder_completed_movements.is_some() {
+        return Err("Progress applies only to Ladder.".into());
+    }
     let mut checked = HashSet::new();
     if result.id.trim().is_empty()
         || result.id.chars().count() > 120
         || result.completed_at == 0
         || result.completed_at > 8_640_000_000_000_000
-        || if result.config.mode == Mode::ForTime {
+        || if matches!(result.config.mode, Mode::ForTime | Mode::Ladder) {
             result.elapsed_ms > 9_007_199_254_740_991
                 || match result.outcome.as_deref() {
                     Some("finished") => result.elapsed_ms >= result.config.duration_ms(),
@@ -132,12 +147,12 @@ impl HistoryStore {
             Mutation::Save { result } => {
                 validate_result(&result)?;
                 if let Some(existing) = document.results.iter().find(|r| r.id == result.id) {
-                    if existing != &result {
+                    if existing != result.as_ref() {
                         return Err("This session is already saved with different data.".into());
                     }
                     return Ok(document);
                 }
-                document.results.push(result);
+                document.results.push(*result);
             }
             Mutation::Delete { id } => {
                 let index = document
@@ -177,7 +192,10 @@ mod tests {
         let raw = serde_json::json!({"id":"amrap", "completedAt":1780000000000u64,"elapsedMs":60000,"checkedExerciseIds":[], "amrapProgress":{"completedMovements":3,"partialValue":40},"config":{"type":"amrap","durationSeconds":60,"leadInSeconds":0,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat","target":{"unit":"reps","value":10}},{"id":"b","name":"Row","target":{"unit":"metres","value":100}}]}});
         let r: WorkoutResult = serde_json::from_value(raw.clone()).unwrap();
         let s = store();
-        s.mutate(Mutation::Save { result: r.clone() }).unwrap();
+        s.mutate(Mutation::Save {
+            result: Box::new(r.clone()),
+        })
+        .unwrap();
         assert_eq!(
             HistoryStore::new(s.path.clone()).read().unwrap().results[0],
             r
@@ -194,12 +212,29 @@ mod tests {
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     #[test]
+    fn ladder_result_requires_valid_progress() {
+        let raw = serde_json::json!({"id":"ladder","completedAt":1780000000000u64,"elapsedMs":1234,"outcome":"finished","ladderCompletedMovements":2,"checkedExerciseIds":[],"config":{"type":"ladder","ladder":{"direction":"ascending","startReps":2,"increment":2,"rungs":2},"leadInSeconds":0,"warningSeconds":0,"exercises":[{"id":"a","name":"Squat"}]}});
+        let result: WorkoutResult = serde_json::from_value(raw.clone()).unwrap();
+        assert!(validate_result(&result).is_ok());
+        for done in [0, 1, 3] {
+            let mut bad = result.clone();
+            bad.ladder_completed_movements = Some(done);
+            assert!(validate_result(&bad).is_err());
+        }
+        let mut capped = result;
+        capped.config.time_cap_seconds = Some(5);
+        capped.outcome = Some("timeCapReached".into());
+        capped.elapsed_ms = 5000;
+        capped.ladder_completed_movements = Some(1);
+        assert!(validate_result(&capped).is_ok());
+    }
+    #[test]
     fn for_time_results_roundtrip_with_exact_outcomes_and_preserve_invalid_data() {
         let raw = serde_json::json!({"id":"for-time","completedAt":1780000000000u64,"elapsedMs":1234,"outcome":"finished","checkedExerciseIds":["a"],"config":{"type":"forTime","timeCapSeconds":5,"leadInSeconds":2,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat"}]}});
         let result: WorkoutResult = serde_json::from_value(raw.clone()).unwrap();
         let s = store();
         s.mutate(Mutation::Save {
-            result: result.clone(),
+            result: Box::new(result.clone()),
         })
         .unwrap();
         assert_eq!(s.read().unwrap().results, vec![result]);
@@ -254,8 +289,14 @@ mod tests {
     fn saves_once_and_preserves_identity_across_restart() {
         let s = store();
         let r = result();
-        s.mutate(Mutation::Save { result: r.clone() }).unwrap();
-        s.mutate(Mutation::Save { result: r.clone() }).unwrap();
+        s.mutate(Mutation::Save {
+            result: Box::new(r.clone()),
+        })
+        .unwrap();
+        s.mutate(Mutation::Save {
+            result: Box::new(r.clone()),
+        })
+        .unwrap();
         let read = HistoryStore::new(s.path.clone()).read().unwrap();
         assert_eq!(read.results, vec![r.clone()]);
         assert_eq!(
@@ -264,7 +305,11 @@ mod tests {
         );
         let mut changed = r;
         changed.config.exercises[0].name = "Changed".into();
-        assert!(s.mutate(Mutation::Save { result: changed }).is_err());
+        assert!(s
+            .mutate(Mutation::Save {
+                result: Box::new(changed)
+            })
+            .is_err());
         s.mutate(Mutation::Delete {
             id: "session-1".into(),
         })
@@ -310,7 +355,11 @@ mod tests {
             "{\"version\":1,\"results\":[{}]}",
         ] {
             std::fs::write(&s.path, raw).unwrap();
-            assert!(s.mutate(Mutation::Save { result: result() }).is_err());
+            assert!(s
+                .mutate(Mutation::Save {
+                    result: Box::new(result())
+                })
+                .is_err());
             assert_eq!(std::fs::read_to_string(&s.path).unwrap(), raw);
         }
         for value in [1, 31000] {

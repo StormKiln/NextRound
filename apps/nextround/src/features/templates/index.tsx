@@ -5,6 +5,7 @@ import { useId, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTemplateSources } from '@/state/template-source';
 import {
   copyValidatedConfig,
   mutateTemplates,
@@ -25,37 +26,51 @@ function useTemplateMutation() {
     },
   });
 }
-export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfig }) {
+export function SaveWorkoutButton({
+  getConfig,
+  validate,
+}: {
+  getConfig: () => WorkoutConfig;
+  validate?: () => boolean;
+}) {
   const [config, setConfig] = useState<WorkoutConfig | null>(null);
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
-  const currentConfig = JSON.stringify(getConfig());
+  const draft = getConfig();
+  const mode = draft.type ?? 'emom';
+  const source = useTemplateSources((s) => s.sources[mode]);
+  const [expected, setExpected] = useState<WorkoutTemplate | null>(null);
+  const currentConfig = JSON.stringify(draft);
+  function open(update: boolean) {
+    if (validate && !validate()) return;
+    try {
+      setConfig(copyValidatedConfig(getConfig()));
+      setExpected(update && source ? structuredClone(source) : null);
+      setName(update && source ? source.name : '');
+      setError(null);
+      setSaved(null);
+    } catch (e) {
+      setError(message(e));
+    }
+  }
   const mutation = useTemplateMutation();
   const inputId = useId();
   return (
     <div className="template-save">
-      <Button
-        type="button"
-        variant="secondary"
-        onClick={() => {
-          try {
-            setConfig(copyValidatedConfig(getConfig()));
-            setName('');
-            setError(null);
-            setSaved(null);
-          } catch (e) {
-            setError(message(e));
-          }
-        }}
-      >
-        Save workout
+      {source && (
+        <Button type="button" variant="secondary" onClick={() => open(true)}>
+          Update saved workout
+        </Button>
+      )}
+      <Button type="button" variant="secondary" onClick={() => open(false)}>
+        {source ? 'Save as new' : 'Save workout'}
       </Button>
       {saved === currentConfig && <span role="status">Workout saved.</span>}
       {error && !config && <p role="alert">{error}</p>}
       {config && (
         <Dialog
-          title="Save workout"
+          title={expected ? 'Update saved workout' : 'Save workout'}
           onClose={() => {
             if (!mutation.isPending) setConfig(null);
           }}
@@ -66,7 +81,16 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
               event.preventDefault();
               setError(null);
               try {
-                await mutation.mutateAsync({ action: 'save', name, config });
+                if (mutation.isPending) return;
+                const document = await mutation.mutateAsync(
+                  expected
+                    ? { action: 'update', id: expected.id, expected, name, config }
+                    : { action: 'save', name, config },
+                );
+                const updated = expected
+                  ? document.templates.find((t) => t.id === expected.id)
+                  : document.templates.at(-1);
+                if (updated) useTemplateSources.getState().setSource(mode, updated);
                 setConfig(null);
                 setSaved(JSON.stringify(config));
               } catch (e) {
@@ -74,7 +98,11 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
               }
             }}
           >
-            <p>Save a copy to use again. You can edit it after loading.</p>
+            <p>
+              {expected
+                ? `Replace “${expected.name}” with these settings? Its identity is preserved.`
+                : 'Save a copy to use again. You can edit it after loading.'}
+            </p>
             <label htmlFor={inputId}>Workout name</label>
             <Input
               id={inputId}
@@ -85,6 +113,19 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
               disabled={mutation.isPending}
             />
             {error && <p role="alert">{error}</p>}
+            {error && expected && (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={mutation.isPending}
+                onClick={() => {
+                  setExpected(null);
+                  setError(null);
+                }}
+              >
+                Save as new
+              </Button>
+            )}
             <div className="template-actions">
               <Button
                 type="button"
@@ -95,7 +136,7 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
                 Cancel
               </Button>
               <Button type="submit" disabled={mutation.isPending || !name.trim()}>
-                {mutation.isPending ? 'Saving…' : 'Save'}
+                {mutation.isPending ? 'Saving…' : expected ? 'Update' : 'Save'}
               </Button>
             </div>
           </form>
@@ -104,7 +145,11 @@ export function SaveWorkoutButton({ getConfig }: { getConfig: () => WorkoutConfi
     </div>
   );
 }
-export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) => void }) {
+export function TemplateLibrary({
+  onLoad,
+}: {
+  onLoad: (config: WorkoutConfig, source: WorkoutTemplate) => void;
+}) {
   const query = useQuery({ queryKey, queryFn: readTemplates, retry: false });
   const mutation = useTemplateMutation();
   const [loading, setLoading] = useState(false);
@@ -132,7 +177,7 @@ export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) =>
         const latest = await readTemplates();
         const entry = latest.templates.find((t) => t.id === action.template.id);
         if (!entry) throw new Error('This saved workout no longer exists. Refresh and try again.');
-        onLoad(copyValidatedConfig(entry.config));
+        onLoad(copyValidatedConfig(entry.config), structuredClone(entry));
       } else
         await mutation.mutateAsync(
           action.type === 'rename'
@@ -186,15 +231,17 @@ export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) =>
                 <div className="template-summary">
                   <h3>{template.name}</h3>
                   <p>
-                    {template.config.type === 'forTime'
-                      ? `For Time · ${template.config.timeCapSeconds ? `${formatTime(template.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
-                      : template.config.type === 'amrap'
-                        ? `AMRAP · ${formatTime(template.config.durationSeconds * 1000)} cap`
-                        : template.config.type === 'intervals'
-                          ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
-                          : template.config.type === 'countdown'
-                            ? `Countdown · ${template.config.durationSeconds} seconds`
-                            : `EMOM · ${template.config.minutes} rounds`}
+                    {template.config.type === 'ladder'
+                      ? `Ladder · ${template.config.ladder.direction} · ${template.config.ladder.startReps} starting reps`
+                      : template.config.type === 'forTime'
+                        ? `For Time · ${template.config.timeCapSeconds ? `${formatTime(template.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
+                        : template.config.type === 'amrap'
+                          ? `AMRAP · ${formatTime(template.config.durationSeconds * 1000)} cap`
+                          : template.config.type === 'intervals'
+                            ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
+                            : template.config.type === 'countdown'
+                              ? `Countdown · ${template.config.durationSeconds} seconds`
+                              : `EMOM · ${template.config.minutes} rounds`}
                   </p>
                 </div>
                 <div className="template-actions">

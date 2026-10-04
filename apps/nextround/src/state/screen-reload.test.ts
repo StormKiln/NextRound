@@ -112,3 +112,55 @@ it('restores AMRAP progress and never applies a receipt to a different native co
   });
   expect(useWorkout.getState()).toMatchObject({ resultStatus: 'none', sessionId: null });
 });
+
+it('preserves saved-workout source per mode through reload and clears only the repeated mode', async () => {
+  const { useTemplateSources } = await import('./template-source');
+  const source = {
+    id: 'saved',
+    name: 'Original',
+    config: {
+      type: 'countdown' as const,
+      durationSeconds: 30,
+      leadInSeconds: 0,
+      warningSeconds: 0,
+    },
+  };
+  useTemplateSources.getState().setSource('countdown', source);
+  useWorkout.getState().setCountdownDraft({ minutes: '2' });
+  prepareScreenReload(sessionStorage);
+  useTemplateSources.setState({ sources: {} });
+  useWorkout.setState(useWorkout.getInitialState());
+  restoreScreenDrafts(sessionStorage);
+  expect(useTemplateSources.getState().sources.countdown).toEqual(source);
+  expect(useWorkout.getState().countdownDraft.minutes).toBe('2');
+  useWorkout.getState().loadConfig({ type: 'forTime', leadInSeconds: 0, warningSeconds: 0 });
+  expect(useTemplateSources.getState().sources.countdown).toEqual(source);
+  useWorkout.getState().loadConfig(source.config);
+  expect(useTemplateSources.getState().sources.countdown).toBeUndefined();
+});
+it('Ladder completion receipt matches native progress before suppressing a resolved result', () => {
+  const config = {
+    type: 'ladder' as const,
+    ladder: { direction: 'ascending' as const, startReps: 2, increment: 2, rungs: 2 },
+    leadInSeconds: 0,
+    warningSeconds: 0,
+    timeCapSeconds: 1,
+    exercises: [{ id: 'a', name: 'Squat' }],
+  };
+  const snapshot = { ...snapshotAt(config, 1000), ladderCompletedMovements: 1 };
+  useWorkout.setState({ snapshot, resultStatus: 'saved', sessionId: 'ladder-resolved' });
+  prepareScreenReload(sessionStorage);
+  useWorkout.setState(useWorkout.getInitialState());
+  restoreScreenDrafts(sessionStorage);
+  restoreScreenResolution({ ...snapshot, ladderCompletedMovements: 0 });
+  expect(useWorkout.getState().resultStatus).toBe('none');
+  useWorkout.setState({ snapshot, resultStatus: 'saved', sessionId: 'ladder-resolved' });
+  prepareScreenReload(sessionStorage);
+  useWorkout.setState(useWorkout.getInitialState());
+  restoreScreenDrafts(sessionStorage);
+  restoreScreenResolution(snapshot);
+  expect(useWorkout.getState()).toMatchObject({
+    resultStatus: 'saved',
+    sessionId: 'ladder-resolved',
+  });
+});

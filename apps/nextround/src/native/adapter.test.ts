@@ -66,3 +66,53 @@ it('For Time finish freezes active elapsed and a cap wins a simultaneous finish'
     outcome: 'timeCapReached',
   });
 });
+it('Ladder advances only by command, pauses on the last movement, and cap wins', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal(
+    'Audio',
+    class {
+      play() {
+        return Promise.resolve();
+      }
+      pause() {}
+    },
+  );
+  const now = vi.spyOn(performance, 'now').mockReturnValue(0);
+  const config = {
+    type: 'ladder' as const,
+    ladder: { direction: 'ascending' as const, startReps: 2, increment: 2, rungs: 2 },
+    leadInSeconds: 1,
+    warningSeconds: 0,
+    exercises: [{ id: 'a', name: 'Squat' }],
+  };
+  await startWorkout(config);
+  await expect(controlWorkout('advance')).rejects.toThrow();
+  now.mockReturnValue(1000);
+  expect(await controlWorkout('advance')).toMatchObject({
+    ladderCompletedMovements: 1,
+    roundIndex: 1,
+    exerciseIndex: 0,
+    paused: false,
+  });
+  expect(await controlWorkout('undo')).toMatchObject({ ladderCompletedMovements: 0 });
+  await controlWorkout('advance');
+  expect(await controlWorkout('advance')).toMatchObject({
+    ladderCompletedMovements: 2,
+    paused: true,
+    phase: 'running',
+  });
+  await expect(controlWorkout('advance')).rejects.toThrow();
+  expect(await controlWorkout('finish')).toMatchObject({
+    phase: 'completed',
+    outcome: 'finished',
+    ladderCompletedMovements: 2,
+  });
+  await expect(controlWorkout('undo')).rejects.toThrow();
+  await startWorkout({ ...config, leadInSeconds: 0, timeCapSeconds: 1 });
+  now.mockReturnValue(2000);
+  await expect(controlWorkout('advance')).rejects.toThrow();
+  expect(await readWorkout()).toMatchObject({
+    outcome: 'timeCapReached',
+    ladderCompletedMovements: 0,
+  });
+});

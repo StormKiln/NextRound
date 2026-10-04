@@ -12,7 +12,7 @@ use std::{
 };
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(0);
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkoutTemplate {
     pub id: String,
@@ -28,9 +28,23 @@ pub struct TemplateDocument {
 #[derive(Deserialize)]
 #[serde(tag = "action", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Mutation {
-    Save { name: String, config: Config },
-    Rename { id: String, name: String },
-    Delete { id: String },
+    Save {
+        name: String,
+        config: Config,
+    },
+    Update {
+        id: String,
+        expected: WorkoutTemplate,
+        name: String,
+        config: Config,
+    },
+    Rename {
+        id: String,
+        name: String,
+    },
+    Delete {
+        id: String,
+    },
 }
 pub struct TemplateStore {
     path: PathBuf,
@@ -114,6 +128,28 @@ impl TemplateStore {
                     name: name_value(&name)?,
                     config,
                 });
+            }
+            Mutation::Update {
+                id,
+                expected,
+                name,
+                config,
+            } => {
+                let entry = document.templates.iter_mut().find(|e| e.id == id).ok_or(
+                    "This saved workout no longer exists. Save as new to keep your edits.",
+                )?;
+                if *entry != expected {
+                    return Err(
+                        "This saved workout changed since you loaded it. Reload it or save as new."
+                            .into(),
+                    );
+                }
+                timer::validate(&config)?;
+                *entry = WorkoutTemplate {
+                    id,
+                    name: name_value(&name)?,
+                    config,
+                };
             }
             Mutation::Rename { id, name } => {
                 let entry = document
@@ -214,6 +250,75 @@ mod tests {
             assert_eq!(before.templates[i].config, after.templates[i].config);
         }
         assert_eq!(after.templates[2].config, interval);
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn unknown_nested_source_fields_preserve_original_bytes() {
+        for path in [
+            vec!["config", "future"],
+            vec!["config", "exercises", "0", "future"],
+            vec!["config", "exercises", "0", "target", "future"],
+        ] {
+            let s = store();
+            let original = s
+                .mutate(Mutation::Save {
+                    name: "Original".into(),
+                    config: config(),
+                })
+                .unwrap()
+                .templates[0]
+                .clone();
+            let mut document = serde_json::to_value(s.read().unwrap()).unwrap();
+            let mut field = &mut document["templates"][0];
+            for key in path {
+                field = if key == "0" {
+                    &mut field[0]
+                } else {
+                    &mut field[key]
+                };
+            }
+            *field = serde_json::json!(true);
+            let raw = serde_json::to_vec(&document).unwrap();
+            fs::write(&s.path, &raw).unwrap();
+            assert!(s
+                .mutate(Mutation::Update {
+                    id: original.id.clone(),
+                    expected: original,
+                    name: "Changed".into(),
+                    config: config()
+                })
+                .is_err());
+            assert_eq!(fs::read(&s.path).unwrap(), raw);
+            fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+        }
+    }
+    #[test]
+    fn update_checks_loaded_source_before_atomic_replacement() {
+        let s = store();
+        let original = s
+            .mutate(Mutation::Save {
+                name: "Original".into(),
+                config: config(),
+            })
+            .unwrap()
+            .templates[0]
+            .clone();
+        let mut changed = config();
+        changed.duration_seconds = Some(45);
+        let command = serde_json::json!({"action":"update","id":original.id,"expected":original,"name":"Edited","config":changed});
+        let updated = s
+            .mutate(serde_json::from_value(command.clone()).unwrap())
+            .unwrap();
+        assert_eq!(updated.templates.len(), 1);
+        assert_eq!(updated.templates[0].id, original.id);
+        assert_eq!(updated.templates[0].config.duration_seconds, Some(45));
+        let raw = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(serde_json::from_value(command.clone()).unwrap())
+            .is_err());
+        assert_eq!(fs::read(&s.path).unwrap(), raw);
+        s.mutate(Mutation::Delete { id: original.id }).unwrap();
+        assert!(s.mutate(serde_json::from_value(command).unwrap()).is_err());
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     #[test]

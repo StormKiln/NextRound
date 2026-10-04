@@ -1,5 +1,6 @@
 import {
   cueAt,
+  ladderTotalMovements,
   type SessionSnapshot,
   snapshotAt,
   validateConfig,
@@ -51,7 +52,17 @@ function tickBrowser() {
   }
   elapsed += delta;
   const notice = browserSession.notice;
-  browserSession = { ...snapshotAt(browserSession.config, elapsed), notice };
+  const ladderCompletedMovements = browserSession.ladderCompletedMovements;
+  browserSession = {
+    ...snapshotAt(browserSession.config, elapsed),
+    notice,
+    ...(ladderCompletedMovements !== undefined ? { ladderCompletedMovements } : {}),
+  };
+  if (browserSession.config.type === 'ladder') {
+    const count = browserSession.ladderCompletedMovements ?? 0;
+    browserSession.roundIndex = Math.floor(count / browserSession.config.exercises.length);
+    browserSession.exerciseIndex = count % browserSession.config.exercises.length;
+  }
   const second = Math.floor(elapsed / 1000);
   if (lastSecond === second) return;
   lastSecond = second;
@@ -82,18 +93,40 @@ export async function startWorkout(config: WorkoutConfig): Promise<SessionSnapsh
   return browserSession;
 }
 export async function controlWorkout(
-  action: 'pause' | 'resume' | 'stop' | 'finish',
+  action: 'pause' | 'resume' | 'stop' | 'finish' | 'advance' | 'undo',
 ): Promise<SessionSnapshot> {
   if (native) return invoke('control_workout', { action });
   tickBrowser();
   if (!browserSession) throw new Error('No active workout.');
   if (['completed', 'cancelled'].includes(browserSession.phase))
     throw new Error('Your workout has completed or stopped. Save or discard any result.');
+  if (action === 'advance' || action === 'undo') {
+    const config = browserSession.config;
+    const completed = browserSession.ladderCompletedMovements ?? 0;
+    if (
+      config.type !== 'ladder' ||
+      browserSession.phase !== 'running' ||
+      (action === 'advance' ? completed >= ladderTotalMovements(config) : completed === 0)
+    )
+      throw new Error('This movement action is unavailable.');
+    const next = completed + (action === 'advance' ? 1 : -1);
+    browserSession.ladderCompletedMovements = next;
+    browserSession.roundIndex = Math.floor(next / config.exercises.length);
+    browserSession.exerciseIndex = next % config.exercises.length;
+    if (next === ladderTotalMovements(config)) browserSession.paused = true;
+    else if (action === 'advance' && next % config.exercises.length === 0) play('beep');
+    return { ...browserSession };
+  }
   if (
     action === 'finish' &&
-    (browserSession.config.type !== 'forTime' || browserSession.phase !== 'running')
+    ((browserSession.config.type !== 'forTime' && browserSession.config.type !== 'ladder') ||
+      browserSession.phase !== 'running' ||
+      (browserSession.config.type === 'ladder' &&
+        browserSession.ladderCompletedMovements !== ladderTotalMovements(browserSession.config)))
   )
-    throw new Error('Finish is available only after a For Time workout starts.');
+    throw new Error(
+      'Finish is available during For Time or after all Ladder movements are complete.',
+    );
   stopSound();
   if (action === 'finish') {
     browserSession = {

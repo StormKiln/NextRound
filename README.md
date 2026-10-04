@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.7.0 macOS release**. Includes For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
+> Status: **1.8.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.7.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.8.0.md)
 
 ## Product scope
 
@@ -227,3 +227,9 @@ Browse the exercise picker by type or focus area, and filter by any selected are
 ### 1.7.0: finish on your terms
 
 For Time counts active elapsed time, with an optional cap and ordered checklist. Finish manually, or record a distinct time-cap outcome; save, repeat or load it like other modes. The catalog now has **103 exercises**, including 20 whole-body/core additions. Search reopens matching groups, empty results offer filter recovery, and dialogs reserve scrollbar space. Setup/history screens load on demand from packaged assets. See [1.7.0 release notes](docs/release-notes-1.7.0.md).
+
+### 1.8.0: one rung at a time
+
+Ladder is the sixth workout mode: ascending, descending or pyramid reps, an exact preview, an optional time cap, and explicit movement completion/undo. Every movement follows the same rep sequence; the final movement pauses for confirmation. Saved results distinguish finished from capped sessions and record only the movements you marked complete.
+
+Load a saved workout and choose **Update saved workout** to retain its identity, or **Save as new** for a separate copy. History now filters by workout type and exercise name/description. Setup errors stay with their mode and guide keyboard focus to the field needing correction. Existing 103 exercises are unchanged; [taxonomy and content policy](docs/exercise-taxonomy.md) documents their meaning and limits. See [1.8.0 release notes](docs/release-notes-1.8.0.md).

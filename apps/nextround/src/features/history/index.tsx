@@ -4,8 +4,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LadderResult } from '@/features/ladder/progress';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
+import { filterHistory, type HistoryMode } from './filters';
 import {
   copyResult,
   historyKey,
@@ -17,15 +20,17 @@ import '../templates/templates.css';
 import './history.css';
 
 const modeName = (result: WorkoutResult) =>
-  result.config.type === 'forTime'
-    ? 'For Time'
-    : result.config.type === 'amrap'
-      ? 'AMRAP'
-      : result.config.type === 'countdown'
-        ? 'Countdown'
-        : result.config.type === 'intervals'
-          ? 'Intervals'
-          : 'EMOM';
+  result.config.type === 'ladder'
+    ? 'Ladder'
+    : result.config.type === 'forTime'
+      ? 'For Time'
+      : result.config.type === 'amrap'
+        ? 'AMRAP'
+        : result.config.type === 'countdown'
+          ? 'Countdown'
+          : result.config.type === 'intervals'
+            ? 'Intervals'
+            : 'EMOM';
 export function History() {
   const query = useQuery({ queryKey: historyKey, queryFn: readHistory, retry: false });
   const client = useQueryClient();
@@ -46,12 +51,56 @@ export function History() {
   const [detail, setDetail] = useState<WorkoutResult | null>(null);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const results = [...(query.data?.results ?? [])].sort((a, b) => b.completedAt - a.completedAt);
+  const [mode, setMode] = useState<HistoryMode>('all');
+  const [search, setSearch] = useState('');
+  const allResults = query.data?.results ?? [];
+  const results = filterHistory(allResults, mode, search);
+  const filtered = mode !== 'all' || search.trim() !== '';
+  function resetFilters() {
+    setMode('all');
+    setSearch('');
+  }
   return (
     <main className="page history-page">
       <p className="eyebrow">Your training, remembered</p>
       <h1>Workout history</h1>
       <p>Completed sessions you chose to save. Stored on this Mac.</p>
+      {!!allResults.length && (
+        <section className="history-filters" aria-label="Filter history">
+          <div>
+            <label htmlFor="history-mode">Workout type</label>
+            <select
+              id="history-mode"
+              value={mode}
+              onChange={(e) => setMode(e.target.value as HistoryMode)}
+            >
+              <option value="all">All workouts</option>
+              <option value="emom">EMOM</option>
+              <option value="countdown">Countdown</option>
+              <option value="intervals">Intervals</option>
+              <option value="amrap">AMRAP</option>
+              <option value="forTime">For Time</option>
+              <option value="ladder">Ladder</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="history-search">Search history</label>
+            <Input
+              id="history-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Exercise name or description"
+            />
+          </div>
+          <Button variant="secondary" onClick={resetFilters} disabled={!filtered}>
+            Reset filters
+          </Button>
+          <p role="status">
+            {results.length} of {allResults.length} saved results
+          </p>
+        </section>
+      )}
       {query.isPending && <p role="status">Loading workout history…</p>}
       {query.isError && (
         <div role="alert">
@@ -61,9 +110,16 @@ export function History() {
       )}
       {!query.isPending && !query.isError && results.length === 0 && (
         <section className="history-empty">
-          <h2>No saved results yet.</h2>
-          <p>Finish a workout and choose Save result to start your training log.</p>
-          <Button onClick={() => void navigate({ to: '/' })}>Choose a workout</Button>
+          <h2>{filtered ? 'No results match these filters.' : 'No saved results yet.'}</h2>
+          {filtered ? (
+            <p>Try another workout type or search term.</p>
+          ) : (
+            <>
+              <p>Finish a workout and choose Save result to start your training log.</p>
+              <Button onClick={() => void navigate({ to: '/' })}>Choose a workout</Button>
+            </>
+          )}
+          {filtered && !allResults.length && <Button onClick={resetFilters}>Reset filters</Button>}
         </section>
       )}
       <ul className="template-list history-list">
@@ -77,7 +133,7 @@ export function History() {
                 </time>
               </p>
               <p>
-                {result.config.type === 'forTime'
+                {result.config.type === 'forTime' || result.config.type === 'ladder'
                   ? formatElapsed(result.elapsedMs)
                   : formatTime(result.elapsedMs)}{' '}
                 active time · {result.config.exercises?.length ?? 0} exercises
@@ -120,13 +176,13 @@ export function History() {
         >
           <p>
             {new Date(detail.completedAt).toLocaleString()} ·{' '}
-            {detail.config.type === 'forTime'
+            {detail.config.type === 'forTime' || detail.config.type === 'ladder'
               ? formatElapsed(detail.elapsedMs)
               : formatTime(detail.elapsedMs)}{' '}
             active workout time
           </p>
           <p>
-            {detail.config.type === 'forTime'
+            {detail.config.type === 'forTime' || detail.config.type === 'ladder'
               ? `${detail.outcome === 'finished' ? 'Finished' : 'Time cap reached'} · ${detail.config.timeCapSeconds ? `${formatTime(detail.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
               : detail.config.type === 'amrap' && detail.amrapProgress
                 ? formatAmrapProgress(detail.config, detail.amrapProgress)
@@ -143,6 +199,9 @@ export function History() {
             Targets are your planned work, not measured results. Checkmarks record what you ticked
             off.
           </p>
+          {detail.config.type === 'ladder' && (
+            <LadderResult config={detail.config} completed={detail.ladderCompletedMovements ?? 0} />
+          )}
           <ol className="history-exercises">
             {detail.config.exercises?.map((exercise) => (
               <li key={exercise.id}>
@@ -187,15 +246,17 @@ export function History() {
                   if (!mounted.current) return;
                   void navigate({
                     to:
-                      copy.config.type === 'forTime'
-                        ? '/for-time'
-                        : copy.config.type === 'amrap'
-                          ? '/amrap'
-                          : copy.config.type === 'intervals'
-                            ? '/intervals'
-                            : copy.config.type === 'countdown'
-                              ? '/countdown'
-                              : '/emom',
+                      copy.config.type === 'ladder'
+                        ? '/ladder'
+                        : copy.config.type === 'forTime'
+                          ? '/for-time'
+                          : copy.config.type === 'amrap'
+                            ? '/amrap'
+                            : copy.config.type === 'intervals'
+                              ? '/intervals'
+                              : copy.config.type === 'countdown'
+                                ? '/countdown'
+                                : '/emom',
                   });
                 } catch (e) {
                   if (mounted.current) setError(String(e));

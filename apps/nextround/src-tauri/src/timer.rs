@@ -9,12 +9,13 @@ pub enum TargetUnit {
     Calories,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct Target {
     pub unit: TargetUnit,
     pub value: u32,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Exercise {
     pub id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -36,10 +37,50 @@ pub enum Mode {
     Intervals,
     #[serde(rename = "forTime")]
     ForTime,
+    Ladder,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct LadderPattern {
+    pub direction: String,
+    pub start_reps: u32,
+    pub increment: u32,
+    pub rungs: u32,
+}
+impl LadderPattern {
+    pub fn reps(&self) -> Result<Vec<u32>, String> {
+        if !["ascending", "descending", "pyramid"].contains(&self.direction.as_str())
+            || !(1..=1000).contains(&self.start_reps)
+            || !(1..=1000).contains(&self.increment)
+            || !(1..=50).contains(&self.rungs)
+        {
+            return Err("Choose start/increment 1–1000 and 1–50 rungs.".into());
+        }
+        let mut reps = Vec::new();
+        for i in 0..self.rungs {
+            let change = i * self.increment;
+            let n = if self.direction == "descending" {
+                self.start_reps
+                    .checked_sub(change)
+                    .filter(|n| *n > 0)
+                    .ok_or("Every rung needs at least one rep.")?
+            } else {
+                self.start_reps + change
+            };
+            reps.push(n);
+        }
+        if self.direction == "pyramid" {
+            let tail: Vec<u32> = reps[..reps.len() - 1].iter().rev().copied().collect();
+            reps.extend(tail);
+        }
+        Ok(reps)
+    }
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Config {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ladder: Option<LadderPattern>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub time_cap_seconds: Option<u32>,
     #[serde(default, rename = "type")]
@@ -65,6 +106,8 @@ pub struct Config {
 #[serde(rename_all = "camelCase")]
 pub struct Snapshot {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub ladder_completed_movements: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub outcome: Option<String>,
     pub phase: String,
     pub remaining_ms: u64,
@@ -78,6 +121,12 @@ pub struct Snapshot {
     pub config: Config,
 }
 impl Config {
+    pub fn ladder_total(&self) -> u32 {
+        self.ladder
+            .as_ref()
+            .and_then(|p| p.reps().ok())
+            .map_or(0, |r| r.len() as u32 * self.exercises.len() as u32)
+    }
     pub(crate) fn duration_ms(&self) -> u64 {
         match self.mode {
             Mode::Countdown | Mode::Amrap => u64::from(self.duration_seconds.unwrap_or(0)) * 1000,
@@ -87,7 +136,7 @@ impl Config {
                     + rounds.saturating_sub(1) * u64::from(self.rest_seconds.unwrap_or(0)))
                     * 1000
             }
-            Mode::ForTime => self
+            Mode::ForTime | Mode::Ladder => self
                 .time_cap_seconds
                 .map(|s| u64::from(s) * 1000)
                 .unwrap_or(u64::MAX - 3_600_000),
@@ -96,7 +145,7 @@ impl Config {
     }
 }
 pub fn validate(config: &Config) -> Result<(), String> {
-    if config.mode == Mode::ForTime {
+    if matches!(config.mode, Mode::ForTime | Mode::Ladder) {
         if config
             .time_cap_seconds
             .is_some_and(|s| !(1..=86400).contains(&s))
@@ -113,7 +162,10 @@ pub fn validate(config: &Config) -> Result<(), String> {
         {
             return Err("Choose work 1–86400 seconds, rest 0–86400, rounds 1–1440 and a total within 24 hours.".into());
         }
-    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
+    } else if matches!(
+        config.mode,
+        Mode::Countdown | Mode::Amrap | Mode::ForTime | Mode::Ladder
+    ) {
         if !config
             .duration_seconds
             .is_some_and(|s| (1..=86400).contains(&s))
@@ -126,6 +178,13 @@ pub fn validate(config: &Config) -> Result<(), String> {
     if config.lead_in_seconds > 3600 || config.warning_seconds > 59 {
         return Err("Invalid lead-in or warning duration.".into());
     }
+    if config.mode == Mode::Ladder {
+        config
+            .ladder
+            .as_ref()
+            .ok_or("Ladder pattern required.")?
+            .reps()?;
+    }
     let mut ids = std::collections::HashSet::new();
     if (!matches!(config.mode, Mode::Countdown | Mode::ForTime) && config.exercises.is_empty())
         || config.exercises.len() > 100
@@ -135,6 +194,11 @@ pub fn validate(config: &Config) -> Result<(), String> {
                     .as_ref()
                     .is_some_and(|id| id.trim().is_empty() || id.chars().count() > 120)
                 || !ids.insert(&e.id)
+                || (config.mode == Mode::Ladder
+                    && (e.target.is_some()
+                        || e.supported_units
+                            .as_ref()
+                            .is_some_and(|u| !u.contains(&TargetUnit::Reps))))
                 || (config.mode == Mode::Amrap && e.target.is_none())
                 || e.target.as_ref().is_some_and(|target| {
                     target.value == 0
@@ -173,7 +237,10 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         && !completed
         && elapsed >= lead
         && active % cycle >= u64::from(config.work_seconds.unwrap()) * 1000;
-    let round = if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
+    let round = if matches!(
+        config.mode,
+        Mode::Countdown | Mode::Amrap | Mode::ForTime | Mode::Ladder
+    ) {
         0
     } else {
         ((active / cycle) as u32).min(if config.mode == Mode::Intervals {
@@ -183,7 +250,9 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         })
     };
     Snapshot {
-        outcome: (config.mode == Mode::ForTime && completed).then(|| "timeCapReached".into()),
+        ladder_completed_movements: (config.mode == Mode::Ladder).then_some(0),
+        outcome: (matches!(config.mode, Mode::ForTime | Mode::Ladder) && completed)
+            .then(|| "timeCapReached".into()),
         phase: if elapsed < lead {
             "leadIn"
         } else if completed {
@@ -192,7 +261,9 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
             "running"
         }
         .into(),
-        remaining_ms: if config.mode == Mode::ForTime && config.time_cap_seconds.is_none() {
+        remaining_ms: if matches!(config.mode, Mode::ForTime | Mode::Ladder)
+            && config.time_cap_seconds.is_none()
+        {
             0
         } else {
             duration.saturating_sub(active)
@@ -201,8 +272,13 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
             lead - elapsed
         } else if completed {
             0
-        } else if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
-            if config.mode == Mode::ForTime && config.time_cap_seconds.is_none() {
+        } else if matches!(
+            config.mode,
+            Mode::Countdown | Mode::Amrap | Mode::ForTime | Mode::Ladder
+        ) {
+            if matches!(config.mode, Mode::ForTime | Mode::Ladder)
+                && config.time_cap_seconds.is_none()
+            {
                 0
             } else {
                 duration - active
@@ -217,7 +293,10 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         interval_phase: (config.mode == Mode::Intervals)
             .then(|| if resting { "rest" } else { "work" }.into()),
         round_index: round,
-        exercise_index: if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
+        exercise_index: if matches!(
+            config.mode,
+            Mode::Countdown | Mode::Amrap | Mode::ForTime | Mode::Ladder
+        ) {
             0
         } else {
             round as usize % config.exercises.len()
@@ -258,7 +337,10 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
     }
     let remaining = if second < lead {
         lead - second
-    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
+    } else if matches!(
+        config.mode,
+        Mode::Countdown | Mode::Amrap | Mode::ForTime | Mode::Ladder
+    ) {
         end - second
     } else {
         60 - (second - lead) % 60
@@ -279,6 +361,7 @@ pub struct Session {
     pub notice: Option<String>,
     last_second: u64,
     finished: bool,
+    completed_movements: u32,
 }
 impl Session {
     pub fn new(config: Config) -> Result<Self, String> {
@@ -292,14 +375,48 @@ impl Session {
             notice: None,
             last_second: 0,
             finished: false,
+            completed_movements: 0,
         })
     }
     pub fn needs_result_decision(&self) -> bool {
         !self.cancelled && !self.result_resolved && self.snapshot().phase == "completed"
     }
+    pub fn progress(&mut self, undo: bool) -> Result<Option<&'static str>, String> {
+        if self.config.mode != Mode::Ladder
+            || self.snapshot().phase != "running"
+            || if undo {
+                self.completed_movements == 0
+            } else {
+                self.completed_movements >= self.config.ladder_total()
+            }
+        {
+            return Err("This movement action is unavailable.".into());
+        }
+        if undo {
+            self.completed_movements -= 1;
+        } else {
+            self.completed_movements += 1;
+        }
+        if self.completed_movements == self.config.ladder_total() {
+            self.paused = true;
+            return Ok(None);
+        }
+        Ok((!undo
+            && self
+                .completed_movements
+                .is_multiple_of(self.config.exercises.len() as u32))
+        .then_some("beep"))
+    }
     pub fn finish(&mut self) -> Result<(), String> {
-        if self.config.mode != Mode::ForTime || self.snapshot().phase != "running" {
-            return Err("Finish is available only while a For Time workout is running.".into());
+        if !matches!(self.config.mode, Mode::ForTime | Mode::Ladder)
+            || self.snapshot().phase != "running"
+            || (self.config.mode == Mode::Ladder
+                && self.completed_movements != self.config.ladder_total())
+        {
+            return Err(
+                "Finish is available during For Time or after all Ladder movements are complete."
+                    .into(),
+            );
         }
         self.finished = true;
         self.paused = false;
@@ -318,6 +435,11 @@ impl Session {
     }
     pub fn snapshot(&self) -> Snapshot {
         let mut s = snapshot(&self.config, self.elapsed);
+        if self.config.mode == Mode::Ladder {
+            s.ladder_completed_movements = Some(self.completed_movements);
+            s.round_index = self.completed_movements / self.config.exercises.len() as u32;
+            s.exercise_index = self.completed_movements as usize % self.config.exercises.len();
+        }
         if self.finished {
             s.phase = "completed".into();
             s.outcome = Some("finished".into());
@@ -354,6 +476,38 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn ladder_controls_pause_finish_and_cap() {
+        let raw = serde_json::json!({"type":"ladder","ladder":{"direction":"pyramid","startReps":2,"increment":2,"rungs":2},"leadInSeconds":1,"warningSeconds":0,"exercises":[{"id":"a","name":"Squat"}]});
+        let mut session = Session::new(serde_json::from_value(raw.clone()).unwrap()).unwrap();
+        assert!(session.progress(false).is_err());
+        session.advance(1000, false);
+        assert_eq!(session.progress(false).unwrap(), Some("beep"));
+        assert_eq!(session.snapshot().ladder_completed_movements, Some(1));
+        session.progress(true).unwrap();
+        assert_eq!(session.snapshot().ladder_completed_movements, Some(0));
+        session.progress(false).unwrap();
+        session.progress(false).unwrap();
+        assert!(session.finish().is_err());
+        assert_eq!(session.progress(false).unwrap(), None);
+        assert!(session.paused);
+        assert_eq!(session.snapshot().ladder_completed_movements, Some(3));
+        session.advance(1000, false);
+        assert_eq!(session.snapshot().elapsed_ms, 0);
+        session.finish().unwrap();
+        assert!(!session.active());
+        assert!(session.progress(true).is_err());
+        let mut capped = raw;
+        capped["timeCapSeconds"] = serde_json::json!(1);
+        let mut session = Session::new(serde_json::from_value(capped).unwrap()).unwrap();
+        session.advance(2000, false);
+        assert!(session.progress(false).is_err());
+        assert!(session.finish().is_err());
+        assert_eq!(
+            session.snapshot().outcome.as_deref(),
+            Some("timeCapReached")
+        );
+    }
     #[test]
     fn amrap_has_one_cap_and_requires_targets() {
         let mut raw = serde_json::json!({"type":"amrap","durationSeconds":125,"leadInSeconds":2,"warningSeconds":3,"exercises":[{"id":"a","name":"Row","target":{"unit":"metres","value":100}}]});
@@ -416,6 +570,7 @@ mod tests {
     fn config() -> Config {
         Config {
             time_cap_seconds: None,
+            ladder: None,
             mode: Mode::Emom,
             show_checklist: None,
             duration_seconds: None,
