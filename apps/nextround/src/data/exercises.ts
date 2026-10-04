@@ -580,6 +580,165 @@ export const exercises: ExerciseEntry[] = [
       'Jump your feet apart as your arms rise, then jump them together as your arms lower. Land softly. One out-and-back cycle is one rep; choose step jacks for a no-jump option.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'abdominal-crunch',
+    name: 'Abdominal crunch',
+    description:
+      'Lie with knees bent and feet down. Curl your shoulders off the floor without pulling your neck, then lower. Each curl and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'bodyweight-russian-twist',
+    name: 'Bodyweight Russian twist',
+    description:
+      'Sit with knees bent and feet on the floor. Lean back slightly and turn your trunk side to side with hands together. Each turn to one side is one rep; alternate sides.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'v-up',
+    name: 'V-up',
+    description:
+      'Lie long, then lift your legs and upper body together, reaching toward your feet. Lower with control; bend your knees to scale. One lift and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'hollow-body-rock',
+    name: 'Hollow-body rock',
+    description:
+      'Hold a hollow shape with shoulders and legs raised and lower back rounded toward the floor. Rock gently without losing that shape. One forward-and-back rock is one rep; tuck knees to scale.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'side-plank-hip-lift',
+    name: 'Side-plank hip lift',
+    description:
+      'Support yourself on one forearm and the sides of your feet. Lower your hips a little, then lift into a straight side plank. One lower-and-lift is one rep on that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'side-plank-reach-through',
+    name: 'Side-plank reach-through',
+    description:
+      'From a forearm side plank, reach your upper arm under your torso, then open it toward the ceiling. Keep hips lifted. One reach and return is one rep on that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'high-plank-shoulder-tap',
+    name: 'High-plank shoulder tap',
+    description:
+      'From a high plank with feet apart, tap one hand to the opposite shoulder and replace it. Keep hips steady and alternate hands. Each tap and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'reverse-plank-hold',
+    name: 'Reverse-plank hold',
+    description:
+      'Sit with legs straight and hands behind your hips. Press through hands and heels to lift hips into a long line. Keep your neck comfortable and breathe. Use a seconds target.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'bear-plank-hold',
+    name: 'Bear-plank hold',
+    description:
+      'Start on hands and knees, wrists under shoulders and knees under hips. Tuck toes and hover bent knees just off the floor. Keep your back steady and breathe. Use a seconds target.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'standing-cross-body-crunch',
+    name: 'Standing cross-body crunch',
+    description:
+      'Stand tall, then bring one knee toward the opposite elbow with a controlled trunk turn. Return and alternate. Each knee-to-elbow lift is one rep; avoid pulling on your head.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'squat-thrust',
+    name: 'Squat thrust',
+    description:
+      'Squat and place hands on the floor. Step or jump feet back to a high plank, bring them forward, then stand. No push-up or vertical jump. That full sequence is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'burpee-broad-jump',
+    name: 'Burpee broad jump',
+    description:
+      'Lower chest to the floor from a plank, return feet toward your hands, then jump forward from both feet and land softly. Clear floor space first. One burpee plus forward jump is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'skater-bound',
+    name: 'Skater bound',
+    description:
+      'Bound sideways from one foot to the other, letting the trailing leg move behind you. Use your arms for balance and land softly with a bent knee. Each sideways landing is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'high-knees-running',
+    name: 'High-knees running in place',
+    description:
+      'Run in place, lifting alternating knees toward a comfortable height while pumping your arms. Land softly under your body. Each knee lift is one rep; reduce pace or march to scale.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'inchworm-pushup',
+    name: 'Inchworm with push-up',
+    description:
+      'From standing, bend forward and walk hands to a high plank. Do one push-up, walk hands back, then stand. Bend knees as needed. The full walkout, push-up and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-turkish-getup',
+    name: 'Kettlebell Turkish get-up',
+    description:
+      'With one light kettlebell held above you, move from lying through elbow, hand and half-kneeling to standing; reverse slowly. One up-and-down sequence is one rep on that side. Practise the sequence unloaded first; never rush.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-clean-press',
+    name: 'Kettlebell clean and press',
+    description:
+      'Clean one kettlebell to the rack, press overhead without a knee dip, then lower through the rack to reset. One clean, press and return is one rep on that arm; switch arms between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'alternating-dumbbell-snatch',
+    name: 'Alternating dumbbell snatch',
+    description:
+      'Lift one dumbbell from the floor to overhead in one motion using hip and leg drive. Lower with control and switch hands at the floor. Each floor-to-overhead lift is one rep; alternate arms.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-devil-press',
+    name: 'Dumbbell devil press',
+    description:
+      'Use two non-rolling dumbbells. Lower chest between them for a burpee, return feet forward, then hinge and drive both weights overhead without racking. Lower under control. One burpee and overhead lift is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-man-maker',
+    name: 'Dumbbell man maker',
+    description:
+      'Use two non-rolling dumbbells. From plank, do a push-up and one row per arm. Bring feet forward into a squat, curl weights to shoulders, then stand and press overhead. Lower to reset. The entire sequence is one rep; use light weights.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 export async function listExercises() {
   return exercises;

@@ -186,13 +186,15 @@ export function TemplateLibrary({ onLoad }: { onLoad: (config: WorkoutConfig) =>
                 <div className="template-summary">
                   <h3>{template.name}</h3>
                   <p>
-                    {template.config.type === 'amrap'
-                      ? `AMRAP · ${formatTime(template.config.durationSeconds * 1000)} cap`
-                      : template.config.type === 'intervals'
-                        ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
-                        : template.config.type === 'countdown'
-                          ? `Countdown · ${template.config.durationSeconds} seconds`
-                          : `EMOM · ${template.config.minutes} rounds`}
+                    {template.config.type === 'forTime'
+                      ? `For Time · ${template.config.timeCapSeconds ? `${formatTime(template.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
+                      : template.config.type === 'amrap'
+                        ? `AMRAP · ${formatTime(template.config.durationSeconds * 1000)} cap`
+                        : template.config.type === 'intervals'
+                          ? `Intervals · ${template.config.rounds} rounds · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
+                          : template.config.type === 'countdown'
+                            ? `Countdown · ${template.config.durationSeconds} seconds`
+                            : `EMOM · ${template.config.minutes} rounds`}
                   </p>
                 </div>
                 <div className="template-actions">

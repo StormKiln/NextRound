@@ -86,7 +86,7 @@ test('equipment write failures keep the saved selection and recover without disc
   await expect(page.getByRole('button', { name: 'Edit target for Air squat' })).toBeVisible();
 });
 
-for (const mode of ['emom', 'countdown', 'intervals', 'amrap']) {
+for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time']) {
   test(`new catalog entries can be selected in ${mode}`, async ({ page }) => {
     await page.goto(`/${mode}`);
     await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
@@ -98,7 +98,7 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap']) {
     await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
     await page.getByLabel('Search exercises').fill('dumbbell');
     await expect(
-      page.locator('.exercise-group summary').filter({ hasText: /^Dumbbell 8$/ }),
+      page.locator('.exercise-group summary').filter({ hasText: /^Dumbbell 11$/ }),
     ).toBeVisible();
     await page.keyboard.press('Escape');
   });

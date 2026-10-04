@@ -24,10 +24,11 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
       value.type !== 'emom' &&
       value.type !== 'countdown' &&
       value.type !== 'intervals' &&
-      value.type !== 'amrap')
+      value.type !== 'amrap' &&
+      value.type !== 'forTime')
   )
     throw new Error('Invalid workout configuration.');
-  if (value.type !== 'countdown' || value.exercises !== undefined) {
+  if ((value.type !== 'countdown' && value.type !== 'forTime') || value.exercises !== undefined) {
     if (
       !Array.isArray(value.exercises) ||
       value.exercises.some(

@@ -8,6 +8,8 @@ use std::{collections::HashSet, fs, path::PathBuf, sync::Mutex};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkoutResult {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub amrap_progress: Option<AmrapProgress>,
     pub id: String,
     pub completed_at: u64,
@@ -60,10 +62,22 @@ fn validate_result(result: &WorkoutResult) -> Result<(), String> {
         || result.id.chars().count() > 120
         || result.completed_at == 0
         || result.completed_at > 8_640_000_000_000_000
-        || result.elapsed_ms != result.config.duration_ms()
+        || if result.config.mode == Mode::ForTime {
+            result.elapsed_ms > 9_007_199_254_740_991
+                || match result.outcome.as_deref() {
+                    Some("finished") => result.elapsed_ms >= result.config.duration_ms(),
+                    Some("timeCapReached") => {
+                        result.config.time_cap_seconds.is_none()
+                            || result.elapsed_ms != result.config.duration_ms()
+                    }
+                    _ => true,
+                }
+        } else {
+            result.outcome.is_some() || result.elapsed_ms != result.config.duration_ms()
+        }
         || result.checked_exercise_ids.iter().any(|id| {
             !checked.insert(id)
-                || result.config.mode != Mode::Countdown
+                || !matches!(result.config.mode, Mode::Countdown | Mode::ForTime)
                 || result.config.show_checklist == Some(false)
                 || !result.config.exercises.iter().any(|e| &e.id == id)
         })
@@ -177,6 +191,44 @@ mod tests {
             invalid["amrapProgress"] = score;
             assert!(validate_result(&serde_json::from_value(invalid).unwrap()).is_err());
         }
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn for_time_results_roundtrip_with_exact_outcomes_and_preserve_invalid_data() {
+        let raw = serde_json::json!({"id":"for-time","completedAt":1780000000000u64,"elapsedMs":1234,"outcome":"finished","checkedExerciseIds":["a"],"config":{"type":"forTime","timeCapSeconds":5,"leadInSeconds":2,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat"}]}});
+        let result: WorkoutResult = serde_json::from_value(raw.clone()).unwrap();
+        let s = store();
+        s.mutate(Mutation::Save {
+            result: result.clone(),
+        })
+        .unwrap();
+        assert_eq!(s.read().unwrap().results, vec![result]);
+        for (outcome, elapsed) in [
+            ("finished", 5000),
+            ("timeCapReached", 4999),
+            ("unknown", 1234),
+        ] {
+            let mut invalid = raw.clone();
+            invalid["outcome"] = outcome.into();
+            invalid["elapsedMs"] = elapsed.into();
+            assert!(s
+                .mutate(Mutation::Save {
+                    result: serde_json::from_value(invalid).unwrap()
+                })
+                .is_err());
+            assert_eq!(s.read().unwrap().results.len(), 1);
+        }
+        let mut capped = raw.clone();
+        capped["outcome"] = "timeCapReached".into();
+        capped["elapsedMs"] = 5000.into();
+        assert!(validate_result(&serde_json::from_value(capped).unwrap()).is_ok());
+        let mut uncapped = raw;
+        uncapped["config"]
+            .as_object_mut()
+            .unwrap()
+            .remove("timeCapSeconds");
+        uncapped["elapsedMs"] = 90000000.into();
+        assert!(validate_result(&serde_json::from_value(uncapped).unwrap()).is_ok());
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     fn result() -> WorkoutResult {

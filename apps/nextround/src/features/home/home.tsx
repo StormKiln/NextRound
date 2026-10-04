@@ -73,6 +73,19 @@ export function Home() {
             </Button>
           </div>
         </section>
+        <section className="workout-choice" aria-labelledby="for-time-title">
+          <div className="workout-choice-copy">
+            <h2 id="for-time-title">For Time</h2>
+            <h3>One list. Your pace.</h3>
+            <p>
+              Work through your movements, then finish to record your time. Add a time cap if you
+              want one.
+            </p>
+            <Button onClick={() => void navigate({ to: '/for-time' })}>
+              Build a For Time workout <ArrowUpRight size={18} />
+            </Button>
+          </div>
+        </section>
       </div>
       <TemplateLibrary
         onLoad={(config) => {
@@ -80,13 +93,15 @@ export function Home() {
             throw new Error('Finish your active workout before loading a saved setup.');
           void navigate({
             to:
-              config.type === 'amrap'
-                ? '/amrap'
-                : config.type === 'intervals'
-                  ? '/intervals'
-                  : config.type === 'countdown'
-                    ? '/countdown'
-                    : '/emom',
+              config.type === 'forTime'
+                ? '/for-time'
+                : config.type === 'amrap'
+                  ? '/amrap'
+                  : config.type === 'intervals'
+                    ? '/intervals'
+                    : config.type === 'countdown'
+                      ? '/countdown'
+                      : '/emom',
           });
         }}
       />

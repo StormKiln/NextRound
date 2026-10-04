@@ -42,7 +42,7 @@ export function ExerciseGroups({
     return (
       <details
         className="exercise-group"
-        key={`${view}-${group}-${normalizeSearch(search) ? 'search' : 'browse'}`}
+        key={`${view}-${group}-${normalizeSearch(search)}`}
         open={normalizeSearch(search) ? true : undefined}
       >
         <summary>

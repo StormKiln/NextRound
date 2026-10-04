@@ -166,3 +166,39 @@ it('roundtrips mixed-unit AMRAP progress and rejects invalid scores', () => {
   ).toThrow();
   expect(() => copyResult({ ...raw, amrapProgress: undefined })).toThrow();
 });
+
+it('preserves For Time outcomes and validates manual elapsed separately from a cap', () => {
+  const entry = {
+    ...result,
+    config: {
+      type: 'forTime' as const,
+      leadInSeconds: 2,
+      warningSeconds: 3,
+      timeCapSeconds: 30,
+      exercises: result.config.exercises,
+    },
+    elapsedMs: 1234,
+    outcome: 'finished' as const,
+  };
+  expect(copyResult(entry)).toEqual(entry);
+  expect(copyResult({ ...entry, elapsedMs: 30000, outcome: 'timeCapReached' }).outcome).toBe(
+    'timeCapReached',
+  );
+  for (const patch of [
+    { elapsedMs: -1 },
+    { elapsedMs: 1.5 },
+    { elapsedMs: 30000 },
+    { outcome: undefined },
+    { outcome: 'timeCapReached' },
+    { config: { ...entry.config, timeCapSeconds: undefined }, outcome: 'timeCapReached' },
+  ])
+    expect(() => copyResult({ ...entry, ...patch })).toThrow();
+  expect(() => copyResult({ ...result, outcome: 'finished' })).toThrow();
+  expect(
+    copyResult({
+      ...entry,
+      config: { ...entry.config, timeCapSeconds: undefined },
+      elapsedMs: 90000000,
+    }).elapsedMs,
+  ).toBe(90000000);
+});

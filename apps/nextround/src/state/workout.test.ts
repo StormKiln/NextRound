@@ -173,3 +173,55 @@ it('ignores an obsolete read success after a control advances the session genera
   expect(useWorkout.getState().snapshot?.paused).toBe(true);
   expect(useWorkout.getState().readError).toBe('Existing read failure');
 });
+it('For Time finish confirmation pauses, restores state, freezes checks and saves its outcome', async () => {
+  const adapter = await import('@/native/adapter');
+  const c = {
+    type: 'forTime' as const,
+    leadInSeconds: 0,
+    warningSeconds: 3,
+    exercises: config.exercises,
+  };
+  useWorkout.setState({
+    snapshot: null,
+    pendingResult: null,
+    resultStatus: 'none',
+    stopConfirmation: false,
+  });
+  expect(useWorkout.getState().loadConfig(c)).toBe(true);
+  expect(useWorkout.getState().getDraftConfig('forTime')).toMatchObject(c);
+  let current = snapshotAt(c, 1234);
+  vi.mocked(adapter.controlWorkout).mockImplementation(
+    async (action) =>
+      (current = {
+        ...current,
+        paused: action === 'pause',
+        ...(action === 'finish' ? { phase: 'completed', outcome: 'finished' } : {}),
+      }),
+  );
+  useWorkout.setState({ snapshot: current, checkedExerciseIds: [] });
+  await useWorkout.getState().requestFinish();
+  expect(useWorkout.getState().finishConfirmation).toBe(true);
+  expect(useWorkout.getState().snapshot?.paused).toBe(true);
+  useWorkout.getState().toggleChecked('a');
+  expect(useWorkout.getState().checkedExerciseIds).toEqual([]);
+  await useWorkout.getState().cancelFinish();
+  expect(useWorkout.getState().snapshot?.paused).toBe(false);
+  current = { ...current, paused: true };
+  useWorkout.setState({ snapshot: current });
+  await useWorkout.getState().requestFinish();
+  await useWorkout.getState().cancelFinish();
+  expect(useWorkout.getState().snapshot?.paused).toBe(true);
+  await useWorkout.getState().requestFinish();
+  await useWorkout.getState().control('finish');
+  expect(useWorkout.getState().pendingResult).toMatchObject({
+    outcome: 'finished',
+    elapsedMs: 1234,
+  });
+  vi.mocked(adapter.readWorkout).mockResolvedValue(current);
+  await useWorkout.getState().poll();
+  expect(useWorkout.getState().pendingResult).toMatchObject({
+    elapsedMs: 1234,
+    outcome: 'finished',
+  });
+  useWorkout.setState({ pendingResult: null, resultStatus: 'none', finishConfirmation: false });
+});

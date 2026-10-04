@@ -14,25 +14,43 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { History as HistoryIcon, Home as HomeIcon, Settings2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import { deferredScreen } from '@/components/deferred-screen';
 import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
-import { AmrapSetup } from '@/features/amrap/setup';
-import { CountdownSetup } from '@/features/countdown/setup';
-import { History } from '@/features/history';
+
+const History = deferredScreen(() => import('@/features/history').then((module) => module.History));
+
 import { Home } from '@/features/home/home';
-import { IntervalsSetup } from '@/features/intervals/setup';
 import { scheduleAutomaticUpdates } from '@/features/settings/automatic-updates';
 import { Settings } from '@/features/settings/settings';
 import { useUpdates } from '@/features/settings/updates';
-import { Setup } from '@/features/setup/setup';
 import { Completion, Runner } from '@/features/workout/runner';
 import { native } from '@/native/adapter';
+import { restoreScreenDrafts } from '@/state/screen-reload';
 import { useWorkout } from '@/state/workout';
 import icon from '../../../assets/icons/ios/AppIcon.appiconset/AppIcon.png';
 import { version } from '../package.json';
 import './styles.css';
 
+const AmrapSetup = deferredScreen(() =>
+  import('@/features/amrap/setup').then((module) => module.AmrapSetup),
+);
+const CountdownSetup = deferredScreen(() =>
+  import('@/features/countdown/setup').then((module) => module.CountdownSetup),
+);
+const ForTimeSetup = deferredScreen(() =>
+  import('@/features/for-time/setup').then((module) => module.ForTimeSetup),
+);
+const IntervalsSetup = deferredScreen(() =>
+  import('@/features/intervals/setup').then((module) => module.IntervalsSetup),
+);
+const Setup = deferredScreen(() => import('@/features/setup/setup').then((module) => module.Setup));
+try {
+  restoreScreenDrafts(window.sessionStorage);
+} catch {
+  /* Invalid transient recovery data never replaces drafts. */
+}
 const queryClient = new QueryClient();
 function Shell() {
   const s = useWorkout((state) => state.snapshot);
@@ -290,6 +308,11 @@ const amrapRoute = createRoute({
   path: '/amrap',
   component: AmrapSetup,
 });
+const forTimeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/for-time',
+  component: ForTimeSetup,
+});
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
@@ -308,6 +331,7 @@ const router = createRouter({
     countdownRoute,
     intervalsRoute,
     amrapRoute,
+    forTimeRoute,
     workoutRoute,
     completeRoute,
   ]),

@@ -82,15 +82,30 @@ export async function startWorkout(config: WorkoutConfig): Promise<SessionSnapsh
   return browserSession;
 }
 export async function controlWorkout(
-  action: 'pause' | 'resume' | 'stop',
+  action: 'pause' | 'resume' | 'stop' | 'finish',
 ): Promise<SessionSnapshot> {
   if (native) return invoke('control_workout', { action });
   tickBrowser();
   if (!browserSession) throw new Error('No active workout.');
+  if (['completed', 'cancelled'].includes(browserSession.phase))
+    throw new Error('Your workout has completed or stopped. Save or discard any result.');
+  if (
+    action === 'finish' &&
+    (browserSession.config.type !== 'forTime' || browserSession.phase !== 'running')
+  )
+    throw new Error('Finish is available only after a For Time workout starts.');
   stopSound();
-  if (action === 'stop') {
-    if (browserSession.phase === 'completed')
-      throw new Error('Your workout has completed. Save or discard its result.');
+  if (action === 'finish') {
+    browserSession = {
+      ...browserSession,
+      phase: 'completed',
+      paused: false,
+      elapsedMs: Math.floor(browserSession.elapsedMs),
+      outcome: 'finished',
+    };
+    clearInterval(browserLoop);
+    play('complete');
+  } else if (action === 'stop') {
     browserSession.phase = 'cancelled';
     clearInterval(browserLoop);
   } else {

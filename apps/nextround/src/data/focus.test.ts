@@ -6,8 +6,8 @@ import { eligibleExercise, metadataFor } from './equipment';
 import { exercises } from './exercises';
 import { areasFor, focusAreas, matchesFocus, parseTargetAreas } from './focus';
 
-it('audits all 83 catalog movements with valid, unique focus tags', () => {
-  expect(exercises).toHaveLength(83);
+it('audits all 103 catalog movements with valid, unique focus tags', () => {
+  expect(exercises).toHaveLength(103);
   for (const entry of exercises) {
     const areas = metadataFor(entry)?.targetAreas;
     expect(areas).toBeDefined();
@@ -28,9 +28,9 @@ it('matches any selected area, expands lats into back, and supports unspecified 
   expect(matchesFocus(custom, ['core'])).toBe(false);
 });
 it('adds twenty equipment-free movements with compatible editable defaults', () => {
-  const added = exercises.slice(63);
+  const added = exercises.slice(63, 83);
   expect(added).toHaveLength(20);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(83);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(103);
   for (const e of added) {
     expect(eligibleExercise(e, [])).toBe(true);
     expect(e.name.length).toBeLessThanOrEqual(60);
@@ -82,7 +82,7 @@ it('finds audited common plural names of every new movement', () => {
     'step jacks',
     'jumping jacks',
   ];
-  exercises.slice(63).forEach((entry, index) => {
+  exercises.slice(63, 83).forEach((entry, index) => {
     expect(matchesExercise(entry, queries[index])).toBe(true);
   });
 });
@@ -110,7 +110,7 @@ it('resolves complete plural display names to the same catalog identity', () => 
     'step jacks',
     'jumping jacks',
   ];
-  exercises.slice(63).forEach((entry, index) => {
+  exercises.slice(63, 83).forEach((entry, index) => {
     expect(matchesExercise(entry, queries[index])).toBe(true);
   });
 });

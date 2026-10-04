@@ -391,6 +391,7 @@ textarea {
   margin-top: 18px;
 }
 .dialog-actions {
+  flex-wrap: wrap;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -1282,4 +1283,87 @@ textarea {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+}
+
+/* Reserve room for classic scrollbars and focus rings inside every dialog. */
+.dialog {
+  box-sizing: border-box;
+  width: min(640px, calc(100vw - 40px));
+  max-width: calc(100vw - 40px);
+  padding: 28px;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+}
+.dialog :where(form, fieldset, section, div) {
+  min-width: 0;
+}
+.dialog :where(input:not([type="checkbox"]), textarea, select) {
+  max-width: 100%;
+}
+.dialog .button {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  min-height: 40px;
+}
+.picker-dialog {
+  width: min(760px, calc(100vw - 40px));
+}
+.picker-body {
+  scrollbar-gutter: stable;
+  padding: 4px 12px 8px 4px;
+}
+.picker-body .library-list {
+  overflow: visible;
+}
+.picker-empty {
+  padding: 16px 4px;
+}
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.library-list .empty-actions .button {
+  width: auto;
+  padding: 10px 16px;
+  border: 1px solid #5d5147;
+}
+.library-list button > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.library-list button > svg {
+  flex-shrink: 0;
+}
+.settings-dialog {
+  width: min(800px, calc(100vw - 40px));
+  padding: 0;
+}
+.settings-layout {
+  grid-template-columns: 180px minmax(0, 1fr);
+}
+.settings-content {
+  min-width: 0;
+}
+@media (max-width: 800px) {
+  .dialog:not(.settings-dialog) {
+    padding: 20px;
+  }
+}
+.completion-checklist {
+  width: min(620px, 100%);
+  margin: 20px auto;
+  text-align: left;
+}
+.completion-checklist ul {
+  max-height: 180px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  padding: 8px 20px;
+}
+.completion-checklist li {
+  padding: 6px 0;
+  overflow-wrap: anywhere;
 }
