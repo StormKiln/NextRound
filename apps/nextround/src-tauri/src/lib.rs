@@ -108,10 +108,18 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
             session.notice = None;
         }
         "stop" => session.stop()?,
+        "finish" => session.finish()?,
         _ => return Err("This action is not available.".into()),
     }
     let result = session.snapshot();
     rt.audio.stop();
+    if action == "finish" {
+        if let Err(error) = rt.audio.play("complete") {
+            if let Some(session) = rt.session.as_mut() {
+                session.notice = Some(error);
+            }
+        }
+    }
     if let Err(error) = rt
         .audio
         .keep_awake(!result.paused && result.phase != "cancelled" && result.phase != "completed")

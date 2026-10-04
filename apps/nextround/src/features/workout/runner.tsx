@@ -1,11 +1,11 @@
-import { formatTarget, formatTime } from '@nextround/core';
+import { formatElapsed, formatTarget, formatTime } from '@nextround/core';
 import { useNavigate } from '@tanstack/react-router';
 import { Check, Maximize, Pause, Play, RotateCw, Square } from 'lucide-react';
 import { useEffect } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { AmrapProgressPanel } from '@/features/amrap/progress';
-import { ResultActions } from '@/features/history';
+import { ResultActions } from '@/features/history/result-actions';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout, workoutError } from '@/state/workout';
 import '../countdown/checklist.css';
@@ -20,21 +20,27 @@ export function Runner() {
     if (!s || s.phase === 'cancelled')
       void navigate({
         to:
-          s?.config.type === 'amrap'
-            ? '/amrap'
-            : s?.config.type === 'intervals'
-              ? '/intervals'
-              : s?.config.type === 'countdown'
-                ? '/countdown'
-                : '/emom',
+          s?.config.type === 'forTime'
+            ? '/for-time'
+            : s?.config.type === 'amrap'
+              ? '/amrap'
+              : s?.config.type === 'intervals'
+                ? '/intervals'
+                : s?.config.type === 'countdown'
+                  ? '/countdown'
+                  : '/emom',
       });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
   }, [s?.phase, navigate, s]);
   if (!s) return null;
   const lead = s.phase === 'leadIn';
   const amrap = s.config.type === 'amrap';
+  const forTime = s.config.type === 'forTime';
   const countdown = s.config.type === 'countdown';
-  const emom = s.config.type !== 'countdown' && s.config.type !== 'amrap' ? s.config : null;
+  const emom =
+    s.config.type !== 'countdown' && s.config.type !== 'amrap' && s.config.type !== 'forTime'
+      ? s.config
+      : null;
   const intervals = s.config.type === 'intervals';
   const resting = intervals && s.intervalPhase === 'rest' && !lead;
   const rounds = emom ? (emom.type === 'intervals' ? emom.rounds : emom.minutes) : 0;
@@ -45,27 +51,42 @@ export function Runner() {
     : emom && s.roundIndex < rounds - 1
       ? next?.target
       : undefined;
-  const warning = !s.paused && s.roundRemainingMs <= s.config.warningSeconds * 1000;
+  const warning =
+    (!forTime || lead || (s.config.type === 'forTime' && s.config.timeCapSeconds !== undefined)) &&
+    !s.paused &&
+    s.roundRemainingMs <= s.config.warningSeconds * 1000;
   const fraction = lead
     ? s.roundRemainingMs / Math.max(1, s.config.leadInSeconds * 1000)
-    : s.roundRemainingMs /
-      (s.config.type === 'countdown' || s.config.type === 'amrap'
-        ? s.config.durationSeconds * 1000
-        : s.config.type === 'intervals'
-          ? (resting ? s.config.restSeconds : s.config.workSeconds) * 1000
-          : 60000);
+    : forTime
+      ? s.config.type === 'forTime' && s.config.timeCapSeconds
+        ? s.remainingMs / (s.config.timeCapSeconds * 1000)
+        : 1
+      : s.roundRemainingMs /
+        (s.config.type === 'countdown' || s.config.type === 'amrap'
+          ? s.config.durationSeconds * 1000
+          : s.config.type === 'intervals'
+            ? (resting ? s.config.restSeconds : s.config.workSeconds) * 1000
+            : 60000);
   return (
     <main
       className={`runner ${amrap ? 'amrap-runner' : ''} ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}
     >
       <div className="runner-top">
         <span className="mode-pill">
-          {amrap ? 'AMRAP' : countdown ? 'Countdown' : intervals ? 'Intervals' : 'EMOM'}
+          {forTime
+            ? 'For Time'
+            : amrap
+              ? 'AMRAP'
+              : countdown
+                ? 'Countdown'
+                : intervals
+                  ? 'Intervals'
+                  : 'EMOM'}
         </span>
         <span>
           {lead
             ? 'Before you begin'
-            : countdown || amrap
+            : countdown || amrap || forTime
               ? 'Time for your workout'
               : `Round ${s.roundIndex + 1} of ${rounds}`}
         </span>
@@ -81,7 +102,9 @@ export function Runner() {
       <div className="runner-content">
         <section
           className="timer-face"
-          aria-label={countdown || amrap ? 'Countdown timer' : 'Current round'}
+          aria-label={
+            forTime ? 'Elapsed timer' : countdown || amrap ? 'Countdown timer' : 'Current round'
+          }
         >
           <svg viewBox="0 0 400 400" aria-hidden="true">
             <circle className="track" cx="200" cy="200" r="184" />
@@ -105,12 +128,14 @@ export function Runner() {
                 ? 'Paused'
                 : lead
                   ? 'Starting in'
-                  : countdown || amrap
-                    ? 'Time remaining'
-                    : 'This round'}
+                  : forTime
+                    ? 'Elapsed time'
+                    : countdown || amrap
+                      ? 'Time remaining'
+                      : 'This round'}
             </p>
             <div className="timer-digits" data-testid="round-clock" aria-live="off">
-              {formatTime(s.roundRemainingMs)}
+              {forTime && !lead ? formatElapsed(s.elapsedMs) : formatTime(s.roundRemainingMs)}
             </div>
             <span>
               {s.paused
@@ -123,7 +148,7 @@ export function Runner() {
         </section>
         <section className="movement" aria-label={amrap ? 'Circuit and progress' : undefined}>
           <p className="eyebrow">
-            {countdown || amrap
+            {countdown || amrap || forTime
               ? 'Your time. Your pace.'
               : lead
                 ? 'Up first'
@@ -134,13 +159,15 @@ export function Runner() {
           <h1>
             {lead
               ? 'Get ready'
-              : amrap
-                ? 'Keep your circuit going'
-                : countdown
-                  ? 'Make time to move'
-                  : resting
-                    ? 'Take a breath'
-                    : current?.name}
+              : forTime
+                ? 'One pass. Your pace.'
+                : amrap
+                  ? 'Keep your circuit going'
+                  : countdown
+                    ? 'Make time to move'
+                    : resting
+                      ? 'Take a breath'
+                      : current?.name}
           </h1>
           {lead && <h2>{current?.name}</h2>}
           <p className="movement-description">
@@ -149,38 +176,45 @@ export function Runner() {
               : current?.description}
           </p>
           {!resting && current?.target && <h2>{formatTarget(current.target)}</h2>}
-          <div className="total">
-            <span>Workout remaining</span>
-            <strong data-testid="total-clock" aria-live="off">
-              {formatTime(s.remainingMs)}
-            </strong>
-          </div>
-          {s.config.type === 'countdown' && !!s.config.exercises?.length && (
-            <section className="countdown-checklist" aria-label="Workout exercises">
-              <h2>Your workout list</h2>
-              <ol>
-                {s.config.exercises.map((exercise) => (
-                  <li key={exercise.id}>
-                    {s.config.type === 'countdown' && s.config.showChecklist !== false && (
-                      <input
-                        type="checkbox"
-                        aria-label={`Complete ${exercise.name}`}
-                        checked={checkedExerciseIds.includes(exercise.id)}
-                        onChange={() => toggleChecked(exercise.id)}
-                      />
-                    )}
-                    <div>
-                      <strong>{exercise.name}</strong>
-                      {exercise.target && (
-                        <span className="checklist-target">{formatTarget(exercise.target)}</span>
-                      )}
-                      {exercise.description && <p>{exercise.description}</p>}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
+          {(s.config.type !== 'forTime' || s.config.timeCapSeconds !== undefined) && (
+            <div className="total">
+              <span>{forTime ? 'Time cap remaining' : 'Workout remaining'}</span>
+              <strong data-testid="total-clock" aria-live="off">
+                {formatTime(s.remainingMs)}
+              </strong>
+            </div>
           )}
+          {(s.config.type === 'countdown' || s.config.type === 'forTime') &&
+            !!s.config.exercises?.length && (
+              <section className="countdown-checklist" aria-label="Workout exercises">
+                <h2>Your workout list</h2>
+                <ol>
+                  {s.config.exercises.map((exercise) => (
+                    <li key={exercise.id}>
+                      {(s.config.type === 'countdown' || s.config.type === 'forTime') &&
+                        s.config.showChecklist !== false && (
+                          <input
+                            type="checkbox"
+                            disabled={
+                              lead || busy || stop || useWorkout.getState().finishConfirmation
+                            }
+                            aria-label={`Complete ${exercise.name}`}
+                            checked={checkedExerciseIds.includes(exercise.id)}
+                            onChange={() => toggleChecked(exercise.id)}
+                          />
+                        )}
+                      <div>
+                        <strong>{exercise.name}</strong>
+                        {exercise.target && (
+                          <span className="checklist-target">{formatTarget(exercise.target)}</span>
+                        )}
+                        {exercise.description && <p>{exercise.description}</p>}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
           {amrap && <AmrapProgressPanel />}
           {emom && (
             <div className="up-next">
@@ -207,11 +241,23 @@ export function Runner() {
           ? 'Workout paused'
           : lead
             ? 'Get ready'
-            : countdown || amrap
-              ? 'Countdown running'
+            : countdown || amrap || forTime
+              ? forTime
+                ? 'Stopwatch running'
+                : 'Countdown running'
               : `Round ${s.roundIndex + 1}. ${resting ? 'Rest' : 'Work'}. ${resting ? next?.name : current?.name}`}
       </div>
       <div className="runner-controls">
+        {forTime && (
+          <Button
+            disabled={busy || lead}
+            aria-label="Finish workout"
+            onClick={() => void useWorkout.getState().requestFinish()}
+          >
+            <Check size={18} />
+            Finish
+          </Button>
+        )}
         <Button
           variant="secondary"
           disabled={busy}
@@ -231,6 +277,38 @@ export function Runner() {
         </Button>
         <span>Escape exits full screen. Your workout keeps running.</span>
       </div>
+      {useWorkout.getState().finishConfirmation && (
+        <Dialog
+          title="Finish this workout?"
+          onClose={() => void useWorkout.getState().cancelFinish()}
+        >
+          {error && <p role="alert">{error}</p>}
+          <p>Your workout is paused. Finish to review and save your elapsed time.</p>
+          {s.config.type === 'forTime' &&
+            s.config.showChecklist !== false &&
+            (s.config.exercises?.length ?? 0) > checkedExerciseIds.length && (
+              <p>
+                {(s.config.exercises?.length ?? 0) - checkedExerciseIds.length}{' '}
+                {(s.config.exercises?.length ?? 0) - checkedExerciseIds.length === 1
+                  ? 'exercise remains'
+                  : 'exercises remain'}{' '}
+                unchecked. You can still finish; your checklist will be saved as it is.
+              </p>
+            )}
+          <div className="dialog-actions">
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() => void useWorkout.getState().cancelFinish()}
+            >
+              Keep going
+            </Button>
+            <Button disabled={busy} onClick={() => void control('finish')}>
+              Finish and review
+            </Button>
+          </div>
+        </Dialog>
+      )}
       {stop && (
         <Dialog title="End this workout?" onClose={() => void cancelStop()}>
           {error && <p role="alert">{error}</p>}
@@ -258,7 +336,7 @@ export function Runner() {
   );
 }
 export function Completion() {
-  const { snapshot: s, start, busy, pendingResult } = useWorkout();
+  const { snapshot: s, start, busy, pendingResult, checkedExerciseIds } = useWorkout();
   const error = useWorkout(workoutError);
   const navigate = useNavigate();
   if (s?.phase !== 'completed')
@@ -274,24 +352,56 @@ export function Completion() {
         <Check size={44} />
       </span>
       <p className="eyebrow">
-        {s.config.type === 'countdown' ? 'Time well spent' : 'Every round earned'}
+        {s.config.type === 'countdown' || s.config.type === 'forTime'
+          ? 'Time well spent'
+          : 'Every round earned'}
       </p>
-      <h1>Workout complete</h1>
-      <p>You showed up. You put in the work.</p>
+      <h1>
+        {s.outcome === 'timeCapReached'
+          ? 'Time cap reached'
+          : s.outcome === 'finished'
+            ? 'Workout finished'
+            : 'Workout complete'}
+      </h1>
+      <p>
+        {s.outcome === 'timeCapReached'
+          ? 'Your timer reached its limit. Review the work you completed below.'
+          : 'You showed up. You put in the work.'}
+      </p>
       <div className="complete-stats">
-        {s.config.type !== 'countdown' && s.config.type !== 'amrap' && (
-          <div>
-            <strong>{s.config.type === 'intervals' ? s.config.rounds : s.config.minutes}</strong>
-            <span>rounds completed</span>
-          </div>
-        )}
+        {s.config.type !== 'countdown' &&
+          s.config.type !== 'amrap' &&
+          s.config.type !== 'forTime' && (
+            <div>
+              <strong>{s.config.type === 'intervals' ? s.config.rounds : s.config.minutes}</strong>
+              <span>rounds completed</span>
+            </div>
+          )}
         <div>
-          <strong>{formatTime(s.elapsedMs)}</strong>
+          <strong>
+            {s.config.type === 'forTime' ? formatElapsed(s.elapsedMs) : formatTime(s.elapsedMs)}
+          </strong>
           <span>active workout time</span>
         </div>
       </div>
       {(s.notice || error) && <p role="alert">{[s.notice, error].filter(Boolean).join(' ')}</p>}
       {s.config.type === 'amrap' && <AmrapProgressPanel />}
+      {s.config.type === 'forTime' && !!s.config.exercises?.length && (
+        <section className="completion-checklist" aria-label="Workout checklist result">
+          <h2>Your workout list</h2>
+          <ul>
+            {s.config.exercises.map((exercise) => (
+              <li key={exercise.id}>
+                {exercise.name}
+                {exercise.target && ` · ${formatTarget(exercise.target)}`}
+                {s.config.type === 'forTime' &&
+                  s.config.showChecklist !== false &&
+                  ` · ${checkedExerciseIds.includes(exercise.id) ? 'Checked off' : 'Not checked off'}`}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <ResultActions />
       <div className="complete-actions">
         <Button
@@ -325,13 +435,15 @@ export function Completion() {
               () => {
                 void navigate({
                   to:
-                    s.config.type === 'amrap'
-                      ? '/amrap'
-                      : s.config.type === 'intervals'
-                        ? '/intervals'
-                        : s.config.type === 'countdown'
-                          ? '/countdown'
-                          : '/emom',
+                    s.config.type === 'forTime'
+                      ? '/for-time'
+                      : s.config.type === 'amrap'
+                        ? '/amrap'
+                        : s.config.type === 'intervals'
+                          ? '/intervals'
+                          : s.config.type === 'countdown'
+                            ? '/countdown'
+                            : '/emom',
                 });
               },
               (error) => useWorkout.setState({ error }),

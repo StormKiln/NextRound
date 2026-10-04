@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   fullscreen: vi.fn(async () => {}),
 }));
 vi.mock('./repository', () => ({
+  historyKey: ['workout-history'],
   readHistory: mocks.read,
   mutateHistory: vi.fn(),
   copyResult: (v: unknown) => v,

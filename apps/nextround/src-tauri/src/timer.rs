@@ -34,10 +34,14 @@ pub enum Mode {
     Countdown,
     Amrap,
     Intervals,
+    #[serde(rename = "forTime")]
+    ForTime,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub time_cap_seconds: Option<u32>,
     #[serde(default, rename = "type")]
     pub mode: Mode,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -60,6 +64,8 @@ pub struct Config {
 #[derive(Clone, Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Snapshot {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<String>,
     pub phase: String,
     pub remaining_ms: u64,
     pub round_remaining_ms: u64,
@@ -81,12 +87,23 @@ impl Config {
                     + rounds.saturating_sub(1) * u64::from(self.rest_seconds.unwrap_or(0)))
                     * 1000
             }
+            Mode::ForTime => self
+                .time_cap_seconds
+                .map(|s| u64::from(s) * 1000)
+                .unwrap_or(u64::MAX - 3_600_000),
             Mode::Emom => u64::from(self.minutes) * 60000,
         }
     }
 }
 pub fn validate(config: &Config) -> Result<(), String> {
-    if config.mode == Mode::Intervals {
+    if config.mode == Mode::ForTime {
+        if config
+            .time_cap_seconds
+            .is_some_and(|s| !(1..=86400).contains(&s))
+        {
+            return Err("Choose a whole time cap from 1 to 86400 seconds.".into());
+        }
+    } else if config.mode == Mode::Intervals {
         if !config
             .work_seconds
             .is_some_and(|s| (1..=86400).contains(&s))
@@ -96,7 +113,7 @@ pub fn validate(config: &Config) -> Result<(), String> {
         {
             return Err("Choose work 1–86400 seconds, rest 0–86400, rounds 1–1440 and a total within 24 hours.".into());
         }
-    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
+    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
         if !config
             .duration_seconds
             .is_some_and(|s| (1..=86400).contains(&s))
@@ -110,7 +127,7 @@ pub fn validate(config: &Config) -> Result<(), String> {
         return Err("Invalid lead-in or warning duration.".into());
     }
     let mut ids = std::collections::HashSet::new();
-    if (config.mode != Mode::Countdown && config.exercises.is_empty())
+    if (!matches!(config.mode, Mode::Countdown | Mode::ForTime) && config.exercises.is_empty())
         || config.exercises.len() > 100
         || config.exercises.iter().any(|e| {
             e.id.trim().is_empty()
@@ -156,7 +173,7 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         && !completed
         && elapsed >= lead
         && active % cycle >= u64::from(config.work_seconds.unwrap()) * 1000;
-    let round = if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
+    let round = if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
         0
     } else {
         ((active / cycle) as u32).min(if config.mode == Mode::Intervals {
@@ -166,6 +183,7 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         })
     };
     Snapshot {
+        outcome: (config.mode == Mode::ForTime && completed).then(|| "timeCapReached".into()),
         phase: if elapsed < lead {
             "leadIn"
         } else if completed {
@@ -174,13 +192,21 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
             "running"
         }
         .into(),
-        remaining_ms: duration.saturating_sub(active),
+        remaining_ms: if config.mode == Mode::ForTime && config.time_cap_seconds.is_none() {
+            0
+        } else {
+            duration.saturating_sub(active)
+        },
         round_remaining_ms: if elapsed < lead {
             lead - elapsed
         } else if completed {
             0
-        } else if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
-            duration - active
+        } else if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
+            if config.mode == Mode::ForTime && config.time_cap_seconds.is_none() {
+                0
+            } else {
+                duration - active
+            }
         } else {
             (if config.mode == Mode::Intervals && !resting {
                 u64::from(config.work_seconds.unwrap()) * 1000
@@ -191,7 +217,7 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         interval_phase: (config.mode == Mode::Intervals)
             .then(|| if resting { "rest" } else { "work" }.into()),
         round_index: round,
-        exercise_index: if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
+        exercise_index: if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
             0
         } else {
             round as usize % config.exercises.len()
@@ -232,7 +258,7 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
     }
     let remaining = if second < lead {
         lead - second
-    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap) {
+    } else if matches!(config.mode, Mode::Countdown | Mode::Amrap | Mode::ForTime) {
         end - second
     } else {
         60 - (second - lead) % 60
@@ -252,6 +278,7 @@ pub struct Session {
     pub result_resolved: bool,
     pub notice: Option<String>,
     last_second: u64,
+    finished: bool,
 }
 impl Session {
     pub fn new(config: Config) -> Result<Self, String> {
@@ -264,10 +291,19 @@ impl Session {
             result_resolved: false,
             notice: None,
             last_second: 0,
+            finished: false,
         })
     }
     pub fn needs_result_decision(&self) -> bool {
         !self.cancelled && !self.result_resolved && self.snapshot().phase == "completed"
+    }
+    pub fn finish(&mut self) -> Result<(), String> {
+        if self.config.mode != Mode::ForTime || self.snapshot().phase != "running" {
+            return Err("Finish is available only while a For Time workout is running.".into());
+        }
+        self.finished = true;
+        self.paused = false;
+        Ok(())
     }
     pub fn stop(&mut self) -> Result<(), String> {
         if self.snapshot().phase == "completed" {
@@ -282,6 +318,10 @@ impl Session {
     }
     pub fn snapshot(&self) -> Snapshot {
         let mut s = snapshot(&self.config, self.elapsed);
+        if self.finished {
+            s.phase = "completed".into();
+            s.outcome = Some("finished".into());
+        }
         if self.cancelled {
             s.phase = "cancelled".into();
         }
@@ -300,7 +340,7 @@ impl Session {
             );
             return None;
         }
-        self.elapsed = (self.elapsed + delta_ms)
+        self.elapsed = (self.elapsed.saturating_add(delta_ms))
             .min(u64::from(self.config.lead_in_seconds) * 1000 + self.config.duration_ms());
         let second = self.elapsed / 1000;
         if second == self.last_second {
@@ -329,8 +369,53 @@ mod tests {
             .remove("target");
         assert!(validate(&serde_json::from_value(raw).unwrap()).is_err());
     }
+    #[test]
+    fn for_time_finish_pause_and_cap_are_distinct() {
+        let raw = serde_json::json!({"type":"forTime","leadInSeconds":2,"warningSeconds":3});
+        let config: Config = serde_json::from_value(raw.clone()).unwrap();
+        let mut session = Session::new(config).unwrap();
+        assert!(session.finish().is_err());
+        assert_eq!(session.advance(2000, false), Some("beep"));
+        session.advance(1234, false);
+        session.paused = true;
+        session.advance(2000, false);
+        assert_eq!(session.snapshot().elapsed_ms, 1234);
+        assert!(session.finish().is_ok());
+        assert_eq!(session.snapshot().outcome.as_deref(), Some("finished"));
+        assert_eq!(session.snapshot().phase, "completed");
+        assert!(!session.active());
+        assert!(session.finish().is_err());
+        assert_eq!(session.advance(5000, false), None);
+        let mut capped = raw;
+        capped["timeCapSeconds"] = serde_json::json!(5);
+        let mut session = Session::new(serde_json::from_value(capped).unwrap()).unwrap();
+        assert_eq!(session.advance(7000, false), Some("complete"));
+        assert!(session.finish().is_err());
+        assert_eq!(
+            session.snapshot().outcome.as_deref(),
+            Some("timeCapReached")
+        );
+        assert_eq!(session.snapshot().elapsed_ms, 5000);
+    }
+    #[test]
+    fn for_time_uncapped_has_no_minute_cues_or_elapsed_limit() {
+        let c: Config = serde_json::from_value(
+            serde_json::json!({"type":"forTime","leadInSeconds":2,"warningSeconds":59}),
+        )
+        .unwrap();
+        assert!(validate(&c).is_ok());
+        assert_eq!(snapshot(&c, 7202500).elapsed_ms, 7200500);
+        assert_eq!(snapshot(&c, 7202500).remaining_ms, 0);
+        assert_eq!(snapshot(&c, 7202500).phase, "running");
+        assert_eq!(cue_at(&c, 62000), None);
+        for cap in [0, 86401] {
+            let c: Config = serde_json::from_value(serde_json::json!({"type":"forTime","timeCapSeconds":cap,"leadInSeconds":0,"warningSeconds":0})).unwrap();
+            assert!(validate(&c).is_err());
+        }
+    }
     fn config() -> Config {
         Config {
+            time_cap_seconds: None,
             mode: Mode::Emom,
             show_checklist: None,
             duration_seconds: None,

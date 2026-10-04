@@ -75,21 +75,39 @@ export function formatAmrapProgress(config: AmrapConfig, score: AmrapProgress): 
   const current = config.exercises[extra];
   return `${rounds} completed ${rounds === 1 ? 'round' : 'rounds'} + ${extra} completed ${extra === 1 ? 'movement' : 'movements'}${score.partialValue && current.target ? ` + ${formatTarget({ ...current.target, value: score.partialValue })} of ${current.name}` : ''}`;
 }
-export type WorkoutConfig = EmomConfig | CountdownConfig | IntervalsConfig | AmrapConfig;
+export type ForTimeConfig = {
+  type: 'forTime';
+  timeCapSeconds?: number;
+  leadInSeconds: number;
+  warningSeconds: number;
+  exercises?: ExerciseEntry[];
+  showChecklist?: boolean;
+};
+export type ForTimeOutcome = 'finished' | 'timeCapReached';
+export type WorkoutConfig =
+  | ForTimeConfig
+  | EmomConfig
+  | CountdownConfig
+  | IntervalsConfig
+  | AmrapConfig;
 export function durationSeconds(config: WorkoutConfig): number {
-  return config.type === 'intervals'
-    ? config.rounds * config.workSeconds + (config.rounds - 1) * config.restSeconds
-    : config.type === 'countdown' || config.type === 'amrap'
-      ? config.durationSeconds
-      : config.minutes * 60;
+  return config.type === 'forTime'
+    ? (config.timeCapSeconds ?? Infinity)
+    : config.type === 'intervals'
+      ? config.rounds * config.workSeconds + (config.rounds - 1) * config.restSeconds
+      : config.type === 'countdown' || config.type === 'amrap'
+        ? config.durationSeconds
+        : config.minutes * 60;
 }
 export type WorkoutCue = 'tock' | 'beep' | 'rest' | 'complete';
 export type Workout =
+  | { type: 'forTime'; config: ForTimeConfig }
   | { type: 'emom'; config: EmomConfig }
   | { type: 'countdown'; config: CountdownConfig }
   | { type: 'intervals'; config: IntervalsConfig }
   | { type: 'amrap'; config: AmrapConfig };
 export type SessionSnapshot = {
+  outcome?: ForTimeOutcome;
   phase: 'leadIn' | 'running' | 'completed' | 'cancelled';
   remainingMs: number;
   roundRemainingMs: number;
@@ -103,7 +121,15 @@ export type SessionSnapshot = {
 };
 export function validateConfig(config: WorkoutConfig): Record<string, string> {
   const errors: Record<string, string> = {};
-  if (config.type === 'intervals') {
+  if (config.type === 'forTime') {
+    if (
+      config.timeCapSeconds !== undefined &&
+      (!Number.isInteger(config.timeCapSeconds) ||
+        config.timeCapSeconds < 1 ||
+        config.timeCapSeconds > 86400)
+    )
+      errors.timeCapSeconds = 'Choose a whole time cap from 1 to 86400 seconds.';
+  } else if (config.type === 'intervals') {
     for (const [key, min, max] of [
       ['workSeconds', 1, 86400],
       ['restSeconds', 0, 86400],
@@ -136,10 +162,12 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
   )
     errors.warningSeconds = 'Choose a whole number from 0 to 59.';
   const entries =
-    config.exercises === undefined && config.type === 'countdown' ? [] : config.exercises;
+    config.exercises === undefined && (config.type === 'countdown' || config.type === 'forTime')
+      ? []
+      : config.exercises;
   if (
     !Array.isArray(entries) ||
-    (config.type !== 'countdown' && entries.length < 1) ||
+    (config.type !== 'countdown' && config.type !== 'forTime' && entries.length < 1) ||
     entries.length > 100 ||
     entries.some(
       (e) =>
@@ -158,9 +186,9 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
     ) ||
     new Set(entries.map((e) => e.id)).size !== entries.length
   )
-    errors.exercises = `Add ${config.type === 'countdown' ? '0' : '1'}–100 exercises with unique IDs, names up to 120 characters and descriptions up to 2000 characters. Targets must use a supported unit and a positive whole value up to 999999 (86400 for seconds).`;
+    errors.exercises = `Add ${config.type === 'countdown' || config.type === 'forTime' ? '0' : '1'}–100 exercises with unique IDs, names up to 120 characters and descriptions up to 2000 characters. Targets must use a supported unit and a positive whole value up to 999999 (86400 for seconds).`;
   if (
-    config.type === 'countdown' &&
+    (config.type === 'countdown' || config.type === 'forTime') &&
     config.showChecklist !== undefined &&
     typeof config.showChecklist !== 'boolean'
   )
@@ -172,6 +200,20 @@ export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnaps
   const duration = durationSeconds(config) * 1000;
   const active = Math.max(0, elapsed - lead);
   const completed = active >= duration;
+  if (config.type === 'forTime') {
+    const remaining = Number.isFinite(duration) ? Math.max(0, duration - active) : 0;
+    return {
+      config,
+      phase: elapsed < lead ? 'leadIn' : completed ? 'completed' : 'running',
+      remainingMs: remaining,
+      roundRemainingMs: elapsed < lead ? lead - elapsed : remaining,
+      roundIndex: 0,
+      exerciseIndex: 0,
+      elapsedMs: Math.min(active, duration),
+      paused: false,
+      ...(completed ? { outcome: 'timeCapReached' } : {}),
+    };
+  }
   const cycle =
     config.type === 'intervals' ? (config.workSeconds + config.restSeconds) * 1000 : 60000;
   const roundIndex =
@@ -214,6 +256,12 @@ export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnaps
     paused: false,
   };
 }
+export function formatElapsed(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = String(Math.floor(seconds / 60) % 60).padStart(2, '0');
+  const tail = `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+  return seconds >= 3600 ? `${Math.floor(seconds / 3600)}:${tail}` : tail;
+}
 export function formatTime(ms: number): string {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(seconds / 60)
@@ -241,6 +289,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
     second === lead ||
     (config.type !== 'countdown' &&
       config.type !== 'amrap' &&
+      config.type !== 'forTime' &&
       second > lead &&
       (second - lead) % 60 === 0)
   )
@@ -248,7 +297,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
   const remaining =
     second < lead
       ? lead - second
-      : config.type === 'countdown' || config.type === 'amrap'
+      : config.type === 'countdown' || config.type === 'amrap' || config.type === 'forTime'
         ? end - second
         : 60 - ((second - lead) % 60);
   return remaining <= config.warningSeconds ? 'tock' : null;

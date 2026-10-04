@@ -12,7 +12,7 @@ import { copyResult, mutateHistory, type WorkoutResult } from '@/features/histor
 import { defaultEmomTarget } from '@/features/setup/emom-defaults';
 import * as adapter from '@/native/adapter';
 
-type WorkoutMode = 'emom' | 'countdown' | 'intervals' | 'amrap';
+type WorkoutMode = 'forTime' | 'emom' | 'countdown' | 'intervals' | 'amrap';
 type IntervalsDraft = {
   workSeconds: string;
   restSeconds: string;
@@ -35,7 +35,14 @@ type CountdownDraft = {
   leadInSeconds: string;
   warningSeconds: string;
 };
+type ForTimeDraft = CountdownDraft & { capped: boolean };
 type State = {
+  forTimeDraft: ForTimeDraft;
+  setForTimeDraft: (patch: Partial<ForTimeDraft>) => void;
+  finishConfirmation: boolean;
+  resumeAfterFinish: boolean;
+  requestFinish: () => Promise<void>;
+  cancelFinish: () => Promise<void>;
   amrapDraft: CountdownDraft;
   setAmrapDraft: (patch: Partial<CountdownDraft>) => void;
   amrapProgress: AmrapProgress;
@@ -67,12 +74,44 @@ type State = {
   readError: string | null;
   setDraft: (patch: Partial<Draft>) => void;
   start: (repeat?: boolean, mode?: WorkoutMode) => Promise<boolean>;
-  control: (action: 'pause' | 'resume' | 'stop') => Promise<boolean>;
+  control: (action: 'pause' | 'resume' | 'stop' | 'finish') => Promise<boolean>;
   poll: () => Promise<void>;
 };
 let generation = 0;
 let polling = false;
 export const useWorkout = create<State>((set, get) => ({
+  forTimeDraft: {
+    minutes: '10',
+    seconds: '0',
+    leadInSeconds: '10',
+    warningSeconds: '3',
+    exercises: [],
+    showChecklist: true,
+    capped: false,
+  },
+  setForTimeDraft: (patch) =>
+    set((s) => ({ forTimeDraft: { ...s.forTimeDraft, ...patch }, errors: {} })),
+  finishConfirmation: false,
+  resumeAfterFinish: false,
+  requestFinish: async () => {
+    const { snapshot, busy, finishConfirmation, stopConfirmation } = get();
+    if (
+      busy ||
+      finishConfirmation ||
+      stopConfirmation ||
+      snapshot?.config.type !== 'forTime' ||
+      snapshot.phase !== 'running'
+    )
+      return;
+    const resumeAfterFinish = !snapshot.paused;
+    if (resumeAfterFinish && !(await get().control('pause'))) return;
+    if (get().snapshot?.phase === 'running') set({ finishConfirmation: true, resumeAfterFinish });
+  },
+  cancelFinish: async () => {
+    if (get().busy || !get().finishConfirmation) return;
+    if (get().resumeAfterFinish && !(await get().control('resume'))) return;
+    set({ finishConfirmation: false, resumeAfterFinish: false });
+  },
   amrapDraft: {
     minutes: '10',
     seconds: '0',
@@ -111,7 +150,13 @@ export const useWorkout = create<State>((set, get) => ({
   resumeAfterStop: false,
   requestStop: async () => {
     const { snapshot, busy, stopConfirmation } = get();
-    if (busy || stopConfirmation || !snapshot || !['running', 'leadIn'].includes(snapshot.phase))
+    if (
+      busy ||
+      stopConfirmation ||
+      get().finishConfirmation ||
+      !snapshot ||
+      !['running', 'leadIn'].includes(snapshot.phase)
+    )
       return;
     const resumeAfterStop = !snapshot.paused;
     if (resumeAfterStop && !(await get().control('pause'))) return;
@@ -197,8 +242,11 @@ export const useWorkout = create<State>((set, get) => ({
   toggleChecked: (id) => {
     const { snapshot, checkedExerciseIds } = get();
     if (
+      get().busy ||
+      get().stopConfirmation ||
+      get().finishConfirmation ||
       snapshot?.phase !== 'running' ||
-      snapshot?.config.type !== 'countdown' ||
+      (snapshot?.config.type !== 'countdown' && snapshot?.config.type !== 'forTime') ||
       snapshot.config.showChecklist === false ||
       !snapshot.config.exercises?.some((exercise) => exercise.id === id)
     )
@@ -210,7 +258,16 @@ export const useWorkout = create<State>((set, get) => ({
     });
   },
   getDraftConfig: (mode) => {
-    const { draft, countdownDraft, intervalsDraft, amrapDraft } = get();
+    const { draft, countdownDraft, intervalsDraft, amrapDraft, forTimeDraft } = get();
+    if (mode === 'forTime')
+      return {
+        type: 'forTime',
+        ...(forTimeDraft.capped ? { timeCapSeconds: countdownDuration(forTimeDraft) } : {}),
+        leadInSeconds: numeric(forTimeDraft.leadInSeconds),
+        warningSeconds: numeric(forTimeDraft.warningSeconds),
+        exercises: structuredClone(forTimeDraft.exercises),
+        showChecklist: forTimeDraft.showChecklist,
+      };
     if (mode === 'amrap')
       return {
         type: 'amrap',
@@ -257,7 +314,21 @@ export const useWorkout = create<State>((set, get) => ({
         return false;
       }
       const copy = structuredClone(config);
-      if (copy.type === 'amrap') {
+      if (copy.type === 'forTime') {
+        set({
+          forTimeDraft: {
+            minutes: String(Math.floor((copy.timeCapSeconds ?? 600) / 60)),
+            seconds: String((copy.timeCapSeconds ?? 600) % 60),
+            capped: copy.timeCapSeconds !== undefined,
+            leadInSeconds: String(copy.leadInSeconds),
+            warningSeconds: String(copy.warningSeconds),
+            exercises: copy.exercises ?? [],
+            showChecklist: copy.showChecklist ?? true,
+          },
+          errors: {},
+          error: null,
+        });
+      } else if (copy.type === 'amrap') {
         set({
           amrapDraft: {
             minutes: String(Math.floor(copy.durationSeconds / 60)),
@@ -330,6 +401,8 @@ export const useWorkout = create<State>((set, get) => ({
         checkedExerciseIds: [],
         amrapProgress: { completedMovements: 0, partialValue: 0 },
         scoreLocked: false,
+        finishConfirmation: false,
+        resumeAfterFinish: false,
         stopConfirmation: false,
         sessionId: crypto.randomUUID(),
         pendingResult: null,
@@ -354,7 +427,14 @@ export const useWorkout = create<State>((set, get) => ({
     set({ busy: true });
     try {
       const snapshot = await adapter.controlWorkout(action);
-      set({ snapshot, controlError: null });
+      set({
+        snapshot,
+        controlError: null,
+        ...(snapshot.phase === 'completed' && get().resultStatus === 'none'
+          ? { pendingResult: resultFromSnapshot(snapshot, get()), resultStatus: 'pending' as const }
+          : {}),
+      });
+      if (action === 'finish') set({ finishConfirmation: false, resumeAfterFinish: false });
       if (action === 'stop') {
         set({ stopConfirmation: false, resumeAfterStop: false });
         try {
@@ -381,14 +461,7 @@ export const useWorkout = create<State>((set, get) => ({
         set({ readError: null });
         const state = get();
         if (snapshot.phase === 'completed' && state.resultStatus === 'none') {
-          const result = copyResult({
-            id: state.sessionId ?? crypto.randomUUID(),
-            completedAt: Date.now(),
-            elapsedMs: snapshot.elapsedMs,
-            config: snapshot.config,
-            checkedExerciseIds: state.checkedExerciseIds,
-            ...(snapshot.config.type === 'amrap' ? { amrapProgress: state.amrapProgress } : {}),
-          });
+          const result = resultFromSnapshot(snapshot, state);
           set({ snapshot, pendingResult: result, resultStatus: 'pending' });
         } else set({ snapshot });
       }
@@ -419,4 +492,19 @@ function countdownDuration(draft: CountdownDraft) {
 // Keep failures from independent operations visible until their own retry succeeds.
 export function workoutError(state: Pick<State, 'error' | 'controlError' | 'readError'>) {
   return [state.error, state.controlError, state.readError].filter(Boolean).join(' ') || null;
+}
+
+function resultFromSnapshot(
+  snapshot: SessionSnapshot,
+  state: Pick<State, 'sessionId' | 'checkedExerciseIds' | 'amrapProgress'>,
+): WorkoutResult {
+  return copyResult({
+    id: state.sessionId ?? crypto.randomUUID(),
+    completedAt: Date.now(),
+    elapsedMs: snapshot.elapsedMs,
+    ...(snapshot.outcome ? { outcome: snapshot.outcome } : {}),
+    config: snapshot.config,
+    checkedExerciseIds: state.checkedExerciseIds,
+    ...(snapshot.config.type === 'amrap' ? { amrapProgress: state.amrapProgress } : {}),
+  });
 }

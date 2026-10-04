@@ -1,12 +1,14 @@
 import {
   type AmrapProgress,
   durationSeconds,
+  type ForTimeOutcome,
   validAmrapProgress,
   type WorkoutConfig,
 } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { copyValidatedConfig, type TemplateStorage } from '../templates/repository';
 export type WorkoutResult = {
+  outcome?: ForTimeOutcome;
   id: string;
   completedAt: number;
   elapsedMs: number;
@@ -32,6 +34,7 @@ export function copyResult(value: unknown): WorkoutResult {
           'config',
           'checkedExerciseIds',
           'amrapProgress',
+          'outcome',
         ].includes(key),
     )
   )
@@ -46,13 +49,18 @@ export function copyResult(value: unknown): WorkoutResult {
     entry.completedAt <= 0 ||
     entry.completedAt > 8640000000000000 ||
     !Number.isSafeInteger(entry.elapsedMs) ||
-    entry.elapsedMs !== durationSeconds(config) * 1000 ||
+    (config.type === 'forTime'
+      ? entry.elapsedMs < 0 ||
+        (entry.outcome === 'timeCapReached'
+          ? !config.timeCapSeconds || entry.elapsedMs !== config.timeCapSeconds * 1000
+          : entry.outcome !== 'finished' || entry.elapsedMs >= durationSeconds(config) * 1000)
+      : entry.outcome !== undefined || entry.elapsedMs !== durationSeconds(config) * 1000) ||
     !Array.isArray(entry.checkedExerciseIds) ||
     new Set(entry.checkedExerciseIds).size !== entry.checkedExerciseIds.length ||
     entry.checkedExerciseIds.some(
       (id) =>
         typeof id !== 'string' ||
-        config.type !== 'countdown' ||
+        (config.type !== 'countdown' && config.type !== 'forTime') ||
         config.showChecklist === false ||
         !config.exercises?.some((e) => e.id === id),
     )
@@ -63,6 +71,7 @@ export function copyResult(value: unknown): WorkoutResult {
       throw new Error(invalid);
   } else if (entry.amrapProgress !== undefined) throw new Error(invalid);
   return {
+    ...(entry.outcome ? { outcome: entry.outcome } : {}),
     ...(entry.amrapProgress ? { amrapProgress: { ...entry.amrapProgress } } : {}),
     id: entry.id,
     completedAt: entry.completedAt,
@@ -137,3 +146,5 @@ export async function mutateHistory(mutation: HistoryMutation): Promise<HistoryD
     ? parseHistoryDocument(await invoke('mutate_workout_history', { mutation }))
     : browser().mutate(mutation);
 }
+
+export const historyKey = ['workout-history'];

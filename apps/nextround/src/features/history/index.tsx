@@ -1,4 +1,4 @@
-import { formatAmrapProgress, formatTarget, formatTime } from '@nextround/core';
+import { formatAmrapProgress, formatElapsed, formatTarget, formatTime } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
@@ -6,18 +6,26 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
-import { copyResult, mutateHistory, readHistory, type WorkoutResult } from './repository';
+import {
+  copyResult,
+  historyKey,
+  mutateHistory,
+  readHistory,
+  type WorkoutResult,
+} from './repository';
 import '../templates/templates.css';
 import './history.css';
-export const historyKey = ['workout-history'];
+
 const modeName = (result: WorkoutResult) =>
-  result.config.type === 'amrap'
-    ? 'AMRAP'
-    : result.config.type === 'countdown'
-      ? 'Countdown'
-      : result.config.type === 'intervals'
-        ? 'Intervals'
-        : 'EMOM';
+  result.config.type === 'forTime'
+    ? 'For Time'
+    : result.config.type === 'amrap'
+      ? 'AMRAP'
+      : result.config.type === 'countdown'
+        ? 'Countdown'
+        : result.config.type === 'intervals'
+          ? 'Intervals'
+          : 'EMOM';
 export function History() {
   const query = useQuery({ queryKey: historyKey, queryFn: readHistory, retry: false });
   const client = useQueryClient();
@@ -69,8 +77,12 @@ export function History() {
                 </time>
               </p>
               <p>
-                {formatTime(result.elapsedMs)} active time · {result.config.exercises?.length ?? 0}{' '}
-                exercises
+                {result.config.type === 'forTime'
+                  ? formatElapsed(result.elapsedMs)
+                  : formatTime(result.elapsedMs)}{' '}
+                active time · {result.config.exercises?.length ?? 0} exercises
+                {result.outcome &&
+                  ` · ${result.outcome === 'finished' ? 'Finished' : 'Time cap reached'}`}
               </p>
             </div>
             <div className="template-actions">
@@ -107,17 +119,22 @@ export function History() {
           className="history-detail"
         >
           <p>
-            {new Date(detail.completedAt).toLocaleString()} · {formatTime(detail.elapsedMs)} active
-            workout time
+            {new Date(detail.completedAt).toLocaleString()} ·{' '}
+            {detail.config.type === 'forTime'
+              ? formatElapsed(detail.elapsedMs)
+              : formatTime(detail.elapsedMs)}{' '}
+            active workout time
           </p>
           <p>
-            {detail.config.type === 'amrap' && detail.amrapProgress
-              ? formatAmrapProgress(detail.config, detail.amrapProgress)
-              : detail.config.type === 'intervals'
-                ? `${detail.config.rounds} rounds · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
-                : detail.config.type !== 'countdown' && detail.config.type !== 'amrap'
-                  ? `${detail.config.minutes} one-minute rounds`
-                  : `${detail.config.durationSeconds}s countdown`}
+            {detail.config.type === 'forTime'
+              ? `${detail.outcome === 'finished' ? 'Finished' : 'Time cap reached'} · ${detail.config.timeCapSeconds ? `${formatTime(detail.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
+              : detail.config.type === 'amrap' && detail.amrapProgress
+                ? formatAmrapProgress(detail.config, detail.amrapProgress)
+                : detail.config.type === 'intervals'
+                  ? `${detail.config.rounds} rounds · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
+                  : detail.config.type !== 'countdown' && detail.config.type !== 'amrap'
+                    ? `${detail.config.minutes} one-minute rounds`
+                    : `${detail.config.durationSeconds}s countdown`}
           </p>
           <p>
             Lead-in: {detail.config.leadInSeconds}s · Warning: {detail.config.warningSeconds}s
@@ -132,13 +149,14 @@ export function History() {
                 <strong>{exercise.name}</strong>
                 {exercise.target && <span> · Target: {formatTarget(exercise.target)}</span>}
                 {exercise.description && <p>{exercise.description}</p>}
-                {detail.config.type === 'countdown' && detail.config.showChecklist !== false && (
-                  <p>
-                    {detail.checkedExerciseIds.includes(exercise.id)
-                      ? 'Checked off'
-                      : 'Not checked off'}
-                  </p>
-                )}
+                {(detail.config.type === 'countdown' || detail.config.type === 'forTime') &&
+                  detail.config.showChecklist !== false && (
+                    <p>
+                      {detail.checkedExerciseIds.includes(exercise.id)
+                        ? 'Checked off'
+                        : 'Not checked off'}
+                    </p>
+                  )}
               </li>
             ))}
           </ol>
@@ -169,13 +187,15 @@ export function History() {
                   if (!mounted.current) return;
                   void navigate({
                     to:
-                      copy.config.type === 'amrap'
-                        ? '/amrap'
-                        : copy.config.type === 'intervals'
-                          ? '/intervals'
-                          : copy.config.type === 'countdown'
-                            ? '/countdown'
-                            : '/emom',
+                      copy.config.type === 'forTime'
+                        ? '/for-time'
+                        : copy.config.type === 'amrap'
+                          ? '/amrap'
+                          : copy.config.type === 'intervals'
+                            ? '/intervals'
+                            : copy.config.type === 'countdown'
+                              ? '/countdown'
+                              : '/emom',
                   });
                 } catch (e) {
                   if (mounted.current) setError(String(e));
@@ -226,73 +246,5 @@ export function History() {
         </Dialog>
       )}
     </main>
-  );
-}
-export function ResultActions() {
-  const { pendingResult, resultStatus, saveResult, discardResult, busy, error } = useWorkout();
-  const [discard, setDiscard] = useState(false);
-  const client = useQueryClient();
-  const navigate = useNavigate();
-  return (
-    <section className="result-actions" aria-label="Save workout result">
-      {pendingResult && (
-        <>
-          <p>Keep this session in your local workout history?</p>
-          <div className="template-actions">
-            <Button
-              disabled={busy}
-              onClick={async () => {
-                if (await saveResult()) await client.invalidateQueries({ queryKey: historyKey });
-              }}
-            >
-              {busy ? 'Saving…' : 'Save result'}
-            </Button>
-            <Button variant="ghost" disabled={busy} onClick={() => setDiscard(true)}>
-              Discard result
-            </Button>
-          </div>
-        </>
-      )}
-      {resultStatus === 'saved' && (
-        <>
-          <p role="status">Result saved to history.</p>
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              await fullscreen(false);
-              void navigate({ to: '/history' });
-            }}
-          >
-            View history
-          </Button>
-        </>
-      )}
-      {resultStatus === 'discarded' && <p role="status">Result discarded.</p>}
-      {discard && (
-        <Dialog
-          title="Discard this result?"
-          onClose={() => {
-            if (!busy) setDiscard(false);
-          }}
-        >
-          <p>This completed session will not be added to history.</p>
-          {error && <p role="alert">{error}</p>}
-          <div className="dialog-actions">
-            <Button variant="ghost" disabled={busy} onClick={() => setDiscard(false)}>
-              Keep result
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={busy}
-              onClick={async () => {
-                if (await discardResult()) setDiscard(false);
-              }}
-            >
-              Discard result
-            </Button>
-          </div>
-        </Dialog>
-      )}
-    </section>
   );
 }

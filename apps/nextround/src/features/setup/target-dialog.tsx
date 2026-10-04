@@ -19,7 +19,7 @@ export function TargetDialog({
   onClose,
 }: {
   exercise: ExerciseEntry;
-  mode?: 'emom' | 'countdown' | 'intervals' | 'amrap';
+  mode?: 'forTime' | 'emom' | 'countdown' | 'intervals' | 'amrap';
   workSeconds?: number;
   onSave: (target: ExerciseTarget | undefined) => void;
   onClose: () => void;
@@ -44,11 +44,13 @@ export function TargetDialog({
         }}
       >
         <p className="muted">
-          {mode === 'amrap'
-            ? 'This is your target for each circuit. Mark it complete yourself; the timer does not measure your work.'
-            : mode !== 'countdown'
-              ? 'Aim to finish within the work phase. The timer advances independently of your target.'
-              : 'Work through your list at your own pace while the countdown runs.'}
+          {mode === 'forTime'
+            ? 'This target is for one pass through your workout. Use Finish when you are done.'
+            : mode === 'amrap'
+              ? 'This is your target for each circuit. Mark it complete yourself; the timer does not measure your work.'
+              : mode !== 'countdown'
+                ? 'Aim to finish within the work phase. The timer advances independently of your target.'
+                : 'Work through your list at your own pace while the countdown runs.'}
         </p>
         <div className="target-fields">
           <div>
@@ -88,6 +90,7 @@ export function TargetDialog({
         </div>
         {unit === 'seconds' &&
           mode !== 'countdown' &&
+          mode !== 'forTime' &&
           mode !== 'amrap' &&
           Number.isFinite(workSeconds) &&
           workSeconds > 0 &&
@@ -99,9 +102,9 @@ export function TargetDialog({
           )}
         {unit === 'seconds' && (
           <p className="hint">
-            {mode !== 'countdown' && mode !== 'amrap'
+            {mode !== 'countdown' && mode !== 'forTime' && mode !== 'amrap'
               ? 'A time target does not change the work phase or add a separate alert.'
-              : 'A time target is a guide; it does not change the countdown or add a separate alert.'}
+              : 'A time target is a guide; it does not change the timer or add a separate alert.'}
           </p>
         )}
         {unit === 'calories' && (

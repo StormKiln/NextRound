@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.6.0 macOS release**. Includes EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
+> Status: **1.7.0 macOS release**. Includes For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.6.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.7.0.md)
 
 ## Product scope
 
@@ -223,3 +223,7 @@ The catalog now has 63 exercises, including 20 new bodyweight, single-dumbbell a
 ### 1.6.0: find your focus
 
 Browse the exercise picker by type or focus area, and filter by any selected area alongside your saved equipment and search. The catalog has **83 exercises**, including 20 new equipment-free movements. Presets and filters survive a visit to Equipment settings; common spellings such as “deadbugs” and “inchworms” are searchable. Filtered-out exercise history no longer looks like missing history. See [1.6.0 release notes](docs/release-notes-1.6.0.md).
+
+### 1.7.0: finish on your terms
+
+For Time counts active elapsed time, with an optional cap and ordered checklist. Finish manually, or record a distinct time-cap outcome; save, repeat or load it like other modes. The catalog now has **103 exercises**, including 20 whole-body/core additions. Search reopens matching groups, empty results offer filter recovery, and dialogs reserve scrollbar space. Setup/history screens load on demand from packaged assets. See [1.7.0 release notes](docs/release-notes-1.7.0.md).

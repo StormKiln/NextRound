@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { eligibleExercise, equipmentNote } from '@/data/equipment';
 import { listExercises } from '@/data/exercises';
-import { type FocusArea, matchesFocus, type PickerView } from '@/data/focus';
+import { type FocusArea, focusAreas, matchesFocus, type PickerView } from '@/data/focus';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget, rotationNotice } from './emom-defaults';
 import { ExerciseRecommendations } from './exercise-recommendations';
 import type { SuggestionPreset } from './exercise-suggestions';
+import { normalizeSearch } from './exercise-suggestions';
 import { FocusControls } from './focus-controls';
 import { TargetDialog } from './target-dialog';
 
@@ -25,6 +26,7 @@ export function ExerciseEditor({
   workSeconds,
   emomDefaults = false,
   requireTargets = false,
+  forTime = false,
 }: {
   exercises: ExerciseEntry[];
   onChange: (entries: ExerciseEntry[]) => void;
@@ -34,6 +36,7 @@ export function ExerciseEditor({
   workSeconds?: number;
   emomDefaults?: boolean;
   requireTargets?: boolean;
+  forTime?: boolean;
 }) {
   const {
     data: library = [],
@@ -306,13 +309,15 @@ export function ExerciseEditor({
       {targetIndex >= 0 && exercises[targetIndex] && (
         <TargetDialog
           mode={
-            requireTargets
-              ? 'amrap'
-              : workSeconds !== undefined
-                ? 'intervals'
-                : rounds === undefined
-                  ? 'countdown'
-                  : 'emom'
+            forTime
+              ? 'forTime'
+              : requireTargets
+                ? 'amrap'
+                : workSeconds !== undefined
+                  ? 'intervals'
+                  : rounds === undefined
+                    ? 'countdown'
+                    : 'emom'
           }
           workSeconds={workSeconds}
           exercise={exercises[targetIndex]}
@@ -441,6 +446,49 @@ export function ExerciseEditor({
             <div className="library-list">
               {!isPending && !isError && (
                 <ExerciseRecommendations
+                  emptyState={
+                    <section className="picker-empty" aria-label="No matching exercises">
+                      <h3>No matching exercises.</h3>
+                      <p>
+                        {library.length === 0
+                          ? 'The exercise library is empty. You can add a custom exercise.'
+                          : 'No exercises match the current search and filters.'}
+                      </p>
+                      {normalizeSearch(search) && <p>Search: “{search.trim()}”</p>}
+                      {!!areas.length && (
+                        <p>Focus: {areas.map((area) => focusAreas[area]).join(', ')}</p>
+                      )}
+                      {effectiveSelection !== null && !showAllEquipment && (
+                        <p>Equipment: only movements for your saved equipment are included.</p>
+                      )}
+                      <div className="empty-actions">
+                        {normalizeSearch(search) && (
+                          <Button variant="secondary" onClick={() => setSearch('')}>
+                            Clear search
+                          </Button>
+                        )}
+                        {!!areas.length && (
+                          <Button variant="secondary" onClick={() => setAreas([])}>
+                            Clear focus filters
+                          </Button>
+                        )}
+                        {effectiveSelection !== null && !showAllEquipment && (
+                          <Button variant="secondary" onClick={() => setShowAllEquipment(true)}>
+                            Show all equipment temporarily
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setPicker(false);
+                            setCustom(true);
+                          }}
+                        >
+                          Add a custom exercise
+                        </Button>
+                      </div>
+                    </section>
+                  }
                   selected={exercises}
                   preset={preset}
                   onPreset={setPreset}

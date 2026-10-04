@@ -1,5 +1,6 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import type { PickerView } from '@/data/focus';
 import { readHistory } from '../history/repository';
@@ -33,7 +34,9 @@ export function ExerciseRecommendations({
   preset,
   onPreset,
   view,
+  emptyState,
 }: {
+  emptyState?: ReactNode;
   preset: SuggestionPreset | null;
   onPreset: (preset: SuggestionPreset) => void;
   view: PickerView;
@@ -147,9 +150,8 @@ export function ExerciseRecommendations({
         onSelect={onSelect}
         note={note}
       />
-      {!library.some((entry) => matchesExercise(entry, search)) && (
-        <p>No matching exercises. Try another search or add a Custom exercise.</p>
-      )}
+      {!library.some((entry) => matchesExercise(entry, search)) &&
+        (emptyState ?? <p>No matching exercises. Try another search or add a Custom exercise.</p>)}
     </>
   );
 }
