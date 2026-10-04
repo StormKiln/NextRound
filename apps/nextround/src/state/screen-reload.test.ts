@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { snapshotAt } from '@nextround/core';
-import { beforeEach, expect, it } from 'vitest';
-import { prepareScreenReload, restoreScreenDrafts } from './screen-reload';
+import { beforeEach, expect, it, vi } from 'vitest';
+import { prepareScreenReload, restoreScreenDrafts, restoreScreenResolution } from './screen-reload';
 import { useWorkout } from './workout';
 
 beforeEach(() => {
@@ -40,8 +40,75 @@ it('refuses active-session reload and rejects malformed recovery data without re
   prepareScreenReload(sessionStorage);
   const key = sessionStorage.key(0) ?? 'missing';
   const data = JSON.parse(sessionStorage.getItem(key) ?? 'null');
-  data.draft.exercises = [{ id: 'a', name: 15 }];
+  data.drafts.draft.exercises = [{ id: 'a', name: 15 }];
   sessionStorage.setItem(key, JSON.stringify(data));
   expect(() => restoreScreenDrafts(sessionStorage)).toThrow();
   expect(useWorkout.getState().draft).toEqual(useWorkout.getInitialState().draft);
+});
+
+vi.mock('@/native/adapter', () => ({ readWorkout: vi.fn() }));
+it.each(['saved', 'discarded'] as const)(
+  'does not resurrect a %s native result on retry',
+  async (status) => {
+    const adapter = await import('@/native/adapter');
+    const config = {
+      type: 'countdown' as const,
+      durationSeconds: 1,
+      leadInSeconds: 0,
+      warningSeconds: 0,
+      exercises: [{ id: 'a', name: 'Squat' }],
+    };
+    const snapshot = snapshotAt(config, 1000);
+    useWorkout.setState({
+      snapshot,
+      resultStatus: status,
+      sessionId: 'original-session',
+      checkedExerciseIds: ['a'],
+      pendingResult: null,
+    });
+    prepareScreenReload(sessionStorage);
+    useWorkout.setState(useWorkout.getInitialState());
+    restoreScreenDrafts(sessionStorage);
+    restoreScreenResolution(snapshot);
+    vi.mocked(adapter.readWorkout).mockResolvedValue(snapshot);
+    await useWorkout.getState().poll();
+    expect(useWorkout.getState()).toMatchObject({
+      resultStatus: status,
+      sessionId: 'original-session',
+      checkedExerciseIds: ['a'],
+      pendingResult: null,
+    });
+  },
+);
+
+it('restores AMRAP progress and never applies a receipt to a different native completion', async () => {
+  const config = {
+    type: 'amrap' as const,
+    durationSeconds: 1,
+    leadInSeconds: 0,
+    warningSeconds: 0,
+    exercises: [{ id: 'a', name: 'Squat', target: { unit: 'reps' as const, value: 10 } }],
+  };
+  const snapshot = snapshotAt(config, 1000);
+  useWorkout.setState({
+    snapshot,
+    resultStatus: 'saved',
+    sessionId: 'amrap-session',
+    amrapProgress: { completedMovements: 2, partialValue: 3 },
+  });
+  prepareScreenReload(sessionStorage);
+  useWorkout.setState(useWorkout.getInitialState());
+  restoreScreenDrafts(sessionStorage);
+  restoreScreenResolution(snapshot);
+  expect(useWorkout.getState().amrapProgress).toEqual({ completedMovements: 2, partialValue: 3 });
+  useWorkout.setState({ snapshot });
+  prepareScreenReload(sessionStorage);
+  useWorkout.setState(useWorkout.getInitialState());
+  restoreScreenDrafts(sessionStorage);
+  restoreScreenResolution({
+    ...snapshot,
+    config: { ...config, durationSeconds: 2 },
+    elapsedMs: 2000,
+  });
+  expect(useWorkout.getState()).toMatchObject({ resultStatus: 'none', sessionId: null });
 });

@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { readWorkout } from '@/native/adapter';
+import { restoreScreenResolution } from '@/state/screen-reload';
 import { useWorkout } from '@/state/workout';
 import splash from '../../../../assets/brand/nextround-splash.png';
 import { Button } from './ui/button';
@@ -17,6 +18,7 @@ export function Startup({ children }: { children: ReactNode }) {
     void readWorkout()
       .then((snapshot) => {
         if (disposed) return;
+        restoreScreenResolution(snapshot);
         useWorkout.setState({ snapshot });
         setReady(true);
         clearTimeout(timeout);
