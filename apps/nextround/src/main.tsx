@@ -39,6 +39,9 @@ const AmrapSetup = deferredScreen(() =>
 const CountdownSetup = deferredScreen(() =>
   import('@/features/countdown/setup').then((module) => module.CountdownSetup),
 );
+const LadderSetup = deferredScreen(() =>
+  import('@/features/ladder/setup').then((module) => module.LadderSetup),
+);
 const ForTimeSetup = deferredScreen(() =>
   import('@/features/for-time/setup').then((module) => module.ForTimeSetup),
 );
@@ -313,6 +316,11 @@ const forTimeRoute = createRoute({
   path: '/for-time',
   component: ForTimeSetup,
 });
+const ladderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ladder',
+  component: LadderSetup,
+});
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
@@ -332,6 +340,7 @@ const router = createRouter({
     intervalsRoute,
     amrapRoute,
     forTimeRoute,
+    ladderRoute,
     workoutRoute,
     completeRoute,
   ]),

@@ -1,4 +1,4 @@
-import { formatElapsed, formatTarget, formatTime } from '@nextround/core';
+import { formatElapsed, formatTarget, formatTime, ladderTotalMovements } from '@nextround/core';
 import { useNavigate } from '@tanstack/react-router';
 import { Check, Maximize, Pause, Play, RotateCw, Square } from 'lucide-react';
 import { useEffect } from 'react';
@@ -6,6 +6,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { AmrapProgressPanel } from '@/features/amrap/progress';
 import { ResultActions } from '@/features/history/result-actions';
+import { LadderProgressPanel, LadderResult } from '@/features/ladder/progress';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout, workoutError } from '@/state/workout';
 import '../countdown/checklist.css';
@@ -20,25 +21,31 @@ export function Runner() {
     if (!s || s.phase === 'cancelled')
       void navigate({
         to:
-          s?.config.type === 'forTime'
-            ? '/for-time'
-            : s?.config.type === 'amrap'
-              ? '/amrap'
-              : s?.config.type === 'intervals'
-                ? '/intervals'
-                : s?.config.type === 'countdown'
-                  ? '/countdown'
-                  : '/emom',
+          s?.config.type === 'ladder'
+            ? '/ladder'
+            : s?.config.type === 'forTime'
+              ? '/for-time'
+              : s?.config.type === 'amrap'
+                ? '/amrap'
+                : s?.config.type === 'intervals'
+                  ? '/intervals'
+                  : s?.config.type === 'countdown'
+                    ? '/countdown'
+                    : '/emom',
       });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
   }, [s?.phase, navigate, s]);
   if (!s) return null;
   const lead = s.phase === 'leadIn';
   const amrap = s.config.type === 'amrap';
-  const forTime = s.config.type === 'forTime';
+  const ladder = s.config.type === 'ladder';
+  const forTime = s.config.type === 'forTime' || ladder;
   const countdown = s.config.type === 'countdown';
   const emom =
-    s.config.type !== 'countdown' && s.config.type !== 'amrap' && s.config.type !== 'forTime'
+    s.config.type !== 'countdown' &&
+    s.config.type !== 'amrap' &&
+    s.config.type !== 'forTime' &&
+    s.config.type !== 'ladder'
       ? s.config
       : null;
   const intervals = s.config.type === 'intervals';
@@ -52,13 +59,16 @@ export function Runner() {
       ? next?.target
       : undefined;
   const warning =
-    (!forTime || lead || (s.config.type === 'forTime' && s.config.timeCapSeconds !== undefined)) &&
+    (!forTime ||
+      lead ||
+      ((s.config.type === 'forTime' || s.config.type === 'ladder') &&
+        s.config.timeCapSeconds !== undefined)) &&
     !s.paused &&
     s.roundRemainingMs <= s.config.warningSeconds * 1000;
   const fraction = lead
     ? s.roundRemainingMs / Math.max(1, s.config.leadInSeconds * 1000)
     : forTime
-      ? s.config.type === 'forTime' && s.config.timeCapSeconds
+      ? (s.config.type === 'forTime' || s.config.type === 'ladder') && s.config.timeCapSeconds
         ? s.remainingMs / (s.config.timeCapSeconds * 1000)
         : 1
       : s.roundRemainingMs /
@@ -69,19 +79,21 @@ export function Runner() {
             : 60000);
   return (
     <main
-      className={`runner ${amrap ? 'amrap-runner' : ''} ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}
+      className={`runner ${amrap || ladder ? 'amrap-runner' : ''} ${warning ? 'warning' : ''} ${s.paused ? 'paused' : ''}`}
     >
       <div className="runner-top">
         <span className="mode-pill">
-          {forTime
-            ? 'For Time'
-            : amrap
-              ? 'AMRAP'
-              : countdown
-                ? 'Countdown'
-                : intervals
-                  ? 'Intervals'
-                  : 'EMOM'}
+          {ladder
+            ? 'Ladder'
+            : forTime
+              ? 'For Time'
+              : amrap
+                ? 'AMRAP'
+                : countdown
+                  ? 'Countdown'
+                  : intervals
+                    ? 'Intervals'
+                    : 'EMOM'}
         </span>
         <span>
           {lead
@@ -160,7 +172,9 @@ export function Runner() {
             {lead
               ? 'Get ready'
               : forTime
-                ? 'One pass. Your pace.'
+                ? ladder
+                  ? 'Your next rung.'
+                  : 'One pass. Your pace.'
                 : amrap
                   ? 'Keep your circuit going'
                   : countdown
@@ -176,7 +190,8 @@ export function Runner() {
               : current?.description}
           </p>
           {!resting && current?.target && <h2>{formatTarget(current.target)}</h2>}
-          {(s.config.type !== 'forTime' || s.config.timeCapSeconds !== undefined) && (
+          {((s.config.type !== 'forTime' && s.config.type !== 'ladder') ||
+            s.config.timeCapSeconds !== undefined) && (
             <div className="total">
               <span>{forTime ? 'Time cap remaining' : 'Workout remaining'}</span>
               <strong data-testid="total-clock" aria-live="off">
@@ -216,6 +231,7 @@ export function Runner() {
               </section>
             )}
           {amrap && <AmrapProgressPanel />}
+          {ladder && <LadderProgressPanel />}
           {emom && (
             <div className="up-next">
               <span>{s.roundIndex === rounds - 1 && !lead ? 'Last round' : 'Next movement'}</span>
@@ -250,7 +266,11 @@ export function Runner() {
       <div className="runner-controls">
         {forTime && (
           <Button
-            disabled={busy || lead}
+            disabled={
+              busy ||
+              lead ||
+              (ladder && s.ladderCompletedMovements !== ladderTotalMovements(s.config))
+            }
             aria-label="Finish workout"
             onClick={() => void useWorkout.getState().requestFinish()}
           >
@@ -371,7 +391,8 @@ export function Completion() {
       <div className="complete-stats">
         {s.config.type !== 'countdown' &&
           s.config.type !== 'amrap' &&
-          s.config.type !== 'forTime' && (
+          s.config.type !== 'forTime' &&
+          s.config.type !== 'ladder' && (
             <div>
               <strong>{s.config.type === 'intervals' ? s.config.rounds : s.config.minutes}</strong>
               <span>rounds completed</span>
@@ -379,13 +400,18 @@ export function Completion() {
           )}
         <div>
           <strong>
-            {s.config.type === 'forTime' ? formatElapsed(s.elapsedMs) : formatTime(s.elapsedMs)}
+            {s.config.type === 'forTime' || s.config.type === 'ladder'
+              ? formatElapsed(s.elapsedMs)
+              : formatTime(s.elapsedMs)}
           </strong>
           <span>active workout time</span>
         </div>
       </div>
       {(s.notice || error) && <p role="alert">{[s.notice, error].filter(Boolean).join(' ')}</p>}
       {s.config.type === 'amrap' && <AmrapProgressPanel />}
+      {s.config.type === 'ladder' && (
+        <LadderResult config={s.config} completed={s.ladderCompletedMovements ?? 0} />
+      )}
       {s.config.type === 'forTime' && !!s.config.exercises?.length && (
         <section className="completion-checklist" aria-label="Workout checklist result">
           <h2>Your workout list</h2>
@@ -421,11 +447,18 @@ export function Completion() {
         <Button
           disabled={busy || !!pendingResult}
           onClick={async () => {
+            if (s.config.type === 'ladder') {
+              if (useWorkout.getState().loadConfig(s.config)) {
+                await fullscreen(false);
+                void navigate({ to: '/ladder' });
+              }
+              return;
+            }
             if (await start(true)) void navigate({ to: '/workout' });
           }}
         >
           <RotateCw size={18} />
-          Repeat workout
+          {s.config.type === 'ladder' ? 'Repeat from setup' : 'Repeat workout'}
         </Button>
         <Button
           variant="secondary"
@@ -435,15 +468,17 @@ export function Completion() {
               () => {
                 void navigate({
                   to:
-                    s.config.type === 'forTime'
-                      ? '/for-time'
-                      : s.config.type === 'amrap'
-                        ? '/amrap'
-                        : s.config.type === 'intervals'
-                          ? '/intervals'
-                          : s.config.type === 'countdown'
-                            ? '/countdown'
-                            : '/emom',
+                    s.config.type === 'ladder'
+                      ? '/ladder'
+                      : s.config.type === 'forTime'
+                        ? '/for-time'
+                        : s.config.type === 'amrap'
+                          ? '/amrap'
+                          : s.config.type === 'intervals'
+                            ? '/intervals'
+                            : s.config.type === 'countdown'
+                              ? '/countdown'
+                              : '/emom',
                 });
               },
               (error) => useWorkout.setState({ error }),

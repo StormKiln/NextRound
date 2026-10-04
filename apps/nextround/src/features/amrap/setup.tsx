@@ -3,13 +3,15 @@ import { Clock3, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
+import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 
 import { SaveWorkoutButton } from '@/features/templates';
 import { useWorkout } from '@/state/workout';
 
 export function AmrapSetup() {
-  const { amrapDraft: draft, setAmrapDraft, start, busy, errors, error } = useWorkout();
+  const { amrapDraft: draft, setAmrapDraft, start, busy, error } = useWorkout();
   const navigate = useNavigate();
+  const { errors, validate, getConfig } = useSetupValidation('amrap');
   return (
     <main className="setup page">
       <div className="page-heading">
@@ -48,6 +50,13 @@ export function AmrapSetup() {
                   step="1"
                   value={draft[key]}
                   onChange={(event) => setAmrapDraft({ [key]: event.target.value })}
+                  aria-describedby={
+                    errors[key]
+                      ? `amrap-error-${key}`
+                      : (key === 'minutes' || key === 'seconds') && errors.durationSeconds
+                        ? 'amrap-error-durationSeconds'
+                        : undefined
+                  }
                   aria-invalid={
                     !!errors[key] ||
                     ((key === 'minutes' || key === 'seconds') && !!errors.durationSeconds)
@@ -56,11 +65,7 @@ export function AmrapSetup() {
               </div>
             ))}
           </div>
-          {Object.entries(errors).map(([key, message]) => (
-            <p className="error" role="alert" key={key}>
-              {message}
-            </p>
-          ))}
+          <SetupErrors errors={errors} mode="amrap" />
           {error && (
             <p className="error" role="alert">
               {error}
@@ -70,15 +75,16 @@ export function AmrapSetup() {
             className="start-button"
             disabled={busy}
             onClick={async () => {
-              if (await start(false, 'amrap')) void navigate({ to: '/workout' });
+              if (validate() && (await start(false, 'amrap'))) void navigate({ to: '/workout' });
             }}
           >
             <Play size={19} fill="currentColor" />
             {busy ? 'Starting…' : 'Start AMRAP'}
           </Button>
-          <SaveWorkoutButton getConfig={() => useWorkout.getState().getDraftConfig('amrap')} />
+          <SaveWorkoutButton getConfig={getConfig} validate={validate} />
         </section>
         <ExerciseEditor
+          validationError={errors.exercises}
           exercises={draft.exercises}
           onChange={(exercises) => setAmrapDraft({ exercises })}
           requireTargets

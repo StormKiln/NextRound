@@ -4,6 +4,7 @@ import { Play, Repeat2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
+import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 import { SaveWorkoutButton } from '@/features/templates';
 import { useWorkout } from '@/state/workout';
 export function IntervalsSetup() {
@@ -12,11 +13,12 @@ export function IntervalsSetup() {
     setIntervalsDraft,
     start,
     busy,
-    errors,
+
     error,
     getDraftConfig,
   } = useWorkout();
   const navigate = useNavigate();
+  const { errors, validate, getConfig } = useSetupValidation('intervals');
   const config = getDraftConfig('intervals');
   const valid = Object.keys(validateConfig(config)).length === 0;
   return (
@@ -55,6 +57,13 @@ export function IntervalsSetup() {
                   step="1"
                   value={draft[key]}
                   onChange={(e) => setIntervalsDraft({ [key]: e.target.value })}
+                  aria-describedby={
+                    errors[key]
+                      ? `intervals-error-${key}`
+                      : errors.durationSeconds
+                        ? 'intervals-error-durationSeconds'
+                        : undefined
+                  }
                   aria-invalid={!!errors[key]}
                 />
               </div>
@@ -65,11 +74,7 @@ export function IntervalsSetup() {
               ? `${formatTime(durationSeconds(config) * 1000)} total, excluding lead-in and pauses.`
               : 'Choose whole durations and rounds, up to 24 hours total.'}
           </p>
-          {Object.entries(errors).map(([key, message]) => (
-            <p className="error" role="alert" key={key}>
-              {message}
-            </p>
-          ))}
+          <SetupErrors errors={errors} mode="intervals" />
           {error && (
             <p className="error" role="alert">
               {error}
@@ -79,15 +84,17 @@ export function IntervalsSetup() {
             className="start-button"
             disabled={busy}
             onClick={async () => {
-              if (await start(false, 'intervals')) void navigate({ to: '/workout' });
+              if (validate() && (await start(false, 'intervals')))
+                void navigate({ to: '/workout' });
             }}
           >
             <Play size={19} fill="currentColor" />
             {busy ? 'Starting…' : 'Start intervals'}
           </Button>
-          <SaveWorkoutButton getConfig={() => useWorkout.getState().getDraftConfig('intervals')} />
+          <SaveWorkoutButton getConfig={getConfig} validate={validate} />
         </section>
         <ExerciseEditor
+          validationError={errors.exercises}
           exercises={draft.exercises}
           onChange={(exercises) => setIntervalsDraft({ exercises })}
           rounds={Number(draft.rounds)}

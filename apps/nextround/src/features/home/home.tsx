@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TemplateLibrary } from '@/features/templates';
+import { useTemplateSources } from '@/state/template-source';
 import { useWorkout } from '@/state/workout';
 import artwork from '../../../../../assets/brand/nextround-splash.png';
 
@@ -86,22 +87,38 @@ export function Home() {
             </Button>
           </div>
         </section>
+        <section className="workout-choice" aria-labelledby="ladder-title">
+          <div className="workout-choice-copy">
+            <h2 id="ladder-title">Ladder</h2>
+            <h3>One rung at a time.</h3>
+            <p>
+              Build up, count down, or climb a pyramid. Follow changing rep targets at your own
+              pace.
+            </p>
+            <Button onClick={() => void navigate({ to: '/ladder' })}>
+              Build a Ladder <ArrowUpRight size={18} />
+            </Button>
+          </div>
+        </section>
       </div>
       <TemplateLibrary
-        onLoad={(config) => {
+        onLoad={(config, source) => {
           if (!useWorkout.getState().loadConfig(config))
             throw new Error('Finish your active workout before loading a saved setup.');
+          useTemplateSources.getState().setSource(config.type ?? 'emom', source);
           void navigate({
             to:
-              config.type === 'forTime'
-                ? '/for-time'
-                : config.type === 'amrap'
-                  ? '/amrap'
-                  : config.type === 'intervals'
-                    ? '/intervals'
-                    : config.type === 'countdown'
-                      ? '/countdown'
-                      : '/emom',
+              config.type === 'ladder'
+                ? '/ladder'
+                : config.type === 'forTime'
+                  ? '/for-time'
+                  : config.type === 'amrap'
+                    ? '/amrap'
+                    : config.type === 'intervals'
+                      ? '/intervals'
+                      : config.type === 'countdown'
+                        ? '/countdown'
+                        : '/emom',
           });
         }}
       />

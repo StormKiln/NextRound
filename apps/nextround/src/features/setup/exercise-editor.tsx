@@ -27,6 +27,8 @@ export function ExerciseEditor({
   emomDefaults = false,
   requireTargets = false,
   forTime = false,
+  repLadder = false,
+  validationError,
 }: {
   exercises: ExerciseEntry[];
   onChange: (entries: ExerciseEntry[]) => void;
@@ -37,6 +39,8 @@ export function ExerciseEditor({
   emomDefaults?: boolean;
   requireTargets?: boolean;
   forTime?: boolean;
+  repLadder?: boolean;
+  validationError?: string;
 }) {
   const {
     data: library = [],
@@ -51,9 +55,12 @@ export function ExerciseEditor({
   const [equipmentSettings, setEquipmentSettings] = useState(false);
   const [showAllEquipment, setShowAllEquipment] = useState(false);
   const effectiveSelection = equipment.loaded ? equipment.selection : null;
-  const availableLibrary = showAllEquipment
+  const equipmentLibrary = showAllEquipment
     ? library
     : library.filter((entry) => eligibleExercise(entry, effectiveSelection));
+  const availableLibrary = equipmentLibrary.filter(
+    (entry) => !repLadder || !entry.supportedUnits || entry.supportedUnits.includes('reps'),
+  );
   const [custom, setCustom] = useState(false);
   const [picker, setPicker] = useState(false);
   useEffect(() => {
@@ -86,6 +93,7 @@ export function ExerciseEditor({
   });
   const headingId = useId();
   const helpId = useId();
+  const errorId = useId();
   const [announcement, setAnnouncement] = useState('');
   const [dragId, setDragId] = useState<string | null>(null);
   const originalOrder = useRef<string[] | null>(null);
@@ -232,22 +240,24 @@ export function ExerciseEditor({
               <div className="exercise-copy">
                 <h3>{exercise.name}</h3>
                 <p>{exercise.description || 'Your custom movement'}</p>
-                <div className="exercise-target">
-                  {exercise.target && (
-                    <strong>
-                      {exercise.target.unit === 'reps'
-                        ? `${exercise.target.value} Reps`
-                        : formatTarget(exercise.target)}
-                    </strong>
-                  )}
-                  <Button
-                    variant="ghost"
-                    aria-label={`${exercise.target ? 'Edit' : 'Set'} target for ${exercise.name}`}
-                    onClick={() => setTargetId(exercise.id)}
-                  >
-                    {exercise.target ? 'Edit target' : 'Set target'}
-                  </Button>
-                </div>
+                {!repLadder && (
+                  <div className="exercise-target">
+                    {exercise.target && (
+                      <strong>
+                        {exercise.target.unit === 'reps'
+                          ? `${exercise.target.value} Reps`
+                          : formatTarget(exercise.target)}
+                      </strong>
+                    )}
+                    <Button
+                      variant="ghost"
+                      aria-label={`${exercise.target ? 'Edit' : 'Set'} target for ${exercise.name}`}
+                      onClick={() => setTargetId(exercise.id)}
+                    >
+                      {exercise.target ? 'Edit target' : 'Set target'}
+                    </Button>
+                  </div>
+                )}
                 {validDuration && (
                   <span className="round-count">
                     {roundCount(index)} {roundCount(index) === 1 ? 'round' : 'rounds'}
@@ -273,9 +283,16 @@ export function ExerciseEditor({
             <p>Pick an exercise or add one of your own.</p>
           </div>
         )}
+        {validationError && (
+          <p id={errorId} className="error" role="alert">
+            {validationError}
+          </p>
+        )}
         <div className="add-actions">
           <Button
             variant="secondary"
+            aria-invalid={!!validationError}
+            aria-describedby={validationError ? errorId : undefined}
             onClick={() => setPicker(true)}
             disabled={exercises.length >= 100}
           >
@@ -394,6 +411,12 @@ export function ExerciseEditor({
           className="picker-dialog"
           onClose={() => setPicker(false)}
         >
+          {repLadder && (
+            <p className="hint">
+              Ladder uses reps. Time-only and distance/calorie-only movements are hidden; units are
+              never converted.
+            </p>
+          )}
           <Input
             aria-label="Search exercises"
             placeholder="Find a movement…"

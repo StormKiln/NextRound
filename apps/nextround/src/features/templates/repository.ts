@@ -4,6 +4,7 @@ export type WorkoutTemplate = { id: string; name: string; config: WorkoutConfig 
 export type TemplateDocument = { version: 1; templates: WorkoutTemplate[] };
 export type TemplateMutation =
   | { action: 'save'; name: string; config: WorkoutConfig }
+  | { action: 'update'; id: string; expected: WorkoutTemplate; name: string; config: WorkoutConfig }
   | { action: 'rename'; id: string; name: string }
   | { action: 'delete'; id: string };
 export type TemplateStorage = Pick<Storage, 'getItem' | 'setItem'>;
@@ -25,10 +26,14 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
       value.type !== 'countdown' &&
       value.type !== 'intervals' &&
       value.type !== 'amrap' &&
-      value.type !== 'forTime' && value.type !== 'ladder')
+      value.type !== 'forTime' &&
+      value.type !== 'ladder')
   )
     throw new Error('Invalid workout configuration.');
-  if ((value.type !== 'countdown' && value.type !== 'forTime' && value.type !== 'ladder') || value.exercises !== undefined) {
+  if (
+    (value.type !== 'countdown' && value.type !== 'forTime' && value.type !== 'ladder') ||
+    value.exercises !== undefined
+  ) {
     if (
       !Array.isArray(value.exercises) ||
       value.exercises.some(
@@ -79,6 +84,15 @@ export function parseTemplateDocument(value: unknown): TemplateDocument {
   });
   return { version: 1, templates };
 }
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+  if (record(value))
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`)
+      .join(',')}}`;
+  return JSON.stringify(value);
+}
 export function createBrowserRepository(storage: TemplateStorage) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<TemplateDocument> {
@@ -109,7 +123,17 @@ export function createBrowserRepository(storage: TemplateStorage) {
         const index = document.templates.findIndex((template) => template.id === input.id);
         if (index < 0)
           throw new Error('This saved workout no longer exists. Refresh and try again.');
-        if (input.action === 'delete') document.templates.splice(index, 1);
+        if (input.action === 'update') {
+          if (canonical(document.templates[index]) !== canonical(input.expected))
+            throw new Error(
+              'This saved workout changed since you loaded it. Reload it or save as new.',
+            );
+          document.templates[index] = {
+            id: input.id,
+            name: nameValue(input.name),
+            config: copyValidatedConfig(input.config),
+          };
+        } else if (input.action === 'delete') document.templates.splice(index, 1);
         else document.templates[index].name = nameValue(input.name);
       }
       storage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(document));

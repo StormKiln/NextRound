@@ -105,3 +105,51 @@ describe('saved workout repository', () => {
     expect((await f.repo.read()).templates).toHaveLength(100);
   });
 });
+it('updates the exact loaded template and rejects stale or deleted sources without replacing data', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  const updated = await f.repo.mutate({
+    action: 'update',
+    id: original.id,
+    expected: original,
+    name: 'Changed',
+    config: { ...config, minutes: 5 },
+  });
+  expect(updated.templates).toHaveLength(1);
+  expect(updated.templates[0]).toMatchObject({
+    id: original.id,
+    name: 'Changed',
+    config: { minutes: 5 },
+  });
+  const before = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'update', id: original.id, expected: original, name: 'Stale', config }),
+  ).rejects.toThrow(/changed/);
+  expect(f.raw()).toBe(before);
+  await f.repo.mutate({ action: 'delete', id: original.id });
+  await expect(
+    f.repo.mutate({
+      action: 'update',
+      id: original.id,
+      expected: original,
+      name: 'Missing',
+      config,
+    }),
+  ).rejects.toThrow(/no longer/);
+});
+it('failed template update preserves the saved document', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  const before = f.raw();
+  f.fail();
+  await expect(
+    f.repo.mutate({
+      action: 'update',
+      id: original.id,
+      expected: original,
+      name: 'Changed',
+      config: { ...config, minutes: 5 },
+    }),
+  ).rejects.toThrow(/Disk full/);
+  expect(f.raw()).toBe(before);
+});

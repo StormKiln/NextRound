@@ -1030,7 +1030,7 @@ textarea {
 .exercise-suggestions {
   margin-block: 1rem;
   padding: 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid #45413b;
   border-radius: 12px;
 }
 .suggestion-presets {
@@ -1366,4 +1366,84 @@ textarea {
 .completion-checklist li {
   padding: 6px 0;
   overflow-wrap: anywhere;
+}
+
+/* Bounded Ladder preview and movement list keep action rows in view. */
+.ladder-preview {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #24221f;
+  border: 1px solid #45413b;
+  border-radius: 12px;
+  max-height: 180px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  scrollbar-gutter: stable;
+}
+.ladder-preview h3 {
+  font-size: 1rem;
+}
+.ladder-progress {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ladder-progress h2 {
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  margin: 0.2rem 0;
+}
+.ladder-progress > p {
+  margin: 0.2rem 0;
+}
+.ladder-movements {
+  min-height: 0;
+  overflow: auto;
+  max-height: 240px;
+  padding: 0 0.8rem;
+  list-style: none;
+  scrollbar-gutter: stable;
+}
+.ladder-movements li {
+  padding: 0.65rem;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.ladder-movements li[aria-current="step"] {
+  background: #24221f;
+  border: 1px solid #ff994f;
+}
+.ladder-movements li strong,
+.ladder-movements li span {
+  display: block;
+}
+.ladder-movements p {
+  font-size: 0.85rem;
+}
+.ladder-progress .dialog-actions {
+  flex-shrink: 0;
+}
+.ladder-result {
+  max-width: 650px;
+  overflow-wrap: anywhere;
+}
+@media (max-height: 700px) {
+  .ladder-movements {
+    max-height: 120px;
+  }
+  .ladder-progress .hint {
+    font-size: 0.75rem;
+  }
+}
+
+.configuration select,
+.history-filters select {
+  font: inherit;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #45413b;
+  border-radius: 9px;
+  background: #161615;
+  color: #faf5ef;
 }

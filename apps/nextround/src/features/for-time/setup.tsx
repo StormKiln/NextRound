@@ -3,13 +3,15 @@ import { Clock3, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
+import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 import '../countdown/checklist.css';
 import { SaveWorkoutButton } from '@/features/templates';
 import { useWorkout } from '@/state/workout';
 
 export function ForTimeSetup() {
-  const { forTimeDraft: draft, setForTimeDraft, start, busy, errors, error } = useWorkout();
+  const { forTimeDraft: draft, setForTimeDraft, start, busy, error } = useWorkout();
   const navigate = useNavigate();
+  const { errors, validate, getConfig } = useSetupValidation('forTime');
   return (
     <main className="setup page">
       <div className="page-heading">
@@ -57,6 +59,13 @@ export function ForTimeSetup() {
                     step="1"
                     value={draft[key]}
                     onChange={(event) => setForTimeDraft({ [key]: event.target.value })}
+                    aria-describedby={
+                      errors[key]
+                        ? `forTime-error-${key}`
+                        : (key === 'minutes' || key === 'seconds') && errors.timeCapSeconds
+                          ? 'forTime-error-timeCapSeconds'
+                          : undefined
+                    }
                     aria-invalid={
                       !!errors[key] ||
                       ((key === 'minutes' || key === 'seconds') && !!errors.timeCapSeconds)
@@ -73,11 +82,7 @@ export function ForTimeSetup() {
             />
             Show completion checkboxes
           </label>
-          {Object.entries(errors).map(([key, message]) => (
-            <p className="error" role="alert" key={key}>
-              {message}
-            </p>
-          ))}
+          <SetupErrors errors={errors} mode="forTime" />
           {error && (
             <p className="error" role="alert">
               {error}
@@ -87,15 +92,16 @@ export function ForTimeSetup() {
             className="start-button"
             disabled={busy}
             onClick={async () => {
-              if (await start(false, 'forTime')) void navigate({ to: '/workout' });
+              if (validate() && (await start(false, 'forTime'))) void navigate({ to: '/workout' });
             }}
           >
             <Play size={19} fill="currentColor" />
             {busy ? 'Starting…' : 'Start For Time'}
           </Button>
-          <SaveWorkoutButton getConfig={() => useWorkout.getState().getDraftConfig('forTime')} />
+          <SaveWorkoutButton getConfig={getConfig} validate={validate} />
         </section>
         <ExerciseEditor
+          validationError={errors.exercises}
           exercises={draft.exercises}
           onChange={(exercises) => setForTimeDraft({ exercises })}
           title="Your workout list"

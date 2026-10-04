@@ -116,7 +116,11 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
     }
     let result = session.snapshot();
     rt.audio.stop();
-    if let Some(cue) = if action == "finish" { Some("complete") } else { movement_cue } {
+    if let Some(cue) = if action == "finish" {
+        Some("complete")
+    } else {
+        movement_cue
+    } {
         if let Err(error) = rt.audio.play(cue) {
             if let Some(session) = rt.session.as_mut() {
                 session.notice = Some(error);

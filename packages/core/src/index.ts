@@ -1,5 +1,13 @@
-import { ladderReps, type LadderConfig } from './ladder';
-export { ladderReps, ladderTotalMovements, validLadderProgress, formatLadderProgress, type LadderConfig, type LadderPattern } from './ladder';
+import { type LadderConfig, ladderReps } from './ladder';
+
+export {
+  formatLadderProgress,
+  type LadderConfig,
+  type LadderPattern,
+  ladderReps,
+  ladderTotalMovements,
+  validLadderProgress,
+} from './ladder';
 export type TargetUnit = 'reps' | 'seconds' | 'metres' | 'calories';
 export type ExerciseTarget = { unit: TargetUnit; value: number };
 export type ExerciseEntry = {
@@ -167,7 +175,8 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
   )
     errors.warningSeconds = 'Choose a whole number from 0 to 59.';
   if (config.type === 'ladder' && !ladderReps(config).length)
-    errors.ladder = 'Choose start/increment 1–1000 and 1–50 rungs. Every rung must have at least one rep.';
+    errors.ladder =
+      'Choose start/increment 1–1000 and 1–50 rungs. Every rung must have at least one rep.';
   const entries =
     config.exercises === undefined && (config.type === 'countdown' || config.type === 'forTime')
       ? []
@@ -190,7 +199,8 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
         (e.supportedUnits !== undefined && !Array.isArray(e.supportedUnits)) ||
         !validTarget(e) ||
         (config.type === 'amrap' && !e.target) ||
-        (config.type === 'ladder' && ((e.supportedUnits && !e.supportedUnits.includes('reps')) || e.target !== undefined)),
+        (config.type === 'ladder' &&
+          ((e.supportedUnits && !e.supportedUnits.includes('reps')) || e.target !== undefined)),
     ) ||
     new Set(entries.map((e) => e.id)).size !== entries.length
   )
@@ -307,7 +317,10 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
   const remaining =
     second < lead
       ? lead - second
-      : config.type === 'countdown' || config.type === 'amrap' || config.type === 'forTime' || config.type === 'ladder'
+      : config.type === 'countdown' ||
+          config.type === 'amrap' ||
+          config.type === 'forTime' ||
+          config.type === 'ladder'
         ? end - second
         : 60 - ((second - lead) % 60);
   return remaining <= config.warningSeconds ? 'tock' : null;

@@ -1,10 +1,10 @@
 import {
   type AmrapProgress,
-  validLadderProgress,
-  ladderTotalMovements,
   durationSeconds,
   type ForTimeOutcome,
+  ladderTotalMovements,
   validAmrapProgress,
+  validLadderProgress,
   type WorkoutConfig,
 } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
@@ -53,7 +53,7 @@ export function copyResult(value: unknown): WorkoutResult {
     entry.completedAt <= 0 ||
     entry.completedAt > 8640000000000000 ||
     !Number.isSafeInteger(entry.elapsedMs) ||
-    ((config.type === 'forTime' || config.type === 'ladder')
+    (config.type === 'forTime' || config.type === 'ladder'
       ? entry.elapsedMs < 0 ||
         (entry.outcome === 'timeCapReached'
           ? !config.timeCapSeconds || entry.elapsedMs !== config.timeCapSeconds * 1000
@@ -71,14 +71,21 @@ export function copyResult(value: unknown): WorkoutResult {
   )
     throw new Error(invalid);
   if (config.type === 'ladder') {
-    if(!validLadderProgress(config,entry.ladderCompletedMovements) || (entry.outcome === 'finished' && entry.ladderCompletedMovements !== ladderTotalMovements(config))) throw new Error(invalid);
-  } else if(entry.ladderCompletedMovements !== undefined) throw new Error(invalid);
+    if (
+      !validLadderProgress(config, entry.ladderCompletedMovements) ||
+      (entry.outcome === 'finished' &&
+        entry.ladderCompletedMovements !== ladderTotalMovements(config))
+    )
+      throw new Error(invalid);
+  } else if (entry.ladderCompletedMovements !== undefined) throw new Error(invalid);
   if (config.type === 'amrap') {
     if (!entry.amrapProgress || !validAmrapProgress(config, entry.amrapProgress))
       throw new Error(invalid);
   } else if (entry.amrapProgress !== undefined) throw new Error(invalid);
   return {
-    ...(config.type === 'ladder' ? {ladderCompletedMovements:entry.ladderCompletedMovements} : {}),
+    ...(config.type === 'ladder'
+      ? { ladderCompletedMovements: entry.ladderCompletedMovements }
+      : {}),
     ...(entry.outcome ? { outcome: entry.outcome } : {}),
     ...(entry.amrapProgress ? { amrapProgress: { ...entry.amrapProgress } } : {}),
     id: entry.id,

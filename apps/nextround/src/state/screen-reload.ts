@@ -1,12 +1,20 @@
 import type { SessionSnapshot } from '@nextround/core';
 import { copyResult, type WorkoutResult } from '@/features/history/repository';
-import { copyValidatedConfig } from '@/features/templates/repository';
+import { copyValidatedConfig, parseTemplateDocument } from '@/features/templates/repository';
+import { useTemplateSources } from './template-source';
 import { useWorkout } from './workout';
 
 type Resolution = { status: 'saved' | 'discarded'; result: WorkoutResult };
 let resolution: Resolution | undefined;
 const key = 'nextround.screen-reload-drafts.v1';
-const names = ['draft', 'countdownDraft', 'amrapDraft', 'intervalsDraft', 'forTimeDraft'] as const;
+const names = [
+  'draft',
+  'countdownDraft',
+  'amrapDraft',
+  'intervalsDraft',
+  'forTimeDraft',
+  'ladderDraft',
+] as const;
 export function prepareScreenReload(storage: Storage) {
   const state = useWorkout.getState();
   if (
@@ -27,6 +35,9 @@ export function prepareScreenReload(storage: Storage) {
         elapsedMs: state.snapshot.elapsedMs,
         config: state.snapshot.config,
         checkedExerciseIds: state.checkedExerciseIds,
+        ...(state.snapshot.config.type === 'ladder'
+          ? { ladderCompletedMovements: state.snapshot.ladderCompletedMovements }
+          : {}),
         ...(state.snapshot.outcome ? { outcome: state.snapshot.outcome } : {}),
         ...(state.snapshot.config.type === 'amrap' ? { amrapProgress: state.amrapProgress } : {}),
       }),
@@ -36,6 +47,7 @@ export function prepareScreenReload(storage: Storage) {
     key,
     JSON.stringify({
       drafts: Object.fromEntries(names.map((name) => [name, state[name]])),
+      sources: useTemplateSources.getState().sources,
       resolved,
     }),
   );
@@ -52,6 +64,14 @@ export function restoreScreenDrafts(storage: Storage) {
       if (!['saved', 'discarded'].includes(document.resolved?.status))
         throw new Error('Invalid result resolution');
       receipt = { status: document.resolved.status, result: copyResult(document.resolved.result) };
+    }
+    const sources = document.sources ?? {};
+    if (!sources || typeof sources !== 'object' || Array.isArray(sources))
+      throw new Error('Invalid saved workout sources');
+    for (const [mode, source] of Object.entries(sources)) {
+      const validated = parseTemplateDocument({ version: 1, templates: [source] }).templates[0];
+      if ((validated.config.type ?? 'emom') !== mode)
+        throw new Error('Invalid saved workout source mode');
     }
     const defaults = useWorkout.getInitialState();
     for (const name of names) {
@@ -76,6 +96,7 @@ export function restoreScreenDrafts(storage: Storage) {
       }
     }
     useWorkout.setState(Object.fromEntries(names.map((name) => [name, parsed[name]])));
+    useTemplateSources.setState({ sources });
     resolution = receipt;
   } finally {
     storage.removeItem(key);
@@ -92,6 +113,7 @@ export function restoreScreenResolution(snapshot: SessionSnapshot | null) {
     snapshot?.phase !== 'completed' ||
     snapshot.elapsedMs !== receipt.result.elapsedMs ||
     snapshot.outcome !== receipt.result.outcome ||
+    snapshot.ladderCompletedMovements !== receipt.result.ladderCompletedMovements ||
     JSON.stringify(copyValidatedConfig(snapshot.config)) !== JSON.stringify(receipt.result.config)
   )
     return;
