@@ -1,3 +1,5 @@
+import { ladderReps, type LadderConfig } from './ladder';
+export { ladderReps, ladderTotalMovements, validLadderProgress, formatLadderProgress, type LadderConfig, type LadderPattern } from './ladder';
 export type TargetUnit = 'reps' | 'seconds' | 'metres' | 'calories';
 export type ExerciseTarget = { unit: TargetUnit; value: number };
 export type ExerciseEntry = {
@@ -85,13 +87,14 @@ export type ForTimeConfig = {
 };
 export type ForTimeOutcome = 'finished' | 'timeCapReached';
 export type WorkoutConfig =
+  | LadderConfig
   | ForTimeConfig
   | EmomConfig
   | CountdownConfig
   | IntervalsConfig
   | AmrapConfig;
 export function durationSeconds(config: WorkoutConfig): number {
-  return config.type === 'forTime'
+  return config.type === 'forTime' || config.type === 'ladder'
     ? (config.timeCapSeconds ?? Infinity)
     : config.type === 'intervals'
       ? config.rounds * config.workSeconds + (config.rounds - 1) * config.restSeconds
@@ -101,12 +104,14 @@ export function durationSeconds(config: WorkoutConfig): number {
 }
 export type WorkoutCue = 'tock' | 'beep' | 'rest' | 'complete';
 export type Workout =
+  | { type: 'ladder'; config: LadderConfig }
   | { type: 'forTime'; config: ForTimeConfig }
   | { type: 'emom'; config: EmomConfig }
   | { type: 'countdown'; config: CountdownConfig }
   | { type: 'intervals'; config: IntervalsConfig }
   | { type: 'amrap'; config: AmrapConfig };
 export type SessionSnapshot = {
+  ladderCompletedMovements?: number;
   outcome?: ForTimeOutcome;
   phase: 'leadIn' | 'running' | 'completed' | 'cancelled';
   remainingMs: number;
@@ -121,7 +126,7 @@ export type SessionSnapshot = {
 };
 export function validateConfig(config: WorkoutConfig): Record<string, string> {
   const errors: Record<string, string> = {};
-  if (config.type === 'forTime') {
+  if (config.type === 'forTime' || config.type === 'ladder') {
     if (
       config.timeCapSeconds !== undefined &&
       (!Number.isInteger(config.timeCapSeconds) ||
@@ -161,6 +166,8 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
     config.warningSeconds > 59
   )
     errors.warningSeconds = 'Choose a whole number from 0 to 59.';
+  if (config.type === 'ladder' && !ladderReps(config).length)
+    errors.ladder = 'Choose start/increment 1–1000 and 1–50 rungs. Every rung must have at least one rep.';
   const entries =
     config.exercises === undefined && (config.type === 'countdown' || config.type === 'forTime')
       ? []
@@ -182,7 +189,8 @@ export function validateConfig(config: WorkoutConfig): Record<string, string> {
           (typeof e.description !== 'string' || e.description.length > 2000)) ||
         (e.supportedUnits !== undefined && !Array.isArray(e.supportedUnits)) ||
         !validTarget(e) ||
-        (config.type === 'amrap' && !e.target),
+        (config.type === 'amrap' && !e.target) ||
+        (config.type === 'ladder' && ((e.supportedUnits && !e.supportedUnits.includes('reps')) || e.target !== undefined)),
     ) ||
     new Set(entries.map((e) => e.id)).size !== entries.length
   )
@@ -200,10 +208,11 @@ export function snapshotAt(config: WorkoutConfig, elapsed: number): SessionSnaps
   const duration = durationSeconds(config) * 1000;
   const active = Math.max(0, elapsed - lead);
   const completed = active >= duration;
-  if (config.type === 'forTime') {
+  if (config.type === 'forTime' || config.type === 'ladder') {
     const remaining = Number.isFinite(duration) ? Math.max(0, duration - active) : 0;
     return {
       config,
+      ...(config.type === 'ladder' ? { ladderCompletedMovements: 0 } : {}),
       phase: elapsed < lead ? 'leadIn' : completed ? 'completed' : 'running',
       remainingMs: remaining,
       roundRemainingMs: elapsed < lead ? lead - elapsed : remaining,
@@ -290,6 +299,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
     (config.type !== 'countdown' &&
       config.type !== 'amrap' &&
       config.type !== 'forTime' &&
+      config.type !== 'ladder' &&
       second > lead &&
       (second - lead) % 60 === 0)
   )
@@ -297,7 +307,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
   const remaining =
     second < lead
       ? lead - second
-      : config.type === 'countdown' || config.type === 'amrap' || config.type === 'forTime'
+      : config.type === 'countdown' || config.type === 'amrap' || config.type === 'forTime' || config.type === 'ladder'
         ? end - second
         : 60 - ((second - lead) % 60);
   return remaining <= config.warningSeconds ? 'tock' : null;
