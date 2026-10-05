@@ -101,6 +101,7 @@ export function ExerciseForm({
             onSaved(exercise);
           } catch (e) {
             setError(e instanceof Error ? e.message : String(e));
+            await client.invalidateQueries({ queryKey: personalQueryKey });
           } finally {
             gate.current = false;
             setBusy(false);

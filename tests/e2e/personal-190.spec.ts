@@ -248,3 +248,56 @@ test('saved-workout search finds equivalent Unicode while keeping distinct IDs',
   await page.getByLabel('Search saved workouts').fill('Cafe\u0301');
   await expect(page.getByRole('button', { name: 'Load Café workout', exact: true })).toHaveCount(2);
 });
+test('empty picker Custom entry clears a cancelled validation error', async ({ page }) => {
+  await page.goto('/countdown');
+  await page.getByRole('button', { name: 'Custom exercise', exact: true }).click();
+  await page.getByRole('button', { name: 'Add custom exercise', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Give your exercise a name');
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
+  await page.getByLabel('Search exercises').fill('No such movement xyz');
+  await page.getByRole('button', { name: 'Add a custom exercise', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+test('closing and reopening after a personal conflict loads the current record', async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'nextround.personal-exercises.v1',
+      JSON.stringify({
+        version: 1,
+        exercises: [
+          {
+            id: 'personal:a',
+            name: 'Original',
+            description: '',
+            category: 'Squats',
+            equipment: [],
+            targetAreas: [],
+            supportedUnits: ['reps'],
+            archived: false,
+          },
+        ],
+      }),
+    ),
+  );
+  await page.goto('/exercises');
+  await page.getByRole('button', { name: 'Edit Original', exact: true }).click();
+  await page.getByLabel('Exercise name', { exact: true }).fill('My edit');
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('nextround.personal-exercises.v1') ?? '{}');
+    d.exercises[0].description = 'Concurrent cue';
+    localStorage.setItem('nextround.personal-exercises.v1', JSON.stringify(d));
+  });
+  await page.getByRole('button', { name: 'Save exercise', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('changed');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit Original', exact: true }).click();
+  await expect(page.getByLabel('Description (optional)', { exact: true })).toHaveValue(
+    'Concurrent cue',
+  );
+  await page.getByLabel('Exercise name', { exact: true }).fill('My edit');
+  await page.getByRole('button', { name: 'Save exercise', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

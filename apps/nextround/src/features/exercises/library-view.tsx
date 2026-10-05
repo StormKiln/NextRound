@@ -54,6 +54,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
       void client.invalidateQueries({ queryKey: personalQueryKey });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      await client.invalidateQueries({ queryKey: personalQueryKey });
     } finally {
       setBusy(false);
     }

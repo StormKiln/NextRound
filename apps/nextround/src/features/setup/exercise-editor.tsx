@@ -567,6 +567,7 @@ export function ExerciseEditor({
                           variant="ghost"
                           onClick={() => {
                             setPicker(false);
+                            setCustomError('');
                             setCustom(true);
                           }}
                         >
