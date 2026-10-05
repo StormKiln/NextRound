@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.8.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
+> Status: **1.9.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.8.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.9.0.md)
 
 ## Product scope
 
@@ -233,3 +233,12 @@ For Time counts active elapsed time, with an optional cap and ordered checklist.
 Ladder is the sixth workout mode: ascending, descending or pyramid reps, an exact preview, an optional time cap, and explicit movement completion/undo. Every movement follows the same rep sequence; the final movement pauses for confirmation. Saved results distinguish finished from capped sessions and record only the movements you marked complete.
 
 Load a saved workout and choose **Update saved workout** to retain its identity, or **Save as new** for a separate copy. History now filters by workout type and exercise name/description. Setup errors stay with their mode and guide keyboard focus to the field needing correction. Existing 103 exercises are unchanged; [taxonomy and content policy](docs/exercise-taxonomy.md) documents their meaning and limits. See [1.8.0 release notes](docs/release-notes-1.8.0.md).
+
+
+### 1.9.0: your own exercise library
+
+Open **My exercises** on Home to create personal movements or copy a bundled exercise. Set category, equipment, focus areas, supported target units and an optional default target. Use **Manage my exercises** from any picker, or explicitly **Save to library** on a workout-local Custom movement. The library holds up to 500 personal entries including archived entries; bundled exercises remain read-only.
+
+Personal movements participate in search, equipment/focus filters and usage-based suggestions across all six modes. EMOM and AMRAP ask for a target when no personal default exists. Ladder uses reps-compatible movements and its rung targets. Archive hides a movement from future selection; restore makes it available again. Editing and archiving never rewrite saved workout/result snapshots. Duplicate names remain distinct identities, and old unlinked Custom entries are never matched by name.
+
+Personal exercises are local to this installation, with no sync or account. Archive is reversible and does not erase the record; permanent deletion is not offered in this release. Corrupt or newer library data is preserved, with retry and bundled choices still available. See [1.9.0 release notes](docs/release-notes-1.9.0.md).

@@ -1,6 +1,6 @@
 # NextRound Privacy Policy
 
-Effective date: October 3, 2026
+Effective date: October 5, 2026
 
 This policy describes the macOS NextRound app distributed through the Mac App Store, TestFlight, and the public [StormKiln/NextRound repository](https://github.com/StormKiln/NextRound). NextRound is maintained by StormKiln.
 
@@ -12,9 +12,11 @@ When you choose **Save workout**, the app stores the template's name, exercises,
 
 NextRound does not access HealthKit, read health records, connect to fitness equipment, or automatically measure your activity. Repetition, distance, and calorie targets are values you enter or select, not measurements collected from a device.
 
+Personal exercises are stored locally when you explicitly save them to your library, including their name, description, category, equipment, focus areas, supported targets, optional default target and source identity when copied. They are not uploaded or synchronized. Editing a personal exercise does not rewrite existing workout copies.
+
 ## Exercise usage and suggestions
 
-The exercise picker derives usage counts and exercise suggestions locally from retained saved results. A catalog exercise counts once per saved workout, regardless of repeated rounds or entries. Deleting a result removes its contribution. Custom or older entries without catalog identity are not attributed by name. Equipment preferences also filter eligible exercise choices locally and do not alter saved workout records. These suggestions do not send workout data to any external service and do not use an AI service.
+The exercise picker derives usage counts and exercise suggestions locally from retained saved results. A linked bundled or personal exercise counts once per saved workout, regardless of repeated rounds or entries. Deleting a result removes its contribution. Custom or older entries without catalog identity are not attributed by name. Equipment preferences also filter eligible exercise choices locally and do not alter saved workout records. These suggestions do not send workout data to any external service and do not use an AI service.
 
 ## No advertising or developer-operated analytics
 
@@ -37,6 +39,7 @@ If you contact us, we receive the message and any contact details, screenshots, 
 ## Retention, deletion, and your choices
 
 - Saved templates remain on your Mac until you delete them from **Home → Saved workouts** or remove the app's associated local data. Preferences remain in local app storage. Deleting the app bundle alone may leave local data behind.
+- Archived personal exercises remain in local library storage and can be restored. This release does not offer permanent deletion of individual library records; removing the associated local app data removes the library. Existing workout copies are independent.
 - Saved results remain on your Mac until deleted from **Workout history** or until you remove the associated local data. Discarding a completed result does not add it to history.
 - You can change app preferences in Settings and stop any active workout. No account deletion is needed because NextRound does not create an account.
 - We retain support correspondence and diagnostic information accessible to us only as needed to handle support, resolve issues, or meet applicable obligations. You can request deletion of information we control through the contact channel below. Apple and GitHub control data retained by their services under their respective policies.

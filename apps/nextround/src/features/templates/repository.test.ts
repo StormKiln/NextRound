@@ -184,3 +184,26 @@ it('unsupported nested config fields preserve the original document on every mut
     expect(f.raw()).toBe(raw);
   }
 });
+
+it('returns persisted sources when optional custom fields are undefined', async () => {
+  const f = fixture();
+  const input = {
+    type: 'countdown' as const,
+    durationSeconds: 60,
+    leadInSeconds: 0,
+    warningSeconds: 3,
+    exercises: [{ id: 'a', name: 'Custom', description: undefined, target: undefined }],
+  };
+  const saved = (await f.repo.mutate({ action: 'save', name: 'Custom', config: input }))
+    .templates[0];
+  const updated = await f.repo.mutate({
+    action: 'update',
+    id: saved.id,
+    expected: saved,
+    name: 'Edited',
+    config: input,
+  });
+  expect(updated.templates).toHaveLength(1);
+  expect(updated.templates[0].id).toBe(saved.id);
+  expect(updated).toEqual(await f.repo.read());
+});

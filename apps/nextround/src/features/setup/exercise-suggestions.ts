@@ -2,7 +2,11 @@ import type { ExerciseEntry } from '@nextround/core';
 import { metadataFor } from '@/data/equipment';
 import type { HistoryDocument } from '../history/repository';
 export type SuggestionPreset = 'favorites' | 'new' | 'mix';
-export const normalizeSearch = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
+
+import { normalizeSearch } from '@/lib/search';
+
+export { normalizeSearch } from '@/lib/search';
+
 const searchAlias = (value: string) =>
   normalizeSearch(value)
     .replace(/[‐‑–-]/g, ' ')

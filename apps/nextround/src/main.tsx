@@ -19,6 +19,9 @@ import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
 
+const ExerciseLibrary = deferredScreen(() =>
+  import('@/features/exercises/library-view').then((module) => module.ExerciseLibrary),
+);
 const History = deferredScreen(() => import('@/features/history').then((module) => module.History));
 
 import { Home } from '@/features/home/home';
@@ -286,6 +289,11 @@ const rootRoute = createRootRoute({
   ),
 });
 const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Home });
+const exercisesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/exercises',
+  component: ExerciseLibrary,
+});
 const historyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/history',
@@ -334,6 +342,7 @@ const completeRoute = createRoute({
 const router = createRouter({
   routeTree: rootRoute.addChildren([
     homeRoute,
+    exercisesRoute,
     historyRoute,
     setupRoute,
     countdownRoute,

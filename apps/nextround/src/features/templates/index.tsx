@@ -5,6 +5,7 @@ import { useId, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { normalizeSearch } from '@/lib/search';
 import { useTemplateSources } from '@/state/template-source';
 import {
   copyValidatedConfig,
@@ -165,7 +166,7 @@ export function TemplateLibrary({
   const nameId = useId();
   const templates =
     query.data?.templates.filter((t) =>
-      t.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
+      normalizeSearch(t.name).includes(normalizeSearch(search)),
     ) ?? [];
   async function submit() {
     if (!action || busy) return;
