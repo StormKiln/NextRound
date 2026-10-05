@@ -1,16 +1,18 @@
 import { type ExerciseEntry, formatTarget } from '@nextround/core';
-import { useQuery } from '@tanstack/react-query';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { eligibleExercise, equipmentNote } from '@/data/equipment';
-import { listExercises } from '@/data/exercises';
 import { type FocusArea, focusAreas, matchesFocus, type PickerView } from '@/data/focus';
+import { ExerciseForm } from '@/features/exercises/exercise-form';
+import { toWorkoutEntry, useExerciseLibrary } from '@/features/exercises/library';
+import { copyExercise, ExerciseLibrary } from '@/features/exercises/library-view';
+import type { PersonalExercise } from '@/features/exercises/repository';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
-import { defaultEmomTarget, rotationNotice } from './emom-defaults';
+import { rotationNotice } from './emom-defaults';
 import { ExerciseRecommendations } from './exercise-recommendations';
 import type { SuggestionPreset } from './exercise-suggestions';
 import { normalizeSearch } from './exercise-suggestions';
@@ -42,12 +44,12 @@ export function ExerciseEditor({
   repLadder?: boolean;
   validationError?: string;
 }) {
-  const {
-    data: library = [],
-    isError,
-    isPending,
-    refetch,
-  } = useQuery({ queryKey: ['exercises'], queryFn: listExercises, retry: false });
+  const { library, personal, bundled } = useExerciseLibrary();
+  const [manage, setManage] = useState(false);
+  const [saveCustom, setSaveCustom] = useState<{
+    entryId: string;
+    initial: PersonalExercise;
+  } | null>(null);
   const equipment = useEquipment();
   const [preset, setPreset] = useState<SuggestionPreset | null>(null);
   const [view, setView] = useState<PickerView>('type');
@@ -72,6 +74,7 @@ export function ExerciseEditor({
       setAreas([]);
     }
   }, [picker, equipment.load]);
+  const [pendingSelection, setPendingSelection] = useState<ExerciseEntry | null>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -265,6 +268,20 @@ export function ExerciseEditor({
                 )}
               </div>
               <div className="exercise-actions">
+                {!exercise.catalogId && (
+                  <Button
+                    variant="ghost"
+                    disabled={personal.isError || personal.isPending}
+                    aria-label={`Save ${exercise.name} to library`}
+                    onClick={() => {
+                      const initial = copyExercise(exercise);
+                      delete initial.sourceId;
+                      setSaveCustom({ entryId: exercise.id, initial });
+                    }}
+                  >
+                    Save to library
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -323,6 +340,19 @@ export function ExerciseEditor({
           </div>
         )}
       </section>
+      {pendingSelection && (
+        <TargetDialog
+          exercise={pendingSelection}
+          mode={requireTargets ? 'amrap' : 'emom'}
+          onClose={() => setPendingSelection(null)}
+          onSave={(target) => {
+            if (target) {
+              onChange([...exercises, { ...pendingSelection, target }]);
+              setPendingSelection(null);
+            }
+          }}
+        />
+      )}
       {targetIndex >= 0 && exercises[targetIndex] && (
         <TargetDialog
           mode={
@@ -354,6 +384,7 @@ export function ExerciseEditor({
               event.preventDefault();
               if (!name.trim()) {
                 setCustomError('Give your exercise a name.');
+                document.getElementById('custom-name')?.focus();
                 return;
               }
               onChange([
@@ -376,7 +407,12 @@ export function ExerciseEditor({
             <Input
               id="custom-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (e.target.value.trim()) setCustomError('');
+              }}
+              aria-invalid={!!customError}
+              aria-describedby={customError ? 'custom-error' : undefined}
               maxLength={120}
             />
             <label htmlFor="custom-description">Description (optional)</label>
@@ -389,7 +425,7 @@ export function ExerciseEditor({
               placeholder="Reps, technique, or a reminder for this round"
             />
             {customError && (
-              <p role="alert" className="error">
+              <p id="custom-error" role="alert" className="error">
                 {customError}
               </p>
             )}
@@ -402,15 +438,33 @@ export function ExerciseEditor({
           </form>
         </Dialog>
       )}
+      {saveCustom && (
+        <ExerciseForm
+          initial={saveCustom.initial}
+          onClose={() => setSaveCustom(null)}
+          onSaved={(saved) => {
+            onChange(
+              exercises.map((entry) =>
+                entry.id === saveCustom.entryId ? { ...entry, catalogId: saved.id } : entry,
+              ),
+            );
+            setSaveCustom(null);
+          }}
+        />
+      )}
+      {manage && <ExerciseLibrary onClose={() => setManage(false)} />}
       {equipmentSettings && (
         <Settings initialSection="equipment" onClose={() => setEquipmentSettings(false)} />
       )}
-      {picker && !equipmentSettings && (
+      {picker && !equipmentSettings && !manage && (
         <Dialog
           title="Choose an exercise"
           className="picker-dialog"
           onClose={() => setPicker(false)}
         >
+          <Button variant="secondary" onClick={() => setManage(true)}>
+            Manage my exercises
+          </Button>
           {repLadder && (
             <p className="hint">
               Ladder uses reps. Time-only and distance/calorie-only movements are hidden; units are
@@ -459,15 +513,24 @@ export function ExerciseEditor({
                 </p>
               )}
             </div>
-            {isPending && <p role="status">Loading exercises…</p>}
-            {isError && (
+            {personal.isPending && <p role="status">Loading personal exercises…</p>}
+            {personal.isError && (
+              <div role="alert">
+                <p>
+                  Personal exercises could not be loaded. Bundled exercises are still available.
+                </p>
+                <Button onClick={() => void personal.refetch()}>Retry personal library</Button>
+              </div>
+            )}
+            {bundled.isPending && <p role="status">Loading exercises…</p>}
+            {bundled.isError && (
               <div role="alert">
                 <p>Exercises could not be loaded.</p>
-                <Button onClick={() => void refetch()}>Retry loading exercises</Button>
+                <Button onClick={() => void bundled.refetch()}>Retry loading exercises</Button>
               </div>
             )}
             <div className="library-list">
-              {!isPending && !isError && (
+              {!bundled.isPending && !bundled.isError && (
                 <ExerciseRecommendations
                   emptyState={
                     <section className="picker-empty" aria-label="No matching exercises">
@@ -504,6 +567,7 @@ export function ExerciseEditor({
                           variant="ghost"
                           onClick={() => {
                             setPicker(false);
+                            setCustomError('');
                             setCustom(true);
                           }}
                         >
@@ -517,20 +581,26 @@ export function ExerciseEditor({
                   onPreset={setPreset}
                   view={view}
                   library={availableLibrary.filter((entry) => matchesFocus(entry, areas))}
-                  note={(entry) => equipmentNote(entry, effectiveSelection)}
+                  note={(entry) =>
+                    `${entry.id.startsWith('personal:') ? 'Personal · ' : 'Bundled · '}${equipmentNote(entry, effectiveSelection)}`
+                  }
                   search={search}
                   onSelect={(entry) => {
-                    onChange([
-                      ...exercises,
-                      {
-                        ...entry,
-                        catalogId: entry.id,
-                        id: crypto.randomUUID(),
-                        ...((emomDefaults || requireTargets) && !entry.target
-                          ? { target: defaultEmomTarget(entry) }
-                          : {}),
-                      },
-                    ]);
+                    const mode = repLadder
+                      ? 'ladder'
+                      : forTime
+                        ? 'forTime'
+                        : requireTargets
+                          ? 'amrap'
+                          : workSeconds !== undefined
+                            ? 'intervals'
+                            : rounds === undefined
+                              ? 'countdown'
+                              : 'emom';
+                    const snapshot = toWorkoutEntry(entry, mode);
+                    if ((emomDefaults || requireTargets) && !snapshot.target)
+                      setPendingSelection(snapshot);
+                    else onChange([...exercises, snapshot]);
                     setPicker(false);
                     setSearch('');
                   }}

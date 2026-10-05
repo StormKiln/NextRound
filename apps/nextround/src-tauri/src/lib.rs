@@ -1,3 +1,4 @@
+mod exercises;
 use tauri_plugin_opener::OpenerExt;
 mod audio;
 mod history;
@@ -296,6 +297,8 @@ pub fn run() {
             set_close_behavior,
             history::read_workout_history,
             history::mutate_workout_history,
+            exercises::read_personal_exercises,
+            exercises::mutate_personal_exercises,
             templates::read_workout_templates,
             templates::mutate_workout_templates,
             updates::check_app_update,
@@ -314,6 +317,8 @@ pub fn run() {
         set_close_behavior,
         history::read_workout_history,
         history::mutate_workout_history,
+        exercises::read_personal_exercises,
+        exercises::mutate_personal_exercises,
         templates::read_workout_templates,
         templates::mutate_workout_templates
     ]);
@@ -351,6 +356,9 @@ pub fn run() {
         .setup(|app| {
             app.manage(history::HistoryStore::new(
                 app.path().app_data_dir()?.join("workout-history.json"),
+            ));
+            app.manage(exercises::ExerciseStore::new(
+                app.path().app_data_dir()?.join("personal-exercises.json"),
             ));
             app.manage(templates::TemplateStore::new(
                 app.path().app_data_dir()?.join("workout-templates.json"),

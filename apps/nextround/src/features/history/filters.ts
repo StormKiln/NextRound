@@ -1,8 +1,8 @@
 import type { WorkoutConfig } from '@nextround/core';
 import type { WorkoutResult } from './repository';
 export type HistoryMode = NonNullable<WorkoutConfig['type']> | 'all';
-const normalized = (value: string) =>
-  value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+
+import { normalizeSearch as normalized } from '@/lib/search';
 export function filterHistory(results: WorkoutResult[], mode: HistoryMode, query: string) {
   const needle = normalized(query);
   return results

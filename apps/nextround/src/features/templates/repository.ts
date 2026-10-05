@@ -168,7 +168,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
         else document.templates[index].name = nameValue(input.name);
       }
       storage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(document));
-      return structuredClone(document);
+      return parseTemplateDocument(JSON.parse(JSON.stringify(document)));
     });
     pending = operation.catch(() => undefined);
     return operation;

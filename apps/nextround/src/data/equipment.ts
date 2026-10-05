@@ -650,7 +650,10 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
   },
 };
 export function metadataFor(entry: ExerciseEntry) {
-  return catalogMetadata[entry.catalogId ?? entry.id];
+  return (
+    (entry as ExerciseEntry & { metadata?: CatalogMetadata }).metadata ??
+    catalogMetadata[entry.catalogId ?? entry.id]
+  );
 }
 export function missingEquipment(required: EquipmentId[], selection: EquipmentId[]) {
   const available = new Set(selection);
