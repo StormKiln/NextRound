@@ -1223,22 +1223,25 @@ textarea {
   }
 }
 
-/* Keep search and dismissal visible while the picker content scrolls. */
+/* Keep search and equipment controls visible while exercise results scroll. */
 .picker-dialog[open] {
   display: flex;
   flex-direction: column;
-  height: min(850px, calc(100vh - 48px));
+  height: min(850px, calc(100dvh - 48px));
+  gap: 12px;
   overflow: hidden;
 }
-.picker-dialog > h2,
-.picker-dialog > input,
-.picker-dialog > .dialog-actions {
+.picker-dialog > :not(.picker-body) {
   flex-shrink: 0;
+}
+.picker-dialog > h2,
+.picker-dialog > .hint {
+  margin: 0;
 }
 .picker-body {
   min-height: 0;
   overflow: auto;
-  margin-top: 12px;
+  flex: 1;
   padding-right: 6px;
 }
 .picker-dialog .library-list {
@@ -1450,6 +1453,11 @@ textarea {
 
 .personal-library {
   max-width: 1100px;
+  display: grid;
+  gap: 12px;
+}
+.personal-library > .dialog-actions {
+  margin: 0;
 }
 .personal-library > h1 {
   margin-bottom: 12px;
@@ -1511,6 +1519,9 @@ textarea {
   padding: 0;
   margin: 0 0 18px;
 }
+.personal-form fieldset > fieldset {
+  margin-top: 18px;
+}
 .personal-form legend {
   margin: 18px 0 10px;
   font-weight: 600;
@@ -1539,4 +1550,58 @@ textarea {
 .personal-form > form > .dialog-actions {
   margin: 0;
   flex-shrink: 0;
+}
+
+/* The footer occupies its own flex row; it never overlays the last result. */
+.picker-footer {
+  border-top: 1px solid #5d5147;
+  padding-top: 10px;
+  max-height: 35%;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.picker-footer .equipment-status {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+.picker-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 4px;
+}
+.picker-footer .equipment-override {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 0 0;
+  min-height: 40px;
+  font-size: 12px;
+}
+.equipment-override input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #ff5b0a;
+}
+.equipment-error {
+  padding: 4px;
+  margin-bottom: 8px;
+}
+.picker-body .focus-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+}
+.picker-body .focus-controls > label,
+.picker-body .focus-controls > details {
+  margin: 0;
+}
+.picker-body .focus-controls > details,
+.picker-body .focus-controls > p {
+  grid-column: 1 / -1;
 }

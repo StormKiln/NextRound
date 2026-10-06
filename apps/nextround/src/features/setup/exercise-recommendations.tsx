@@ -8,6 +8,7 @@ import { ExerciseGroups } from './exercise-picker';
 import {
   deriveUsage,
   matchesExercise,
+  normalizeSearch,
   type SuggestionPreset,
   suggestExercises,
 } from './exercise-suggestions';
@@ -57,8 +58,28 @@ export function ExerciseRecommendations({
   const suggestions = preset && counts ? suggestExercises(candidates, counts, preset) : [];
   const hasUsage = !!counts && [...counts.values()].some((count) => count > 0);
   const hasEligibleUsage = !!counts && candidates.some((entry) => (counts.get(entry.id) ?? 0) > 0);
+  const searching = !!normalizeSearch(search);
+  const groups = (
+    <ExerciseGroups
+      view={view}
+      library={library}
+      search={search}
+      counts={counts}
+      onSelect={onSelect}
+      note={note}
+    />
+  );
+  const noMatches =
+    !library.some((entry) => matchesExercise(entry, search)) &&
+    (emptyState ?? <p>No matching exercises. Try another search or add a Custom exercise.</p>);
   return (
     <>
+      {searching && (
+        <>
+          {groups}
+          {noMatches}
+        </>
+      )}
       {query.isPending && <p role="status">Loading exercise usage…</p>}
       {query.isError && (
         <div role="alert">
@@ -122,7 +143,7 @@ export function ExerciseRecommendations({
                     ? 'Fewer than three eligible exercises match.'
                     : 'No eligible suggestions.'}{' '}
                   Search, focus areas, equipment settings and exercises already in your workout
-                  limit these choices. You can still add repeats manually below.
+                  limit these choices. You can still add repeats from the exercise list.
                 </p>
               )}
               <p className="muted">
@@ -142,16 +163,12 @@ export function ExerciseRecommendations({
           </details>
         </section>
       )}
-      <ExerciseGroups
-        view={view}
-        library={library}
-        search={search}
-        counts={counts}
-        onSelect={onSelect}
-        note={note}
-      />
-      {!library.some((entry) => matchesExercise(entry, search)) &&
-        (emptyState ?? <p>No matching exercises. Try another search or add a Custom exercise.</p>)}
+      {!searching && (
+        <>
+          {groups}
+          {noMatches}
+        </>
+      )}
     </>
   );
 }
