@@ -80,6 +80,11 @@ export function ExerciseEditor({
   const [description, setDescription] = useState('');
   const [customError, setCustomError] = useState('');
   const [search, setSearch] = useState('');
+  const pickerBodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // A new query must reveal its first match even after browsing a long list.
+    if (search && pickerBodyRef.current) pickerBodyRef.current.scrollTop = 0;
+  }, [search]);
 
   const listRef = useRef<HTMLOListElement>(null);
   const previousLength = useRef(exercises.length);
@@ -95,6 +100,7 @@ export function ExerciseEditor({
         ?.scrollIntoView({ block: 'nearest' });
   });
   const headingId = useId();
+  const equipmentHelpId = useId();
   const helpId = useId();
   const errorId = useId();
   const [announcement, setAnnouncement] = useState('');
@@ -465,54 +471,14 @@ export function ExerciseEditor({
           <Button variant="secondary" onClick={() => setManage(true)}>
             Manage my exercises
           </Button>
-          {repLadder && (
-            <p className="hint">
-              Ladder uses reps. Time-only and distance/calorie-only movements are hidden; units are
-              never converted.
-            </p>
-          )}
           <Input
             aria-label="Search exercises"
             placeholder="Find a movement…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="picker-body">
+          <div className="picker-body" ref={pickerBodyRef}>
             <FocusControls view={view} onView={setView} selected={areas} onChange={setAreas} />
-            <div className="equipment-filter">
-              <p>
-                {effectiveSelection === null
-                  ? 'Equipment is not configured. All equipment is shown.'
-                  : 'Showing movements for your saved equipment.'}
-              </p>
-              {equipment.error && (
-                <div role="alert">
-                  <p>{equipment.error}</p>
-                  <Button onClick={equipment.load}>Retry equipment settings</Button>
-                </div>
-              )}
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showAllEquipment}
-                  onChange={(event) => setShowAllEquipment(event.target.checked)}
-                />{' '}
-                Show all equipment
-              </label>
-              <Button variant="secondary" onClick={() => setEquipmentSettings(true)}>
-                Change equipment settings
-              </Button>
-              <p className="hint">
-                This override lasts until you close the picker. Custom exercise requirements are
-                unknown and are not filtered.
-              </p>
-              {!showAllEquipment && equipmentLibrary.length < library.length && (
-                <p>
-                  {library.length - equipmentLibrary.length} exercises hidden by equipment settings.
-                  Show all equipment to include them.
-                </p>
-              )}
-            </div>
             {personal.isPending && <p role="status">Loading personal exercises…</p>}
             {personal.isError && (
               <div role="alert">
@@ -608,11 +574,44 @@ export function ExerciseEditor({
               )}
             </div>
           </div>
-          <div className="dialog-actions">
-            <Button variant="ghost" onClick={() => setPicker(false)}>
-              Cancel
-            </Button>
-          </div>
+          <section className="picker-footer" aria-label="Equipment filters">
+            <p className="equipment-status">
+              {showAllEquipment || effectiveSelection === null
+                ? 'All equipment shown.'
+                : `Saved equipment · ${library.length - equipmentLibrary.length} exercises hidden.`}
+              <span>
+                {repLadder
+                  ? ' Ladder: rep targets only.'
+                  : ' Custom movement requirements are not assessed.'}
+              </span>
+            </p>
+            {equipment.error && (
+              <div role="alert" className="equipment-error">
+                <p>{equipment.error}</p>
+                <Button onClick={equipment.load}>Retry equipment settings</Button>
+              </div>
+            )}
+            <span id={equipmentHelpId} className="sr-only">
+              Applies until you close this picker.
+            </span>
+            <div className="picker-footer-actions">
+              <label className="equipment-override">
+                <input
+                  type="checkbox"
+                  aria-describedby={equipmentHelpId}
+                  checked={showAllEquipment}
+                  onChange={(event) => setShowAllEquipment(event.target.checked)}
+                />
+                Show all equipment
+              </label>
+              <Button variant="secondary" onClick={() => setEquipmentSettings(true)}>
+                Change equipment settings
+              </Button>
+              <Button variant="ghost" onClick={() => setPicker(false)}>
+                Cancel
+              </Button>
+            </div>
+          </section>
         </Dialog>
       )}
     </>

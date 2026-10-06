@@ -1,4 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+
+const { version } = JSON.parse(
+  readFileSync(new URL('../../apps/nextround/package.json', import.meta.url), 'utf8'),
+);
 
 test('home opens EMOM and preserves its draft when returning home', async ({ page }) => {
   await page.goto('/');
@@ -29,7 +34,7 @@ test('Settings supports keyboard closing and About information at minimum size',
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible();
   await page.getByRole('button', { name: 'About', exact: true }).click();
-  await expect(page.getByText('Version 1.9.0', { exact: true })).toBeVisible();
+  await expect(page.getByText(`Version ${version}`, { exact: true })).toBeVisible();
   const privacy = page.getByRole('link', { name: 'Privacy policy', exact: true });
   await expect(privacy).toBeVisible();
   await expect(privacy).toHaveAttribute(
