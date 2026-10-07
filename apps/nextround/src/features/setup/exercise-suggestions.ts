@@ -37,20 +37,22 @@ export function suggestExercises(
   library: ExerciseEntry[],
   counts: Map<string, number>,
   preset: SuggestionPreset,
+  limit = 3,
 ): ExerciseEntry[] {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) return [];
   const unique = [...new Map(library.map((entry) => [entry.id, entry])).values()];
   const alphabetical = (a: ExerciseEntry, b: ExerciseEntry) =>
     a.name.localeCompare(b.name, 'en') || a.id.localeCompare(b.id, 'en');
   const count = (entry: ExerciseEntry) => counts.get(entry.id) ?? 0;
   const rare = [...unique].sort((a, b) => count(a) - count(b) || alphabetical(a, b));
   const frequent = [...unique].sort((a, b) => count(b) - count(a) || alphabetical(a, b));
-  if (preset === 'favorites') return frequent.slice(0, 3);
-  if (preset === 'new' || !unique.some((entry) => count(entry) > 0)) return rare.slice(0, 3);
+  if (preset === 'favorites') return frequent.slice(0, limit);
+  if (preset === 'new' || !unique.some((entry) => count(entry) > 0)) return rare.slice(0, limit);
   const rareIds = new Set(rare.slice(0, Math.ceil(rare.length / 2)).map((e) => e.id));
   const high = frequent.filter((e) => !rareIds.has(e.id));
   const low = rare.filter((e) => rareIds.has(e.id));
   const mixed: ExerciseEntry[] = [];
-  while (mixed.length < 3 && (high.length || low.length)) {
+  while (mixed.length < limit && (high.length || low.length)) {
     const pool = mixed.length % 2 === 0 ? high : low;
     const fallback = pool === high ? low : high;
     const entry = pool.shift() ?? fallback.shift();

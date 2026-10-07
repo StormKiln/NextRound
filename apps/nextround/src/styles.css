@@ -720,6 +720,9 @@ textarea {
 .home {
   max-width: 1220px;
 }
+.home-actions {
+  margin: 0 0 24px;
+}
 .home-intro {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1604,4 +1607,31 @@ textarea {
 .picker-body .focus-controls > details,
 .picker-body .focus-controls > p {
   grid-column: 1 / -1;
+}
+
+.workout-generator {
+  position: relative;
+  margin: 16px 0;
+}
+.generator-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.generator-menu {
+  margin: 0;
+  min-width: 0;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  width: min(280px, 100%);
+  background: #24211e;
+  border: 1px solid #5d5147;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px #0008;
 }

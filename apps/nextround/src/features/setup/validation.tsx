@@ -11,9 +11,7 @@ export function useSetupValidation(mode: WorkoutMode) {
     const next = validateConfig(useWorkout.getState().getDraftConfig(mode));
     if (Object.keys(next).length)
       requestAnimationFrame(() => {
-        const input = document.querySelector<HTMLElement>(
-          'main [aria-invalid="true"], main [data-invalid-exercises="true"] button',
-        );
+        const input = document.querySelector<HTMLElement>('main [aria-invalid="true"]');
         input?.focus();
         input?.scrollIntoView({ block: 'nearest' });
       });

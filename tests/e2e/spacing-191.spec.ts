@@ -11,6 +11,9 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time', 'ladd
     page,
   }) => {
     await page.setViewportSize({ width: 760, height: 620 });
+    await page.addInitScript(() =>
+      localStorage.setItem('nextround.equipment.v1', JSON.stringify({ version: 1, selection: [] })),
+    );
     await page.goto(`/${mode}`);
     await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
     await page.addStyleTag({ content: '::-webkit-scrollbar { width: 18px; }' });
@@ -78,6 +81,7 @@ test('equipment error footer keeps recovery and dismissal reachable by keyboard'
   await page.goto('/countdown');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('air squat');
+  await page.getByRole('checkbox', { name: 'Show all equipment', exact: true }).uncheck();
   const retry = page.getByRole('button', { name: 'Retry equipment settings', exact: true });
   await retry.focus();
   await expect(retry).toBeInViewport({ ratio: 1 });
