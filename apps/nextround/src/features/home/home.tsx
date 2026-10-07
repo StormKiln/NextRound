@@ -21,7 +21,7 @@ export function Home() {
         </div>
         <img className="home-art" src={artwork} alt="NextRound timer artwork in a gym" />
       </section>
-      <div className="dialog-actions">
+      <div className="dialog-actions home-actions">
         <Button variant="secondary" onClick={() => void navigate({ to: '/exercises' })}>
           My exercises
         </Button>

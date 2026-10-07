@@ -8,7 +8,7 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.9.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and full-workout recommendations remain planned.
+> Status: **1.9.2 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history, history-based exercise suggestions and whole-workout generation, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, performance comparisons, cloud sync, and duration/intensity-based workout recommendations remain planned.
 
 [Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.9.0.md)
 
@@ -242,3 +242,9 @@ Open **My exercises** on Home to create personal movements or copy a bundled exe
 Personal movements participate in search, equipment/focus filters and usage-based suggestions across all six modes. EMOM and AMRAP ask for a target when no personal default exists. Ladder uses reps-compatible movements and its rung targets. Archive hides a movement from future selection; restore makes it available again. Editing and archiving never rewrite saved workout/result snapshots. Duplicate names remain distinct identities, and old unlinked Custom entries are never matched by name.
 
 Personal exercises are local to this installation, with no sync or account. Archive is reversible and does not erase the record; permanent deletion is not offered in this release. Corrupt or newer library data is preserved, with retry and bundled choices still available. See [1.9.0 release notes](docs/release-notes-1.9.0.md).
+
+### 1.9.2: generate a complete exercise order
+
+On any workout setup page, choose **Create a workout**, select **My Favorites**, **Try something new**, or **Mix It Up**, then enter the number of exercises. Generation uses saved workout history, saved equipment and the mode’s supported targets; it preserves your timing. No history means alphabetical suggestions. Review and edit the suggested targets before starting. **Undo generated workout** restores the previous list until you edit it. Insufficient eligible exercises or unreadable data leave your current draft unchanged.
+
+In the exercise picker, **Show all equipment** starts checked when equipment preferences are unset. Uncheck it to see only equipment-free movements, or save your equipment in Settings. This temporary choice resets when the picker closes. Home now separates the personal-library action from the workout cards.

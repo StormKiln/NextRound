@@ -18,6 +18,7 @@ import type { SuggestionPreset } from './exercise-suggestions';
 import { normalizeSearch } from './exercise-suggestions';
 import { FocusControls } from './focus-controls';
 import { TargetDialog } from './target-dialog';
+import { WorkoutGenerator } from './workout-generator';
 
 export function ExerciseEditor({
   exercises,
@@ -45,6 +46,17 @@ export function ExerciseEditor({
   validationError?: string;
 }) {
   const { library, personal, bundled } = useExerciseLibrary();
+  const mode = repLadder
+    ? 'ladder'
+    : forTime
+      ? 'forTime'
+      : requireTargets
+        ? 'amrap'
+        : workSeconds !== undefined
+          ? 'intervals'
+          : rounds === undefined
+            ? 'countdown'
+            : 'emom';
   const [manage, setManage] = useState(false);
   const [saveCustom, setSaveCustom] = useState<{
     entryId: string;
@@ -55,11 +67,22 @@ export function ExerciseEditor({
   const [view, setView] = useState<PickerView>('type');
   const [areas, setAreas] = useState<FocusArea[]>([]);
   const [equipmentSettings, setEquipmentSettings] = useState(false);
-  const [showAllEquipment, setShowAllEquipment] = useState(false);
+  const [equipmentOverride, setShowAllEquipment] = useState<boolean | null>(null);
   const effectiveSelection = equipment.loaded ? equipment.selection : null;
+  const showAllEquipment = equipmentOverride ?? effectiveSelection === null;
+  const equipmentKey = JSON.stringify(
+    equipment.selection === null ? null : [...equipment.selection].sort(),
+  );
+  const previousEquipment = useRef(equipmentKey);
+  useEffect(() => {
+    if (previousEquipment.current !== equipmentKey) {
+      previousEquipment.current = equipmentKey;
+      setShowAllEquipment(null);
+    }
+  }, [equipmentKey]);
   const equipmentLibrary = showAllEquipment
     ? library
-    : library.filter((entry) => eligibleExercise(entry, effectiveSelection));
+    : library.filter((entry) => eligibleExercise(entry, effectiveSelection ?? []));
   const availableLibrary = equipmentLibrary.filter(
     (entry) => !repLadder || !entry.supportedUnits || entry.supportedUnits.includes('reps'),
   );
@@ -68,7 +91,7 @@ export function ExerciseEditor({
   useEffect(() => {
     if (picker) equipment.load();
     else {
-      setShowAllEquipment(false);
+      setShowAllEquipment(null);
       setPreset(null);
       setView('type');
       setAreas([]);
@@ -161,6 +184,7 @@ export function ExerciseEditor({
           </div>
           <span className="count">{exercises.length}</span>
         </div>
+        <WorkoutGenerator exercises={exercises} onChange={onChange} mode={mode} />
         <p id={helpId} className="sr-only">
           Drag a handle to reorder. With keyboard, press Space to pick up, arrow keys to move, Space
           to drop, or Escape to cancel.
@@ -510,8 +534,8 @@ export function ExerciseEditor({
                       {!!areas.length && (
                         <p>Focus: {areas.map((area) => focusAreas[area]).join(', ')}</p>
                       )}
-                      {effectiveSelection !== null && !showAllEquipment && (
-                        <p>Equipment: only movements for your saved equipment are included.</p>
+                      {!showAllEquipment && (
+                        <p>Equipment: only movements for your available equipment are included.</p>
                       )}
                       <div className="empty-actions">
                         {normalizeSearch(search) && (
@@ -524,7 +548,7 @@ export function ExerciseEditor({
                             Clear focus filters
                           </Button>
                         )}
-                        {effectiveSelection !== null && !showAllEquipment && (
+                        {!showAllEquipment && (
                           <Button variant="secondary" onClick={() => setShowAllEquipment(true)}>
                             Show all equipment temporarily
                           </Button>
@@ -552,17 +576,6 @@ export function ExerciseEditor({
                   }
                   search={search}
                   onSelect={(entry) => {
-                    const mode = repLadder
-                      ? 'ladder'
-                      : forTime
-                        ? 'forTime'
-                        : requireTargets
-                          ? 'amrap'
-                          : workSeconds !== undefined
-                            ? 'intervals'
-                            : rounds === undefined
-                              ? 'countdown'
-                              : 'emom';
                     const snapshot = toWorkoutEntry(entry, mode);
                     if ((emomDefaults || requireTargets) && !snapshot.target)
                       setPendingSelection(snapshot);
@@ -576,9 +589,9 @@ export function ExerciseEditor({
           </div>
           <section className="picker-footer" aria-label="Equipment filters">
             <p className="equipment-status">
-              {showAllEquipment || effectiveSelection === null
+              {showAllEquipment
                 ? 'All equipment shown.'
-                : `Saved equipment · ${library.length - equipmentLibrary.length} exercises hidden.`}
+                : `${effectiveSelection?.length ? 'Saved equipment' : 'No equipment selected.'} · ${library.length - equipmentLibrary.length} exercises hidden.`}
               <span>
                 {repLadder
                   ? ' Ladder: rep targets only.'
