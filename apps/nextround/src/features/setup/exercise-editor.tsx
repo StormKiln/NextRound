@@ -1,4 +1,4 @@
-import { type ExerciseEntry, formatTarget } from '@nextround/core';
+import { countLabel, type ExerciseEntry, formatTarget } from '@nextround/core';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
@@ -184,7 +184,12 @@ export function ExerciseEditor({
           </div>
           <span className="count">{exercises.length}</span>
         </div>
-        <WorkoutGenerator exercises={exercises} onChange={onChange} mode={mode} />
+        <WorkoutGenerator
+          exercises={exercises}
+          onChange={onChange}
+          mode={mode}
+          workSeconds={workSeconds}
+        />
         <p id={helpId} className="sr-only">
           Drag a handle to reorder. With keyboard, press Space to pick up, arrow keys to move, Space
           to drop, or Escape to cancel.
@@ -291,6 +296,15 @@ export function ExerciseEditor({
                     </Button>
                   </div>
                 )}
+                {mode === 'intervals' &&
+                  exercise.target?.unit === 'seconds' &&
+                  workSeconds !== undefined &&
+                  exercise.target.value > workSeconds && (
+                    <p role="status" className="hint">
+                      This {exercise.target.value}-second target exceeds the {workSeconds}-second
+                      work phase. Edit it if needed; the timer still advances on schedule.
+                    </p>
+                  )}
                 {validDuration && (
                   <span className="round-count">
                     {roundCount(index)} {roundCount(index) === 1 ? 'round' : 'rounds'}
@@ -591,7 +605,7 @@ export function ExerciseEditor({
             <p className="equipment-status">
               {showAllEquipment
                 ? 'All equipment shown.'
-                : `${effectiveSelection?.length ? 'Saved equipment' : 'No equipment selected.'} · ${library.length - equipmentLibrary.length} exercises hidden.`}
+                : `${effectiveSelection?.length ? 'Saved equipment' : 'No equipment selected.'} · ${countLabel(library.length - equipmentLibrary.length, 'exercise')} hidden.`}
               <span>
                 {repLadder
                   ? ' Ladder: rep targets only.'

@@ -150,6 +150,6 @@ test('new exercises preserve identity through templates, history, repeat and usa
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('glute bridge');
   await expect(page.getByRole('button', { name: /^Glute bridge Lie / })).toContainText(
-    'Used in 1 saved workouts',
+    'Used in 1 saved workout',
   );
 });

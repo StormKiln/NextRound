@@ -1,3 +1,4 @@
+import { countLabel } from '@nextround/core';
 import { useNavigate } from '@tanstack/react-router';
 import { Clock3, Play, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -101,9 +102,9 @@ export function Setup() {
           <div className="clock-note">
             <RotateCw size={18} />
             <p>
-              {validDuration ? `${minutes} rounds` : 'Set a duration'}
+              {validDuration ? countLabel(minutes, 'round') : 'Set a duration'}
               {draft.exercises.length
-                ? `, cycling through ${draft.exercises.length} movements in order.`
+                ? `, cycling through ${countLabel(draft.exercises.length, 'movement')} in order.`
                 : '. Add a movement to begin.'}
               <span>Your lead-in is extra; it does not use workout time.</span>
             </p>

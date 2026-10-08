@@ -1,4 +1,5 @@
 import type { ExerciseEntry } from '@nextround/core';
+import { countLabel } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -130,7 +131,9 @@ export function ExerciseRecommendations({
                     >
                       <span>
                         <strong>{entry.name}</strong>
-                        <small>Used in {counts.get(entry.id) ?? 0} saved workouts</small>
+                        <small>
+                          Used in {countLabel(counts.get(entry.id) ?? 0, 'saved workout')}
+                        </small>
                         {note && <small>{note(entry)}</small>}
                       </span>
                     </Button>

@@ -21,7 +21,7 @@ test('Ladder preview, undo, final confirmation and immutable history', async ({ 
   await expect(page.getByTestId('round-clock')).toHaveText('00:01');
   await page.getByRole('button', { name: 'Keep going', exact: true }).click();
   await page.getByRole('button', { name: 'Undo movement', exact: true }).click();
-  await expect(page.getByTestId('ladder-progress')).toContainText('0 of 1 movements');
+  await expect(page.getByTestId('ladder-progress')).toContainText('0 of 1 movement');
   await page.getByRole('button', { name: 'Complete movement', exact: true }).click();
   await page.getByRole('button', { name: 'Finish and review', exact: true }).click();
   await page.getByRole('button', { name: 'Save result', exact: true }).click();

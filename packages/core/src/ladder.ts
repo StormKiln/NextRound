@@ -1,4 +1,4 @@
-import type { ExerciseEntry, WorkoutConfig } from './index';
+import { countLabel, type ExerciseEntry, type WorkoutConfig } from './index';
 export type LadderPattern = {
   direction: 'ascending' | 'descending' | 'pyramid';
   startReps: number;
@@ -49,5 +49,5 @@ export function validLadderProgress(config: LadderConfig, completed: unknown): c
   );
 }
 export function formatLadderProgress(config: LadderConfig, completed: number): string {
-  return `${Math.floor(completed / config.exercises.length)} of ${ladderReps(config).length} rungs completed · ${completed} of ${ladderTotalMovements(config)} movements`;
+  return `${Math.floor(completed / config.exercises.length)} of ${countLabel(ladderReps(config).length, 'rung')} completed · ${completed} of ${countLabel(ladderTotalMovements(config), 'movement')}`;
 }

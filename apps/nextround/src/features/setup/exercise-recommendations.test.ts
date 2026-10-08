@@ -49,7 +49,7 @@ it('shows counts, respects search and requires explicit selection', async () => 
   setup('push ups');
   fireEvent.click(await screen.findByRole('button', { name: 'My favorites' }));
   expect(screen.getByRole('button', { name: 'Add suggested Push-up' }).textContent).toContain(
-    'Used in 1 saved workouts',
+    'Used in 1 saved workout',
   );
   expect(screen.queryByRole('button', { name: 'Add suggested Air squat' })).toBeNull();
   expect(onSelect).not.toHaveBeenCalled();
