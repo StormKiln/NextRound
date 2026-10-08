@@ -19,7 +19,7 @@ test('saved history drives usage and suggestions across restart and deletion', a
   await page.getByRole('button', { name: 'My favorites', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Add suggested Push-up', exact: true }),
-  ).toContainText('Used in 1 saved workouts');
+  ).toContainText('Used in 1 saved workout');
   await page.getByRole('button', { name: 'Add suggested Push-up', exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByRole('button', { name: 'My favorites', exact: true }).click();

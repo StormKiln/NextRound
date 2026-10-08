@@ -1,4 +1,4 @@
-import type { ExerciseEntry, ExerciseTarget } from '@nextround/core';
+import { countLabel, type ExerciseEntry, type ExerciseTarget } from '@nextround/core';
 
 // Starting suggestions, not pace estimates. Unilateral counts apply to the chosen side;
 // alternating movements count each repetition. Unknown movements default to time.
@@ -114,10 +114,10 @@ export function rotationNotice(minutes: number, entries: ExerciseEntry[]): strin
   )
     return null;
   if (minutes < entries.length)
-    return `Only the first ${minutes} movements will run. ${entries
+    return `Only the first ${countLabel(minutes, 'movement')} will run. ${entries
       .slice(minutes)
       .map((e) => e.name)
       .join(', ')} will not run. Add time or adjust your order if that is not intentional.`;
   const full = Math.floor(minutes / entries.length);
-  return `Uneven rotation: the first ${minutes % entries.length} movements run ${full + 1} times; the remaining ${entries.length - (minutes % entries.length)} run ${full} times. Your workout can still start as configured.`;
+  return `Uneven rotation: the first ${countLabel(minutes % entries.length, 'movement')} ${minutes % entries.length === 1 ? 'runs' : 'run'} ${countLabel(full + 1, 'time')}; the remaining ${entries.length - (minutes % entries.length)} run ${countLabel(full, 'time')}. Your workout can still start as configured.`;
 }

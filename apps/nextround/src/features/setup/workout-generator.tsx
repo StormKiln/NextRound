@@ -1,4 +1,5 @@
 import type { ExerciseEntry, TargetUnit, WorkoutConfig } from '@nextround/core';
+import { countLabel } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
@@ -19,7 +20,11 @@ const presets: { id: SuggestionPreset; label: string }[] = [
   { id: 'mix', label: 'Mix It Up' },
 ];
 
-export function generatedEntry(entry: ExerciseEntry, mode: Mode): ExerciseEntry {
+export function generatedEntry(
+  entry: ExerciseEntry,
+  mode: Mode,
+  workSeconds?: number,
+): ExerciseEntry {
   const snapshot = toWorkoutEntry(entry, mode);
   if (mode === 'ladder' || snapshot.target) return snapshot;
   const suggested = defaultEmomTarget(entry);
@@ -28,7 +33,19 @@ export function generatedEntry(entry: ExerciseEntry, mode: Mode): ExerciseEntry 
   const defaults: Record<TargetUnit, number> = { reps: 8, seconds: 30, metres: 100, calories: 5 };
   return {
     ...snapshot,
-    target: { unit, value: unit === suggested.unit ? suggested.value : defaults[unit] },
+    target: {
+      unit,
+      value:
+        mode === 'intervals' &&
+        unit === 'seconds' &&
+        workSeconds !== undefined &&
+        Number.isInteger(workSeconds) &&
+        workSeconds > 0
+          ? Math.min(unit === suggested.unit ? suggested.value : defaults[unit], workSeconds)
+          : unit === suggested.unit
+            ? suggested.value
+            : defaults[unit],
+    },
   };
 }
 
@@ -36,10 +53,12 @@ export function WorkoutGenerator({
   exercises,
   onChange,
   mode,
+  workSeconds,
 }: {
   exercises: ExerciseEntry[];
   onChange: (entries: ExerciseEntry[]) => void;
   mode: Mode;
+  workSeconds?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<SuggestionPreset | null>(null);
@@ -115,6 +134,7 @@ export function WorkoutGenerator({
           preset={preset}
           initialCount={exercises.length || 3}
           mode={mode}
+          workSeconds={workSeconds}
           onClose={close}
           onGenerate={(next) => {
             setUndo({ before: structuredClone(exercises), after: JSON.stringify(next) });
@@ -131,12 +151,14 @@ function GenerateDialog({
   preset,
   initialCount,
   mode,
+  workSeconds,
   onClose,
   onGenerate,
 }: {
   preset: SuggestionPreset;
   initialCount: number;
   mode: Mode;
+  workSeconds?: number;
   onClose: () => void;
   onGenerate: (entries: ExerciseEntry[]) => void;
 }) {
@@ -192,7 +214,7 @@ function GenerateDialog({
       )}
       {!loading && !failed && (
         <p>
-          {eligible.length} eligible exercises.{' '}
+          {countLabel(eligible.length, 'eligible exercise')}.{' '}
           {!counts.size && 'No attributed history yet; suggestions start alphabetically.'}
         </p>
       )}
@@ -209,11 +231,11 @@ function GenerateDialog({
           const selected = suggestExercises(eligible, counts, preset, amount);
           if (selected.length < amount) {
             setError(
-              `Only ${selected.length} eligible exercises are available. Choose a smaller count or change your equipment settings.`,
+              `Only ${countLabel(selected.length, 'eligible exercise')} ${selected.length === 1 ? 'is' : 'are'} available. Choose a smaller count or change your equipment settings.`,
             );
             return;
           }
-          onGenerate(selected.map((entry) => generatedEntry(entry, mode)));
+          onGenerate(selected.map((entry) => generatedEntry(entry, mode, workSeconds)));
         }}
       >
         <label htmlFor={countId}>Number of exercises</label>

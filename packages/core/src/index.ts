@@ -325,3 +325,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
         : 60 - ((second - lead) % 60);
   return remaining <= config.warningSeconds ? 'tock' : null;
 }
+
+export function countLabel(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}

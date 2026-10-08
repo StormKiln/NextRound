@@ -77,3 +77,20 @@ it('ranking handles invalid counts and duplicate catalog records without changin
   expect(suggestExercises([...library, library[0]], counts, 'mix', 100)).toHaveLength(7);
   expect(library.map((e) => e.id)).toEqual(['e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6']);
 });
+
+it('bounds suggested seconds to interval work but preserves explicit personal targets', () => {
+  const plank: ExerciseEntry = { id: 'plank', name: 'Plank', supportedUnits: ['seconds'] };
+  for (const phase of [1, 10, 20, 60])
+    expect(generatedEntry(plank, 'intervals', phase).target).toEqual({
+      unit: 'seconds',
+      value: Math.min(30, phase),
+    });
+  expect(
+    generatedEntry(
+      { ...plank, id: 'personal:plank', target: { unit: 'seconds', value: 45 } },
+      'intervals',
+      10,
+    ).target?.value,
+  ).toBe(45);
+  expect(generatedEntry(plank, 'countdown', 10).target?.value).toBe(30);
+});

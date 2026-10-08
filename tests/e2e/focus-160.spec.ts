@@ -144,7 +144,7 @@ test('1.6.0 exercises preserve identity through templates, history, repeat and u
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('reverse crunch');
   await expect(page.getByRole('button', { name: /^Reverse crunch / })).toContainText(
-    'Used in 1 saved workouts',
+    'Used in 1 saved workout',
   );
 });
 

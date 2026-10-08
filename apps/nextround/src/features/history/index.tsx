@@ -1,4 +1,10 @@
-import { formatAmrapProgress, formatElapsed, formatTarget, formatTime } from '@nextround/core';
+import {
+  countLabel,
+  formatAmrapProgress,
+  formatElapsed,
+  formatTarget,
+  formatTime,
+} from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
@@ -8,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { LadderResult } from '@/features/ladder/progress';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
+import { ComparisonView } from './comparison-view';
 import { filterHistory, type HistoryMode } from './filters';
 import {
   copyResult,
@@ -48,6 +55,7 @@ export function History() {
       mounted.current = false;
     };
   }, []);
+  const [comparisonId, setComparisonId] = useState<string | null>(null);
   const [detail, setDetail] = useState<WorkoutResult | null>(null);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +144,7 @@ export function History() {
                 {result.config.type === 'forTime' || result.config.type === 'ladder'
                   ? formatElapsed(result.elapsedMs)
                   : formatTime(result.elapsedMs)}{' '}
-                active time · {result.config.exercises?.length ?? 0} exercises
+                active time · {countLabel(result.config.exercises?.length ?? 0, 'exercise')}
                 {result.outcome &&
                   ` · ${result.outcome === 'finished' ? 'Finished' : 'Time cap reached'}`}
               </p>
@@ -166,6 +174,9 @@ export function History() {
           </li>
         ))}
       </ul>
+      {comparisonId && (
+        <ComparisonView resultId={comparisonId} onClose={() => setComparisonId(null)} />
+      )}
       {detail && (
         <Dialog
           title={`${modeName(detail)} result`}
@@ -187,9 +198,9 @@ export function History() {
               : detail.config.type === 'amrap' && detail.amrapProgress
                 ? formatAmrapProgress(detail.config, detail.amrapProgress)
                 : detail.config.type === 'intervals'
-                  ? `${detail.config.rounds} rounds · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
+                  ? `${countLabel(detail.config.rounds, 'round')} · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
                   : detail.config.type !== 'countdown' && detail.config.type !== 'amrap'
-                    ? `${detail.config.minutes} one-minute rounds`
+                    ? `${countLabel(detail.config.minutes, 'one-minute round')}`
                     : `${detail.config.durationSeconds}s countdown`}
           </p>
           <p>
@@ -222,6 +233,16 @@ export function History() {
           {!detail.config.exercises?.length && <p>No exercises were specified.</p>}
           {error && <p role="alert">{error}</p>}
           <div className="dialog-actions">
+            <Button
+              variant="secondary"
+              disabled={repeating}
+              onClick={() => {
+                setComparisonId(detail.id);
+                setDetail(null);
+              }}
+            >
+              Compare attempts
+            </Button>
             <Button variant="ghost" disabled={repeating} onClick={() => setDetail(null)}>
               Close
             </Button>

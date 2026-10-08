@@ -1,4 +1,5 @@
 import type { ExerciseEntry } from '@nextround/core';
+import { countLabel } from '@nextround/core';
 import { Plus } from 'lucide-react';
 import { expandedAreasFor, focusAreas, type PickerView } from '@/data/focus';
 
@@ -56,7 +57,7 @@ export function ExerciseGroups({
               {note && <small>{note(entry)}</small>}
               <small>
                 {counts
-                  ? `Used in ${counts.get(entry.id) ?? 0} saved workouts`
+                  ? `Used in ${countLabel(counts.get(entry.id) ?? 0, 'saved workout')}`
                   : 'Usage unavailable'}
               </small>
             </span>

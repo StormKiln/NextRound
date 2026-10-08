@@ -395,7 +395,12 @@ export function Completion() {
           s.config.type !== 'ladder' && (
             <div>
               <strong>{s.config.type === 'intervals' ? s.config.rounds : s.config.minutes}</strong>
-              <span>rounds completed</span>
+              <span>
+                {(s.config.type === 'intervals' ? s.config.rounds : s.config.minutes) === 1
+                  ? 'round'
+                  : 'rounds'}{' '}
+                completed
+              </span>
             </div>
           )}
         <div>
