@@ -10,6 +10,7 @@ import { eligibleExercise } from '@/data/equipment';
 import { toWorkoutEntry, useExerciseLibrary } from '@/features/exercises/library';
 import { readHistory } from '@/features/history/repository';
 import { useEquipment } from '@/features/settings/equipment-store';
+import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget } from './emom-defaults';
 import { deriveUsage, type SuggestionPreset, suggestExercises } from './exercise-suggestions';
 
@@ -167,6 +168,9 @@ function GenerateDialog({
   const history = useQuery({ queryKey: ['workout-history'], queryFn: readHistory, retry: false });
   const [count, setCount] = useState(String(initialCount));
   const [error, setError] = useState('');
+  const countRef = useRef<HTMLInputElement>(null);
+  const [settings, setSettings] = useState(false);
+  const equipmentTriggerId = useId();
   const countId = useId();
   const errorId = useId();
   useEffect(() => equipment.load(), [equipment.load]);
@@ -182,6 +186,18 @@ function GenerateDialog({
       (mode !== 'ladder' || !entry.supportedUnits || entry.supportedUnits.includes('reps')),
   );
   const counts = history.data ? deriveUsage(history.data).counts : new Map<string, number>();
+  if (settings)
+    return (
+      <Settings
+        initialSection="equipment"
+        onClose={() => {
+          setSettings(false);
+          setError('');
+          equipment.load();
+          requestAnimationFrame(() => document.getElementById(equipmentTriggerId)?.focus());
+        }}
+      />
+    );
   return (
     <Dialog title="Create a workout" onClose={onClose}>
       <p>
@@ -196,6 +212,9 @@ function GenerateDialog({
             : 'Only exercises requiring no equipment are included.'}{' '}
         {mode === 'ladder' && 'Ladder uses reps-compatible movements.'}
       </p>
+      <Button id={equipmentTriggerId} variant="secondary" onClick={() => setSettings(true)}>
+        Change equipment settings
+      </Button>
       {loading && <p role="status">Loading workout suggestions…</p>}
       {failed && (
         <div role="alert">
@@ -226,6 +245,7 @@ function GenerateDialog({
           const amount = Number(count);
           if (!Number.isInteger(amount) || amount < 1 || amount > 100) {
             setError('Choose a whole number from 1 to 100.');
+            countRef.current?.focus();
             return;
           }
           const selected = suggestExercises(eligible, counts, preset, amount);
@@ -233,6 +253,7 @@ function GenerateDialog({
             setError(
               `Only ${countLabel(selected.length, 'eligible exercise')} ${selected.length === 1 ? 'is' : 'are'} available. Choose a smaller count or change your equipment settings.`,
             );
+            countRef.current?.focus();
             return;
           }
           onGenerate(selected.map((entry) => generatedEntry(entry, mode, workSeconds)));
@@ -240,6 +261,7 @@ function GenerateDialog({
       >
         <label htmlFor={countId}>Number of exercises</label>
         <Input
+          ref={countRef}
           id={countId}
           type="number"
           min={1}

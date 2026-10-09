@@ -8,9 +8,9 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.10.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history with repeat-attempt comparisons, history-based exercise suggestions and whole-workout generation, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, cloud sync, and duration/intensity-based workout recommendations remain planned.
+> Status: **1.11.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history with repeat-attempt comparisons, history-based exercise suggestions and whole-workout generation, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, cloud sync, and duration/intensity-based workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.10.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.11.0.md)
 
 ## Product scope
 
@@ -241,7 +241,7 @@ Open **My exercises** on Home to create personal movements or copy a bundled exe
 
 Personal movements participate in search, equipment/focus filters and usage-based suggestions across all six modes. EMOM and AMRAP ask for a target when no personal default exists. Ladder uses reps-compatible movements and its rung targets. Archive hides a movement from future selection; restore makes it available again. Editing and archiving never rewrite saved workout/result snapshots. Duplicate names remain distinct identities, and old unlinked Custom entries are never matched by name.
 
-Personal exercises are local to this installation, with no sync or account. Archive is reversible and does not erase the record; permanent deletion is not offered in this release. Corrupt or newer library data is preserved, with retry and bundled choices still available. See [1.9.0 release notes](docs/release-notes-1.10.0.md).
+Personal exercises are local to this installation, with no sync or account. Archive is reversible and does not erase the record; permanent deletion is not offered in this release. Corrupt or newer library data is preserved, with retry and bundled choices still available. See [1.9.0 release notes](docs/release-notes-1.9.0.md).
 
 ### 1.9.2: generate a complete exercise order
 
@@ -252,3 +252,12 @@ In the exercise picker, **Show all equipment** starts checked when equipment pre
 ### Repeat-attempt comparisons (1.10.0)
 
 In Workout history, open a result and choose **Compare attempts**. Matching uses the saved movement identities, names/descriptions, order, targets and workout rules, while ignoring transient entry IDs and presentation settings. Changed prescriptions stay separate. Completed For Time and Ladder attempts compare active time; AMRAP compares recorded progress. Fixed-duration workouts do not infer improvement from the clock, and cap-reached attempts are not ranked as faster completions. All comparisons are calculated locally without altering saved data.
+
+
+### Replace a movement (1.11.0)
+
+Use **Replace** beside an exercise in any of the six workout builders. Choose a movement using the existing search, focus-area and equipment filters. Its place in the order and the workout timing stay the same. Compatible targets are kept; unsupported target units receive an explained replacement suggestion. Review suggested targets before starting. Ladder continues to use its rung schedule, and new interval time suggestions fit the work phase.
+
+**Undo replacement** restores just the last replaced movement, preserving timing changes and edits to other entries. It expires when that movement is edited, removed, replaced again, or you leave the builder. Existing saved workouts change only when explicitly saved; previous workout results are never rewritten.
+
+The workout generator also links directly to equipment settings while retaining the requested count and preset. Invalid counts receive keyboard focus for correction. Closing a comparison returns focus to its history result, or the history heading if that result has disappeared.

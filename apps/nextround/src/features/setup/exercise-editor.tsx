@@ -14,6 +14,7 @@ import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { rotationNotice } from './emom-defaults';
 import { ExerciseRecommendations } from './exercise-recommendations';
+import { replaceExercise } from './exercise-replacement';
 import type { SuggestionPreset } from './exercise-suggestions';
 import { normalizeSearch } from './exercise-suggestions';
 import { FocusControls } from './focus-controls';
@@ -86,6 +87,30 @@ export function ExerciseEditor({
   const availableLibrary = equipmentLibrary.filter(
     (entry) => !repLadder || !entry.supportedUnits || entry.supportedUnits.includes('reps'),
   );
+  const [replaceId, setReplaceId] = useState<string | null>(null);
+  const [replacementNotice, setReplacementNotice] = useState('');
+  const [replacementUndo, setReplacementUndo] = useState<{
+    before: ExerciseEntry;
+    after: string;
+  } | null>(null);
+  const undoEntry =
+    replacementUndo && exercises.find((entry) => entry.id === replacementUndo.before.id);
+  const canUndoReplacement =
+    !!replacementUndo && JSON.stringify(undoEntry) === replacementUndo.after;
+  useEffect(() => {
+    if (replacementUndo && !canUndoReplacement) setReplacementUndo(null);
+  }, [replacementUndo, canUndoReplacement]);
+  const focusReplacement = (id: string) =>
+    requestAnimationFrame(() => {
+      listRef.current
+        ?.querySelector<HTMLButtonElement>(`[data-entry-id="${CSS.escape(id)}"] [data-replace]`)
+        ?.focus();
+    });
+  const closePicker = () => {
+    setPicker(false);
+    if (replaceId) focusReplacement(replaceId);
+    setReplaceId(null);
+  };
   const [custom, setCustom] = useState(false);
   const [picker, setPicker] = useState(false);
   useEffect(() => {
@@ -190,6 +215,28 @@ export function ExerciseEditor({
           mode={mode}
           workSeconds={workSeconds}
         />
+        {replacementNotice && (
+          <p role="status" className="hint">
+            {replacementNotice}
+          </p>
+        )}
+        {canUndoReplacement && replacementUndo && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              onChange(
+                exercises.map((entry) =>
+                  entry.id === replacementUndo.before.id ? replacementUndo.before : entry,
+                ),
+              );
+              focusReplacement(replacementUndo.before.id);
+              setReplacementUndo(null);
+              setReplacementNotice('Replacement undone. Other workout changes are kept.');
+            }}
+          >
+            Undo replacement
+          </Button>
+        )}
         <p id={helpId} className="sr-only">
           Drag a handle to reorder. With keyboard, press Space to pick up, arrow keys to move, Space
           to drop, or Escape to cancel.
@@ -312,6 +359,18 @@ export function ExerciseEditor({
                 )}
               </div>
               <div className="exercise-actions">
+                <Button
+                  variant="ghost"
+                  data-replace
+                  aria-label={`Replace ${exercise.name}`}
+                  onClick={() => {
+                    setReplaceId(exercise.id);
+                    setSearch('');
+                    setPicker(true);
+                  }}
+                >
+                  Replace
+                </Button>
                 {!exercise.catalogId && (
                   <Button
                     variant="ghost"
@@ -354,7 +413,10 @@ export function ExerciseEditor({
             variant="secondary"
             aria-invalid={!!validationError}
             aria-describedby={validationError ? errorId : undefined}
-            onClick={() => setPicker(true)}
+            onClick={() => {
+              setReplaceId(null);
+              setPicker(true);
+            }}
             disabled={exercises.length >= 100}
           >
             <Plus size={17} />
@@ -363,6 +425,7 @@ export function ExerciseEditor({
           <Button
             variant="ghost"
             onClick={() => {
+              setReplaceId(null);
               setCustom(true);
               setCustomError('');
             }}
@@ -422,7 +485,13 @@ export function ExerciseEditor({
         />
       )}
       {custom && (
-        <Dialog title="Add a custom exercise" onClose={() => setCustom(false)}>
+        <Dialog
+          title="Add a custom exercise"
+          onClose={() => {
+            setCustom(false);
+            closePicker();
+          }}
+        >
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -431,17 +500,29 @@ export function ExerciseEditor({
                 document.getElementById('custom-name')?.focus();
                 return;
               }
-              onChange([
-                ...exercises,
-                {
-                  id: crypto.randomUUID(),
-                  name: name.trim(),
-                  ...(emomDefaults || requireTargets
-                    ? { target: { unit: 'seconds' as const, value: 30 } }
-                    : {}),
-                  description: description.trim() || undefined,
-                },
-              ]);
+              const entry: ExerciseEntry = {
+                id: crypto.randomUUID(),
+                name: name.trim(),
+                ...(emomDefaults || requireTargets
+                  ? { target: { unit: 'seconds' as const, value: 30 } }
+                  : {}),
+                description: description.trim() || undefined,
+              };
+              const previous = exercises.find((item) => item.id === replaceId);
+              if (previous) {
+                const replacement = replaceExercise(previous, entry, mode, workSeconds);
+                delete replacement.entry.catalogId;
+                setReplacementUndo({
+                  before: structuredClone(previous),
+                  after: JSON.stringify(replacement.entry),
+                });
+                onChange(
+                  exercises.map((item) => (item.id === previous.id ? replacement.entry : item)),
+                );
+                setReplacementNotice(replacement.notice);
+                focusReplacement(previous.id);
+              } else onChange([...exercises, entry]);
+              setReplaceId(null);
               setCustom(false);
               setName('');
               setDescription('');
@@ -474,7 +555,14 @@ export function ExerciseEditor({
               </p>
             )}
             <div className="dialog-actions">
-              <Button variant="ghost" type="button" onClick={() => setCustom(false)}>
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => {
+                  setCustom(false);
+                  closePicker();
+                }}
+              >
                 Cancel
               </Button>
               <Button type="submit">Add custom exercise</Button>
@@ -501,11 +589,13 @@ export function ExerciseEditor({
         <Settings initialSection="equipment" onClose={() => setEquipmentSettings(false)} />
       )}
       {picker && !equipmentSettings && !manage && (
-        <Dialog
-          title="Choose an exercise"
-          className="picker-dialog"
-          onClose={() => setPicker(false)}
-        >
+        <Dialog title="Choose an exercise" className="picker-dialog" onClose={closePicker}>
+          {replaceId && (
+            <p className="hint">
+              Choose a replacement for {exercises.find((entry) => entry.id === replaceId)?.name}.
+              Your workout order and timing stay the same.
+            </p>
+          )}
           <Button variant="secondary" onClick={() => setManage(true)}>
             Manage my exercises
           </Button>
@@ -590,6 +680,25 @@ export function ExerciseEditor({
                   }
                   search={search}
                   onSelect={(entry) => {
+                    if (replaceId) {
+                      const previous = exercises.find((item) => item.id === replaceId);
+                      if (previous) {
+                        const replacement = replaceExercise(previous, entry, mode, workSeconds);
+                        setReplacementUndo({
+                          before: structuredClone(previous),
+                          after: JSON.stringify(replacement.entry),
+                        });
+                        onChange(
+                          exercises.map((item) =>
+                            item.id === replaceId ? replacement.entry : item,
+                          ),
+                        );
+                        setReplacementNotice(replacement.notice);
+                      }
+                      closePicker();
+                      setSearch('');
+                      return;
+                    }
                     const snapshot = toWorkoutEntry(entry, mode);
                     if ((emomDefaults || requireTargets) && !snapshot.target)
                       setPendingSelection(snapshot);
@@ -634,7 +743,7 @@ export function ExerciseEditor({
               <Button variant="secondary" onClick={() => setEquipmentSettings(true)}>
                 Change equipment settings
               </Button>
-              <Button variant="ghost" onClick={() => setPicker(false)}>
+              <Button variant="ghost" onClick={closePicker}>
                 Cancel
               </Button>
             </div>
