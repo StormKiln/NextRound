@@ -55,6 +55,8 @@ export function History() {
       mounted.current = false;
     };
   }, []);
+  const comparisonOrigin = useRef<HTMLButtonElement | null>(null);
+  const historyHeading = useRef<HTMLHeadingElement>(null);
   const [comparisonId, setComparisonId] = useState<string | null>(null);
   const [detail, setDetail] = useState<WorkoutResult | null>(null);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
@@ -71,7 +73,9 @@ export function History() {
   return (
     <main className="page history-page">
       <p className="eyebrow">Your training, remembered</p>
-      <h1>Workout history</h1>
+      <h1 ref={historyHeading} tabIndex={-1}>
+        Workout history
+      </h1>
       <p>Completed sessions you chose to save. Stored on this Mac.</p>
       {!!allResults.length && (
         <section className="history-filters" aria-label="Filter history">
@@ -153,7 +157,8 @@ export function History() {
               <Button
                 variant="secondary"
                 aria-label={`View result: ${modeName(result)}, ${new Date(result.completedAt).toLocaleString()}, session ${index + 1}`}
-                onClick={() => {
+                onClick={(event) => {
+                  comparisonOrigin.current = event.currentTarget;
                   setError(null);
                   setDetail(result);
                 }}
@@ -175,7 +180,19 @@ export function History() {
         ))}
       </ul>
       {comparisonId && (
-        <ComparisonView resultId={comparisonId} onClose={() => setComparisonId(null)} />
+        <ComparisonView
+          resultId={comparisonId}
+          onClose={() => {
+            setComparisonId(null);
+            requestAnimationFrame(() => {
+              if (!mounted.current) return;
+              const origin = comparisonOrigin.current;
+              (origin?.isConnected ? origin : historyHeading.current)?.focus({
+                preventScroll: true,
+              });
+            });
+          }}
+        />
       )}
       {detail && (
         <Dialog
