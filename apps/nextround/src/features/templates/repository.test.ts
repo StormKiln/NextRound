@@ -67,7 +67,12 @@ describe('saved workout repository', () => {
     await Promise.all(['A', 'B'].map((name) => f.repo.mutate({ action: 'save', name, config })));
     const saved = await f.repo.read();
     expect(saved.templates).toHaveLength(2);
-    await f.repo.mutate({ action: 'rename', id: saved.templates[0].id, name: ' C ' });
+    await f.repo.mutate({
+      action: 'rename',
+      id: saved.templates[0].id,
+      expectedName: 'A',
+      name: ' C ',
+    });
     expect((await f.repo.read()).templates[0].name).toBe('C');
     await f.repo.mutate({ action: 'delete', id: saved.templates[0].id });
     expect((await f.repo.read()).templates).toHaveLength(1);
@@ -179,7 +184,12 @@ it('unsupported nested config fields preserve the original document on every mut
       }),
     ).rejects.toThrow();
     await expect(
-      f.repo.mutate({ action: 'rename', id: original.id, name: 'Renamed' }),
+      f.repo.mutate({
+        action: 'rename',
+        id: original.id,
+        expectedName: original.name,
+        name: 'Renamed',
+      }),
     ).rejects.toThrow();
     expect(f.raw()).toBe(raw);
   }
@@ -206,4 +216,84 @@ it('returns persisted sources when optional custom fields are undefined', async 
   expect(updated.templates).toHaveLength(1);
   expect(updated.templates[0].id).toBe(saved.id);
   expect(updated).toEqual(await f.repo.read());
+});
+
+it('persists favourites without conflicting with content updates or renames', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  await f.repo.mutate({ action: 'favourite', id: original.id, favourite: true });
+  expect((await createBrowserRepository(f.storage).read()).templates[0].favourite).toBe(true);
+  await f.repo.mutate({
+    action: 'update',
+    id: original.id,
+    expected: original,
+    name: original.name,
+    config: { ...config, minutes: 5 },
+  });
+  await f.repo.mutate({
+    action: 'rename',
+    id: original.id,
+    expectedName: 'Routine',
+    name: ' New ',
+  });
+  expect((await f.repo.read()).templates[0]).toMatchObject({
+    favourite: true,
+    name: 'New',
+    config: { minutes: 5 },
+  });
+  await f.repo.mutate({ action: 'save', name: 'Copy', config });
+  expect((await f.repo.read()).templates[1].favourite).not.toBe(true);
+  await f.repo.mutate({ action: 'favourite', id: original.id, favourite: false });
+  expect((await f.repo.read()).templates[0].favourite).not.toBe(true);
+});
+it('rejects stale renames and preserves exact bytes', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  await f.repo.mutate({
+    action: 'rename',
+    id: original.id,
+    expectedName: 'Routine',
+    name: 'Newer',
+  });
+  const before = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'rename', id: original.id, expectedName: 'Routine', name: 'Stale' }),
+  ).rejects.toThrow(/name changed/);
+  expect(f.raw()).toBe(before);
+});
+it('preserves unsupported template metadata and failed favourite writes', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Routine', config })).templates[0];
+  const before = f.raw();
+  f.fail();
+  await expect(
+    f.repo.mutate({ action: 'favourite', id: original.id, favourite: true }),
+  ).rejects.toThrow('Disk full');
+  expect(f.raw()).toBe(before);
+  for (const metadata of [{ favourite: 'yes' }, { future: true }]) {
+    const raw = JSON.stringify({ version: 1, templates: [{ ...original, ...metadata }] });
+    f.corrupt(raw);
+    await expect(f.repo.read()).rejects.toThrow();
+    expect(f.raw()).toBe(raw);
+  }
+});
+
+it('preserves legacy data and rejects invalid metadata on every mutation', async () => {
+  const f = fixture();
+  const legacy = { version: 1, templates: [{ id: 'legacy', name: 'Legacy', config }] };
+  f.corrupt(JSON.stringify(legacy));
+  expect(await f.repo.read()).toEqual(legacy);
+  await f.repo.mutate({ action: 'favourite', id: 'legacy', favourite: true });
+  await f.repo.mutate({ action: 'delete', id: 'legacy' });
+  expect((await f.repo.read()).templates).toEqual([]);
+  for (const doc of [
+    { ...legacy, future: true },
+    { ...legacy, templates: [{ ...legacy.templates[0], favourite: 'yes' }] },
+    { ...legacy, templates: [{ ...legacy.templates[0], future: 1 }] },
+  ]) {
+    const raw = JSON.stringify(doc);
+    f.corrupt(raw);
+    await expect(f.repo.mutate({ action: 'save', name: 'New', config })).rejects.toThrow();
+    expect(f.raw()).toBe(raw);
+  }
 });

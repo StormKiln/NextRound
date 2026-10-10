@@ -65,3 +65,43 @@
 .template-save [role="alert"] {
   color: var(--destructive, #ffab9a);
 }
+
+.template-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+}
+.template-filters > label,
+.template-mode {
+  display: grid;
+  gap: 0.5rem;
+}
+.template-filters select {
+  padding: 0.65rem;
+  min-height: 44px;
+  background: var(--background);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+.template-filters > .template-favourites {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+}
+.template-favourites input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.template-library > button {
+  justify-self: start;
+}
+
+fieldset.template-search {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}

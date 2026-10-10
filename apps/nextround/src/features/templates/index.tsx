@@ -1,7 +1,7 @@
 import type { WorkoutConfig } from '@nextround/core';
 import { countLabel, formatTime } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,7 +151,33 @@ export function TemplateLibrary({
 }: {
   onLoad: (config: WorkoutConfig, source: WorkoutTemplate) => void;
 }) {
+  const client = useQueryClient();
   const query = useQuery({ queryKey, queryFn: readTemplates, retry: false });
+  const heading = useRef<HTMLHeadingElement>(null);
+  const origin = useRef<HTMLElement | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  function restoreFocus() {
+    requestAnimationFrame(() => {
+      if (mounted.current)
+        (origin.current?.isConnected ? origin.current : heading.current)?.focus({
+          preventScroll: true,
+        });
+    });
+  }
+  function closeAction() {
+    setAction(null);
+    restoreFocus();
+  }
+  const [favouritesOnly, setFavouritesOnly] = useState(false);
+  const [workoutType, setWorkoutType] = useState('all');
+  const [notice, setNotice] = useState('');
+
   const mutation = useTemplateMutation();
   const [loading, setLoading] = useState(false);
   const busy = mutation.isPending || loading;
@@ -163,11 +189,55 @@ export function TemplateLibrary({
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const searchId = useId();
+  const typeId = useId();
   const nameId = useId();
   const templates =
-    query.data?.templates.filter((t) =>
-      normalizeSearch(t.name).includes(normalizeSearch(search)),
+    query.data?.templates.filter(
+      (t) =>
+        normalizeSearch(t.name).includes(normalizeSearch(search)) &&
+        (!favouritesOnly || t.favourite === true) &&
+        (workoutType === 'all' || (t.config.type ?? 'emom') === workoutType),
     ) ?? [];
+  async function refresh() {
+    if (busy) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const latest = await readTemplates();
+      client.setQueryData(queryKey, latest);
+      if (action) {
+        const entry = latest.templates.find((t) => t.id === action.template.id);
+        if (!entry) {
+          setNotice('That saved workout no longer exists. The library has been refreshed.');
+          closeAction();
+        } else {
+          setAction({ ...action, template: entry });
+          setNotice(`Current saved name: “${entry.name}”. Review it before confirming.`);
+        }
+      } else setNotice('Saved workouts refreshed.');
+    } catch (e) {
+      setError(message(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function favourite(template: WorkoutTemplate, button: HTMLElement) {
+    if (busy) return;
+    origin.current = button;
+    setError(null);
+    setNotice('');
+    try {
+      await mutation.mutateAsync({
+        action: 'favourite',
+        id: template.id,
+        favourite: !template.favourite,
+      });
+      setNotice(`${template.name} ${template.favourite ? 'removed from' : 'added to'} favourites.`);
+      restoreFocus();
+    } catch (e) {
+      setError(message(e));
+    }
+  }
   async function submit() {
     if (!action || busy) return;
     setLoading(true);
@@ -182,10 +252,17 @@ export function TemplateLibrary({
       } else
         await mutation.mutateAsync(
           action.type === 'rename'
-            ? { action: 'rename', id: action.template.id, name }
+            ? { action: 'rename', id: action.template.id, expectedName: action.template.name, name }
             : { action: 'delete', id: action.template.id },
         );
-      setAction(null);
+      setNotice(
+        action.type === 'rename'
+          ? 'Workout renamed.'
+          : action.type === 'delete'
+            ? 'Workout deleted.'
+            : '',
+      );
+      closeAction();
     } catch (e) {
       setError(message(e));
     } finally {
@@ -195,9 +272,16 @@ export function TemplateLibrary({
   return (
     <section className="template-library" aria-labelledby="saved-workouts-title">
       <div>
-        <h2 id="saved-workouts-title">Saved workouts</h2>
+        <h2 id="saved-workouts-title" ref={heading} tabIndex={-1}>
+          Saved workouts
+        </h2>
         <p>Keep your favourites ready for the next round.</p>
       </div>
+      {!action && notice && <p role="status">{notice}</p>}
+      {!action && error && <p role="alert">{error}</p>}
+      <Button variant="secondary" disabled={busy || query.isPending} onClick={() => void refresh()}>
+        Refresh saved workouts
+      </Button>
       {query.isPending && <p role="status">Loading saved workouts…</p>}
       {query.isError ? (
         <div role="alert">
@@ -208,8 +292,11 @@ export function TemplateLibrary({
         </div>
       ) : (
         <>
-          {!!query.data?.templates.length && (
-            <div className="template-search">
+          {(!!query.data?.templates.length ||
+            !!search ||
+            favouritesOnly ||
+            workoutType !== 'all') && (
+            <fieldset className="template-search" aria-label="Filter saved workouts">
               <label htmlFor={searchId}>Search saved workouts</label>
               <Input
                 id={searchId}
@@ -217,12 +304,51 @@ export function TemplateLibrary({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
-            </div>
+              <div className="template-filters">
+                <div className="template-mode">
+                  <label htmlFor={typeId}>Workout type</label>
+                  <select
+                    id={typeId}
+                    value={workoutType}
+                    onChange={(event) => setWorkoutType(event.target.value)}
+                  >
+                    <option value="all">All types</option>
+                    <option value="emom">EMOM</option>
+                    <option value="countdown">Countdown</option>
+                    <option value="intervals">Intervals</option>
+                    <option value="amrap">AMRAP</option>
+                    <option value="forTime">For Time</option>
+                    <option value="ladder">Ladder</option>
+                  </select>
+                </div>
+                <label className="template-favourites">
+                  <input
+                    type="checkbox"
+                    checked={favouritesOnly}
+                    onChange={(event) => setFavouritesOnly(event.target.checked)}
+                  />
+                  Favourites only
+                </label>
+                <Button
+                  variant="secondary"
+                  disabled={!search && !favouritesOnly && workoutType === 'all'}
+                  onClick={() => {
+                    setSearch('');
+                    setFavouritesOnly(false);
+                    setWorkoutType('all');
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </div>
+            </fieldset>
           )}
           {query.data && templates.length === 0 && (
             <p>
               {query.data.templates.length
-                ? 'No saved workouts match your search.'
+                ? favouritesOnly || workoutType !== 'all'
+                  ? 'No saved workouts match your filters.'
+                  : 'No saved workouts match your search.'
                 : 'Save a workout from any workout setup to see it here.'}
             </p>
           )}
@@ -246,13 +372,24 @@ export function TemplateLibrary({
                   </p>
                 </div>
                 <div className="template-actions">
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    aria-pressed={!!template.favourite}
+                    aria-label={`${template.favourite ? 'Unfavourite' : 'Favourite'} ${template.name}`}
+                    onClick={(event) => void favourite(template, event.currentTarget)}
+                  >
+                    {template.favourite ? '★ Favourite' : '☆ Favourite'}
+                  </Button>
                   {(['load', 'rename', 'delete'] as const).map((type) => (
                     <Button
                       key={type}
                       variant={type === 'load' ? 'default' : 'secondary'}
                       disabled={busy}
                       aria-label={`${type[0].toUpperCase() + type.slice(1)} ${template.name}`}
-                      onClick={() => {
+                      onClick={(event) => {
+                        origin.current = event.currentTarget;
+                        setNotice('');
                         setAction({ type, template });
                         setName(template.name);
                         setError(null);
@@ -271,7 +408,7 @@ export function TemplateLibrary({
         <Dialog
           title={`${action.type[0].toUpperCase() + action.type.slice(1)} saved workout`}
           onClose={() => {
-            if (!busy) setAction(null);
+            if (!busy) closeAction();
           }}
         >
           <form
@@ -300,14 +437,22 @@ export function TemplateLibrary({
                   : `Load “${action.template.name}”? This replaces the current setup for this workout mode.`}
               </p>
             )}
-            {error && <p role="alert">{error}</p>}
+            {notice && <p role="status">{notice}</p>}
+            {error && (
+              <>
+                <p role="alert">{error}</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => void refresh()}
+                >
+                  Refresh saved workouts
+                </Button>
+              </>
+            )}
             <div className="template-actions">
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={busy}
-                onClick={() => setAction(null)}
-              >
+              <Button type="button" variant="secondary" disabled={busy} onClick={closeAction}>
                 Cancel
               </Button>
               <Button

@@ -1,11 +1,17 @@
 import { validateConfig, type WorkoutConfig } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
-export type WorkoutTemplate = { id: string; name: string; config: WorkoutConfig };
+export type WorkoutTemplate = {
+  id: string;
+  name: string;
+  config: WorkoutConfig;
+  favourite?: boolean;
+};
 export type TemplateDocument = { version: 1; templates: WorkoutTemplate[] };
 export type TemplateMutation =
   | { action: 'save'; name: string; config: WorkoutConfig }
   | { action: 'update'; id: string; expected: WorkoutTemplate; name: string; config: WorkoutConfig }
-  | { action: 'rename'; id: string; name: string }
+  | { action: 'rename'; id: string; name: string; expectedName: string }
+  | { action: 'favourite'; id: string; favourite: boolean }
   | { action: 'delete'; id: string };
 export type TemplateStorage = Pick<Storage, 'getItem' | 'setItem'>;
 export const TEMPLATE_STORAGE_KEY = 'nextround.workout-templates.v1';
@@ -97,6 +103,7 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
 }
 export function parseTemplateDocument(value: unknown): TemplateDocument {
   if (!record(value)) throw new Error(invalid);
+  rejectUnknown(value, ['version', 'templates']);
   if (value.version !== 1)
     throw new Error('This saved workout version is unsupported. Existing data has been preserved.');
   if (!Array.isArray(value.templates) || value.templates.length > 100) throw new Error(invalid);
@@ -111,7 +118,15 @@ export function parseTemplateDocument(value: unknown): TemplateDocument {
     )
       throw new Error(invalid);
     ids.add(entry.id);
-    return { id: entry.id, name: nameValue(entry.name), config: copyValidatedConfig(entry.config) };
+    rejectUnknown(entry, ['id', 'name', 'config', 'favourite']);
+    if (entry.favourite !== undefined && typeof entry.favourite !== 'boolean')
+      throw new Error(invalid);
+    return {
+      ...(entry.favourite ? { favourite: true } : {}),
+      id: entry.id,
+      name: nameValue(entry.name),
+      config: copyValidatedConfig(entry.config),
+    };
   });
   return { version: 1, templates };
 }
@@ -155,17 +170,38 @@ export function createBrowserRepository(storage: TemplateStorage) {
         if (index < 0)
           throw new Error('This saved workout no longer exists. Refresh and try again.');
         if (input.action === 'update') {
-          if (canonical(document.templates[index]) !== canonical(input.expected))
+          if (
+            canonical({
+              id: document.templates[index].id,
+              name: document.templates[index].name,
+              config: document.templates[index].config,
+            }) !==
+            canonical({
+              id: input.expected.id,
+              name: input.expected.name,
+              config: input.expected.config,
+            })
+          )
             throw new Error(
               'This saved workout changed since you loaded it. Reload it or save as new.',
             );
           document.templates[index] = {
+            ...document.templates[index],
             id: input.id,
             name: nameValue(input.name),
             config: copyValidatedConfig(input.config),
           };
         } else if (input.action === 'delete') document.templates.splice(index, 1);
-        else document.templates[index].name = nameValue(input.name);
+        else if (input.action === 'favourite') {
+          if (input.favourite) document.templates[index].favourite = true;
+          else delete document.templates[index].favourite;
+        } else {
+          if (document.templates[index].name !== input.expectedName)
+            throw new Error(
+              'This saved workout name changed. Refresh to review the current name before trying again.',
+            );
+          document.templates[index].name = nameValue(input.name);
+        }
       }
       storage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(document));
       return parseTemplateDocument(JSON.parse(JSON.stringify(document)));
