@@ -18,6 +18,8 @@ pub struct WorkoutTemplate {
     pub id: String,
     pub name: String,
     pub config: Config,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub favourite: bool,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -41,6 +43,12 @@ pub enum Mutation {
     Rename {
         id: String,
         name: String,
+        #[serde(rename = "expectedName")]
+        expected_name: String,
+    },
+    Favourite {
+        id: String,
+        favourite: bool,
     },
     Delete {
         id: String,
@@ -125,6 +133,7 @@ impl TemplateStore {
                 timer::validate(&config)?;
                 document.templates.push(WorkoutTemplate {
                     id: unique_id(),
+                    favourite: false,
                     name: name_value(&name)?,
                     config,
                 });
@@ -138,7 +147,10 @@ impl TemplateStore {
                 let entry = document.templates.iter_mut().find(|e| e.id == id).ok_or(
                     "This saved workout no longer exists. Save as new to keep your edits.",
                 )?;
-                if *entry != expected {
+                if entry.id != expected.id
+                    || entry.name != expected.name
+                    || entry.config != expected.config
+                {
                     return Err(
                         "This saved workout changed since you loaded it. Reload it or save as new."
                             .into(),
@@ -146,17 +158,33 @@ impl TemplateStore {
                 }
                 timer::validate(&config)?;
                 *entry = WorkoutTemplate {
+                    favourite: entry.favourite,
                     id,
                     name: name_value(&name)?,
                     config,
                 };
             }
-            Mutation::Rename { id, name } => {
+            Mutation::Favourite { id, favourite } => {
                 let entry = document
                     .templates
                     .iter_mut()
                     .find(|e| e.id == id)
                     .ok_or("This saved workout no longer exists.")?;
+                entry.favourite = favourite;
+            }
+            Mutation::Rename {
+                id,
+                name,
+                expected_name,
+            } => {
+                let entry = document
+                    .templates
+                    .iter_mut()
+                    .find(|e| e.id == id)
+                    .ok_or("This saved workout no longer exists.")?;
+                if entry.name != expected_name {
+                    return Err("This saved workout name changed. Refresh to review the current name before trying again.".into());
+                }
                 entry.name = name_value(&name)?;
             }
             Mutation::Delete { id } => {
@@ -227,6 +255,46 @@ mod tests {
                 .join(format!("nextround-template-test-{}", unique_id()))
                 .join("workouts.json"),
         )
+    }
+    #[test]
+    fn favourites_preserve_content_updates_and_rename_guards() {
+        let s = store();
+        let original = s
+            .mutate(Mutation::Save {
+                name: "Routine".into(),
+                config: config(),
+            })
+            .unwrap()
+            .templates[0]
+            .clone();
+        let favourite: Result<Mutation, _> = serde_json::from_value(
+            serde_json::json!({"action":"favourite","id":original.id,"favourite":true}),
+        );
+        assert!(favourite.is_ok(), "favourite command must be supported");
+        s.mutate(favourite.unwrap()).unwrap();
+        s.mutate(Mutation::Update {
+            id: original.id.clone(),
+            expected: original.clone(),
+            name: "Routine".into(),
+            config: config(),
+        })
+        .unwrap();
+        let persisted =
+            serde_json::to_value(TemplateStore::new(s.path.clone()).read().unwrap()).unwrap();
+        assert_eq!(persisted["templates"][0]["favourite"], true);
+        let rename = |expected: &str, name: &str| {
+            serde_json::from_value(serde_json::json!({"action":"rename","id":original.id,"expectedName":expected,"name":name})).unwrap()
+        };
+        s.mutate(rename("Routine", "Newer")).unwrap();
+        let raw = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(rename("Routine", "Stale"))
+            .unwrap_err()
+            .contains("name changed"));
+        assert_eq!(fs::read(&s.path).unwrap(), raw);
+        s.mutate(rename("Newer", " Latest ")).unwrap();
+        assert_eq!(s.read().unwrap().templates[0].name, "Latest");
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     #[test]
     fn interval_save_preserves_legacy_templates_across_restart() {
@@ -336,6 +404,7 @@ mod tests {
         s.mutate(Mutation::Rename {
             id: saved.templates[0].id.clone(),
             name: "Renamed".into(),
+            expected_name: "Strength".into(),
         })
         .unwrap();
         assert_eq!(s.read().unwrap().templates[0].name, "Renamed");

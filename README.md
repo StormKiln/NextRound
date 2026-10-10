@@ -261,3 +261,7 @@ Use **Replace** beside an exercise in any of the six workout builders. Choose a 
 **Undo replacement** restores just the last replaced movement, preserving timing changes and edits to other entries. It expires when that movement is edited, removed, replaced again, or you leave the builder. Existing saved workouts change only when explicitly saved; previous workout results are never rewritten.
 
 The workout generator also links directly to equipment settings while retaining the requested count and preset. Invalid counts receive keyboard focus for correction. Closing a comparison returns focus to its history result, or the history heading if that result has disappeared.
+
+### Saved-workout favourites
+
+Mark a saved workout as a favourite, then combine **Favourites only**, **Workout type**, and name search to find your next session. Renaming or updating a workout preserves its favourite status; saving a new copy starts unfavourited. **Refresh saved workouts** recovers from records changed elsewhere, and stale renames ask you to review the current name before trying again. Favourite metadata stays on your Mac. Use 1.12.0 or later to edit a library containing favourites.
