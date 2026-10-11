@@ -8,9 +8,29 @@ NextRound is a workout companion for CrossFit and functional fitness. It brings 
 
 The initial platforms are **macOS desktop** and **iOS**.
 
-> Status: **1.11.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history with repeat-attempt comparisons, history-based exercise suggestions and whole-workout generation, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, cloud sync, and duration/intensity-based workout recommendations remain planned.
+> Status: **1.13.0 macOS release**. Includes Ladder, For Time, EMOM, AMRAP, Countdown and work/rest interval timers, exercise targets and checklists, grouped exercise browsing, saved local workout templates and completed-session history with editable workout notes and repeat-attempt comparisons, history-based exercise suggestions and whole-workout generation, configurable window behavior, and separate GitHub/App Store update channels. GitHub downloads are signed and notarized. iOS, cloud sync, and duration/intensity-based workout recommendations remain planned.
 
-[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.11.0.md)
+[Privacy policy](PRIVACY.md) · [Release notes](docs/release-notes-1.13.0.md)
+
+## Screenshots
+
+The 1.13.0 interface, captured in the browser preview with sample data. The macOS app uses the same shared interface.
+
+**Choose your workout.** Start with EMOM, Countdown, Intervals, AMRAP, For Time or Ladder.
+
+![NextRound Home with six workout modes](docs/screenshots/home.png)
+
+**Build your session.** Set the timing, arrange movements and adjust exercise targets.
+
+![EMOM setup with timing controls and an ordered exercise list](docs/screenshots/emom-setup.png)
+
+**Find your movements.** Browse exercise groups, use focus-area and equipment filters, or get suggestions from saved history.
+
+![Exercise picker with grouped movements, suggestions and equipment controls](docs/screenshots/exercise-picker.png)
+
+**Remember your progress.** Review completed sessions, add notes, compare attempts and repeat a workout from setup.
+
+![Saved EMOM result with a workout note and exercise targets](docs/screenshots/workout-notes.png)
 
 ## Product scope
 
