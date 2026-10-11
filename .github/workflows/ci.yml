@@ -17,8 +17,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  repository-checks:
-    name: Repository checks
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    outputs:
+      full-ci: ${{ steps.scope.outputs.full-ci }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Select validation scope
+        id: scope
+        run: python3 scripts/ci-scope.py
+
+  full-validation:
+    name: Full validation
+    needs: changes
+    if: needs.changes.outputs.full-ci == 'true'
     runs-on: macos-15
     timeout-minutes: 30
     steps:
@@ -50,3 +67,23 @@ jobs:
         run: make test-e2e
       - name: Build macOS app
         run: make build-app
+
+  repository-checks:
+    name: Repository checks
+    runs-on: ubuntu-latest
+    needs: [changes, full-validation]
+    if: always()
+    steps:
+      - name: Require successful validation for the selected scope
+        env:
+          CLASSIFICATION_RESULT: ${{ needs.changes.result }}
+          FULL_CI: ${{ needs.changes.outputs.full-ci }}
+          VALIDATION_RESULT: ${{ needs.full-validation.result }}
+        run: |
+          test "$CLASSIFICATION_RESULT" = success
+          if [ "$FULL_CI" = false ]; then
+            test "$VALIDATION_RESULT" = skipped
+          else
+            test "$FULL_CI" = true
+            test "$VALIDATION_RESULT" = success
+          fi
