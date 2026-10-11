@@ -12,7 +12,9 @@ The `Repository checks` GitHub Actions job is required on PRs and merge groups. 
 
 ## Maintaining CI
 
-The required job runs all checks, browser tests, and a macOS app build:
+The required `Repository checks` gate always runs, including for pull requests and merge groups. Root Markdown files, Markdown/images under `docs/`, and asset README files use a lightweight documentation-only path without application tests or builds. Any other changed path, an empty/unavailable comparison, or a manual run uses the full checks, browser tests, and macOS app build. Renames consider both old and new paths so moving code into documentation cannot skip validation.
+
+For CI changes:
 
 - Keep Makefile commands and CI aligned when adding checks.
 - Keep the stable required `Repository checks` job as a gate that fails if any required dependent job fails or is cancelled; do not report success after failed dependencies.
