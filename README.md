@@ -265,3 +265,9 @@ The workout generator also links directly to equipment settings while retaining 
 ### Saved-workout favourites
 
 Mark a saved workout as a favourite, then combine **Favourites only**, **Workout type**, and name search to find your next session. Renaming or updating a workout preserves its favourite status; saving a new copy starts unfavourited. **Refresh saved workouts** recovers from records changed elsewhere, and stale renames ask you to review the current name before trying again. Favourite metadata stays on your Mac. Use 1.12.0 or later to edit a library containing favourites.
+
+### 1.13.0: notes for saved results
+
+Open a result in **Workout history** and choose **Add note** or **Edit note**. Save up to 2,000 characters of plain text, or save a blank note to clear it. Search history includes notes. Notes are separate from the recorded workout: editing one does not change the date, score, comparison group or usage counts, and repeating a workout does not copy its note.
+
+**Refresh history** recovers changed or missing records. If a note changed elsewhere, refresh to review the current saved text without losing your draft. Closing or leaving an unsaved note asks you to save, discard or keep editing. Result dialogs keep actions visible while long content scrolls, and keyboard focus returns to the originating control or history heading. Use 1.13.0 or later to edit history containing notes; older native builds preserve unsupported data without overwriting it. See [1.13.0 release notes](docs/release-notes-1.13.0.md).

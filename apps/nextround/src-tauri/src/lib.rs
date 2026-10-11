@@ -23,6 +23,7 @@ use tauri::{
 use timer::{Config, Session, Snapshot};
 
 struct Runtime {
+    note_editing: bool,
     session: Option<Session>,
     update_gate: update_gate::UpdateGate,
     audio: Audio,
@@ -157,13 +158,24 @@ fn resolve_workout_result(state: State<'_, Shared>) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_history_note_editing(editing: bool, state: State<'_, Shared>) -> Result<(), String> {
+    let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    if editing && rt.update_gate.busy {
+        return Err("Wait for the update to finish before editing a note.".into());
+    }
+    rt.note_editing = editing;
+    Ok(())
+}
+
+#[tauri::command]
 fn quit_app(app: tauri::AppHandle, state: State<'_, Shared>) -> Result<(), String> {
     {
         let rt = state.lock().map_err(|_| "Timer unavailable")?;
-        if rt
-            .session
-            .as_ref()
-            .is_some_and(|s| s.active() || s.needs_result_decision())
+        if rt.note_editing
+            || rt
+                .session
+                .as_ref()
+                .is_some_and(|s| s.active() || s.needs_result_decision())
         {
             return Err(
                 "Stop your workout or save/discard its completed result before quitting.".into(),
@@ -290,6 +302,7 @@ pub fn run() {
             control_workout,
             read_workout,
             quit_app,
+            set_history_note_editing,
             resolve_workout_result,
             distribution_channel,
             open_project_page,
@@ -310,6 +323,7 @@ pub fn run() {
         control_workout,
         read_workout,
         quit_app,
+        set_history_note_editing,
         resolve_workout_result,
         distribution_channel,
         open_project_page,
@@ -339,9 +353,11 @@ pub fn run() {
                         let rt = state.lock().unwrap_or_else(|e| e.into_inner());
                         (
                             rt.update_gate.busy,
-                            rt.session
-                                .as_ref()
-                                .is_some_and(|s| s.active() || s.needs_result_decision()),
+                            rt.note_editing
+                                || rt
+                                    .session
+                                    .as_ref()
+                                    .is_some_and(|s| s.active() || s.needs_result_decision()),
                         )
                     })
                     .unwrap_or((false, false));
@@ -407,6 +423,7 @@ pub fn run() {
             });
             let audio = Audio::new().map_err(std::io::Error::other)?;
             let runtime = Arc::new(Mutex::new(Runtime {
+                note_editing: false,
                 session: None,
                 update_gate: update_gate::UpdateGate::default(),
                 audio,
@@ -440,10 +457,11 @@ pub fn run() {
                         api.prevent_exit();
                         return;
                     }
-                    if rt
-                        .session
-                        .as_ref()
-                        .is_some_and(|s| s.active() || s.needs_result_decision())
+                    if rt.note_editing
+                        || rt
+                            .session
+                            .as_ref()
+                            .is_some_and(|s| s.active() || s.needs_result_decision())
                     {
                         api.prevent_exit();
                         request_quit_confirmation(app);

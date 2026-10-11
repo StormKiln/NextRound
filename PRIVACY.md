@@ -1,6 +1,6 @@
 # NextRound Privacy Policy
 
-Effective date: October 5, 2026
+Effective date: October 10, 2026
 
 This policy describes the macOS NextRound app distributed through the Mac App Store, TestFlight, and the public [StormKiln/NextRound repository](https://github.com/StormKiln/NextRound). NextRound is maintained by StormKiln.
 
@@ -8,7 +8,7 @@ This policy describes the macOS NextRound app distributed through the Mac App St
 
 NextRound works without an account. Exercise selections, custom exercise descriptions, targets, timer settings, and completion checkmarks are used on your device to run your workout. We do not upload this workout information to our servers, share it with advertising or analytics services, or synchronize it between devices.
 
-When you choose **Save workout**, the app stores the template's name, exercises, order, descriptions, targets, and timing configuration locally on your Mac. App preferences, such as available equipment, close-button behavior and update settings, are also stored locally. When you choose **Save result** after a completed workout, the app stores its completion date, active duration, workout configuration, exercise names/descriptions/targets, any completion checkmarks, and manually recorded AMRAP movement counts and partial progress locally. These records remain independent of later changes to exercise definitions or templates. Unsaved drafts, discarded results and active-session progress do not survive quitting; interrupted sessions are not automatically saved.
+When you choose **Save workout**, the app stores the template's name, exercises, order, descriptions, targets, and timing configuration locally on your Mac. App preferences, such as available equipment, close-button behavior and update settings, are also stored locally. When you choose **Save result** after a completed workout, the app stores its completion date, active duration, workout configuration, exercise names/descriptions/targets, any completion checkmarks, and manually recorded AMRAP movement counts and partial progress locally. Optional notes attached to saved results are stored locally and can be edited or cleared from the result detail. Notes are included in local history search and are not uploaded. These records remain independent of later changes to exercise definitions or templates. Unsaved drafts, discarded results and active-session progress do not survive quitting; interrupted sessions are not automatically saved.
 
 NextRound does not access HealthKit, read health records, connect to fitness equipment, or automatically measure your activity. Repetition, distance, and calorie targets are values you enter or select, not measurements collected from a device.
 

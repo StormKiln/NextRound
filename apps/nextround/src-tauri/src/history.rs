@@ -7,6 +7,8 @@ use std::{collections::HashSet, fs, path::PathBuf, sync::Mutex};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkoutResult {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub note: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ladder_completed_movements: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -34,15 +36,37 @@ pub struct HistoryDocument {
 #[derive(Deserialize)]
 #[serde(tag = "action", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Mutation {
-    Save { result: Box<WorkoutResult> },
-    Delete { id: String },
+    Save {
+        result: Box<WorkoutResult>,
+    },
+    Delete {
+        id: String,
+    },
+    Note {
+        id: String,
+        #[serde(rename = "expectedNote")]
+        expected_note: String,
+        note: String,
+    },
 }
 pub struct HistoryStore {
     path: PathBuf,
     gate: Mutex<()>,
 }
+// Keep this explicit set in sync with history/note-text.ts (ECMAScript whitespace).
+fn blank_note(note: &str) -> bool {
+    note.chars().all(|c| {
+        matches!(c,
+        '\u{0009}'..='\u{000d}' | '\u{0020}' | '\u{00a0}' | '\u{1680}' |
+        '\u{2000}'..='\u{200a}' | '\u{2028}' | '\u{2029}' | '\u{202f}' |
+        '\u{205f}' | '\u{3000}' | '\u{feff}')
+    })
+}
 fn validate_result(result: &WorkoutResult) -> Result<(), String> {
     timer::validate(&result.config)?;
+    if result.note.chars().count() > 2000 {
+        return Err("Notes can contain up to 2,000 characters.".into());
+    }
     match (&result.config.mode, &result.amrap_progress) {
         (Mode::Amrap, Some(score)) if score.completed_movements <= 999999 => {
             let current = &result.config.exercises
@@ -119,7 +143,7 @@ impl HistoryStore {
             }
             Err(e) => return Err(format!("Cannot read workout history: {e}")),
         };
-        let document: HistoryDocument = serde_json::from_slice(&raw).map_err(|e| {
+        let mut document: HistoryDocument = serde_json::from_slice(&raw).map_err(|e| {
             format!("Workout history is unreadable; existing data is preserved: {e}")
         })?;
         if document.version != 1 {
@@ -128,8 +152,11 @@ impl HistoryStore {
             );
         }
         let mut ids = HashSet::new();
-        for result in &document.results {
+        for result in &mut document.results {
             validate_result(result)?;
+            if blank_note(&result.note) {
+                result.note.clear();
+            }
             if !ids.insert(&result.id) {
                 return Err("Duplicate history identifiers; existing data is preserved.".into());
             }
@@ -147,12 +174,36 @@ impl HistoryStore {
             Mutation::Save { result } => {
                 validate_result(&result)?;
                 if let Some(existing) = document.results.iter().find(|r| r.id == result.id) {
-                    if existing != result.as_ref() {
+                    let mut performed = existing.clone();
+                    performed.note = result.note.clone();
+                    if &performed != result.as_ref() {
                         return Err("This session is already saved with different data.".into());
                     }
                     return Ok(document);
                 }
                 document.results.push(*result);
+            }
+            Mutation::Note {
+                id,
+                expected_note,
+                note,
+            } => {
+                if note.chars().count() > 2000 {
+                    return Err("Notes can contain up to 2,000 characters.".into());
+                }
+                let result = document
+                    .results
+                    .iter_mut()
+                    .find(|r| r.id == id)
+                    .ok_or("This result no longer exists. Refresh and try again.")?;
+                if result.note != expected_note {
+                    return Err("This note changed elsewhere. Refresh history to review the latest note before saving.".into());
+                }
+                result.note = if blank_note(&note) {
+                    String::new()
+                } else {
+                    note
+                };
             }
             Mutation::Delete { id } => {
                 let index = document
@@ -187,6 +238,73 @@ pub fn mutate_workout_history(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn unicode_blank_notes_remain_editable() {
+        let s = store();
+        let original = result();
+        s.mutate(Mutation::Save {
+            result: Box::new(original.clone()),
+        })
+        .unwrap();
+        let edit = |expected: &str, note: &str| Mutation::Note {
+            id: original.id.clone(),
+            expected_note: expected.into(),
+            note: note.into(),
+        };
+        s.mutate(edit("", "\u{feff}")).unwrap();
+        assert!(s.read().unwrap().results[0].note.is_empty());
+        s.mutate(edit("", "After blank")).unwrap();
+        s.mutate(edit("After blank", "\u{85}")).unwrap();
+        assert_eq!(s.read().unwrap().results[0].note, "\u{85}");
+        s.mutate(edit("\u{85}", "Next")).unwrap();
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn notes_preserve_results_and_detect_conflicts() {
+        let s = store();
+        let original = result();
+        s.mutate(Mutation::Save {
+            result: Box::new(original.clone()),
+        })
+        .unwrap();
+        let command = |expected: &str, note: &str| {
+            serde_json::from_value::<Mutation>(
+                serde_json::json!({"action":"note","id":original.id,"expectedNote":expected,"note":note}),
+            )
+        };
+        assert!(
+            command("", "First").is_ok(),
+            "note mutation must be supported"
+        );
+        s.mutate(command("", "First").unwrap()).unwrap();
+        s.mutate(Mutation::Save {
+            result: Box::new(original.clone()),
+        })
+        .unwrap();
+        assert_eq!(
+            serde_json::to_value(s.read().unwrap()).unwrap()["results"][0]["note"],
+            "First"
+        );
+        let bytes = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(command("", "Stale").unwrap())
+            .unwrap_err()
+            .contains("note changed"));
+        assert_eq!(fs::read(&s.path).unwrap(), bytes);
+        let unicode = "😀".repeat(2000);
+        s.mutate(command("First", &unicode).unwrap()).unwrap();
+        assert!(s
+            .mutate(command(&unicode, &(unicode.clone() + "x")).unwrap())
+            .is_err());
+        s.mutate(command(&unicode, " \n ").unwrap()).unwrap();
+        assert_eq!(s.read().unwrap().results, vec![original.clone()]);
+        s.mutate(Mutation::Delete {
+            id: original.id.clone(),
+        })
+        .unwrap();
+        assert!(s.mutate(command("", "Missing").unwrap()).is_err());
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
     #[test]
     fn amrap_score_roundtrips_and_rejects_invalid_partial_units() {
         let raw = serde_json::json!({"id":"amrap", "completedAt":1780000000000u64,"elapsedMs":60000,"checkedExerciseIds":[], "amrapProgress":{"completedMovements":3,"partialValue":40},"config":{"type":"amrap","durationSeconds":60,"leadInSeconds":0,"warningSeconds":3,"exercises":[{"id":"a","name":"Squat","target":{"unit":"reps","value":10}},{"id":"b","name":"Row","target":{"unit":"metres","value":100}}]}});

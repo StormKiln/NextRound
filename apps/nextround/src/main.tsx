@@ -18,6 +18,7 @@ import { deferredScreen } from '@/components/deferred-screen';
 import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
+import { useNoteGuard } from '@/features/history/note-guard';
 
 const ExerciseLibrary = deferredScreen(() =>
   import('@/features/exercises/library-view').then((module) => module.ExerciseLibrary),
@@ -123,7 +124,11 @@ function Shell() {
       });
     let unlistenQuit: (() => void) | undefined;
     if (native)
-      void listen('quit-requested', () => setClose(true)).then((fn) => {
+      void listen('quit-requested', () => {
+        const noteQuit = useNoteGuard.getState().onQuit;
+        if (noteQuit) noteQuit();
+        else setClose(true);
+      }).then((fn) => {
         if (disposed) fn();
         else unlistenQuit = fn;
       });

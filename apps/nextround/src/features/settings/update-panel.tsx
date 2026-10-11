@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/button';
+import { useNoteGuard } from '@/features/history/note-guard';
 import { useWorkout } from '@/state/workout';
 import { useUpdates } from './updates';
 
 export function UpdatePanel() {
   const u = useUpdates();
+  const editingNote = useNoteGuard((s) => !!s.onQuit);
   const session = useWorkout((s) => s.snapshot);
   const active = !!session && ['running', 'leadIn'].includes(session.phase);
   const pendingResult = useWorkout((s) => s.pendingResult);
@@ -68,7 +70,9 @@ export function UpdatePanel() {
             </Button>
             {u.available && (
               <Button
-                disabled={busy || active || !!pendingResult || u.status === 'checking'}
+                disabled={
+                  busy || active || !!pendingResult || editingNote || u.status === 'checking'
+                }
                 onClick={() => void u.install()}
               >
                 Install and Restart
