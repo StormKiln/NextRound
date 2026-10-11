@@ -1,14 +1,21 @@
 import type { WorkoutConfig } from '@nextround/core';
 import { matchesExercise } from '../setup/exercise-suggestions';
+import type { DateBounds } from './date-filters';
 import type { WorkoutResult } from './repository';
 export type HistoryMode = NonNullable<WorkoutConfig['type']> | 'all';
 
 import { normalizeSearch as normalized } from '@/lib/search';
-export function filterHistory(results: WorkoutResult[], mode: HistoryMode, query: string) {
+export function filterHistory(
+  results: WorkoutResult[],
+  mode: HistoryMode,
+  query: string,
+  dates: DateBounds | null = null,
+) {
   const needle = normalized(query);
   return results
     .filter(
       (result) =>
+        (!dates || (result.completedAt >= dates.start && result.completedAt < dates.end)) &&
         (mode === 'all' || (result.config.type ?? 'emom') === mode) &&
         (!needle ||
           normalized(result.note ?? '').includes(needle) ||

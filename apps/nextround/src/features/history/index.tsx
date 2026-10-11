@@ -15,6 +15,9 @@ import { LadderResult } from '@/features/ladder/progress';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
 import { ComparisonView } from './comparison-view';
+import { DateControls, useCalendarNow } from './date-controls';
+import { dateBounds } from './date-filters';
+import { useHistoryFilters } from './filter-state';
 import { filterHistory, type HistoryMode } from './filters';
 import { NoteEditor } from './note-editor';
 import {
@@ -66,11 +69,25 @@ export function History() {
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [mode, setMode] = useState<HistoryMode>('all');
-  const [search, setSearch] = useState('');
+  const { mode, search, date, draftPreset, start, end, reset } = useHistoryFilters();
+  const now = useCalendarNow();
   const allResults = query.data?.results ?? [];
-  const results = filterHistory(allResults, mode, search);
-  const filtered = mode !== 'all' || search.trim() !== '';
+  const results = filterHistory(allResults, mode, search, dateBounds(date, now));
+  const filtered = mode !== 'all' || search.trim() !== '' || date.preset !== 'all';
+  const canReset = filtered || draftPreset !== 'all' || !!start || !!end;
+  const compareButton = useRef<HTMLButtonElement>(null);
+  const detailBody = useRef<HTMLDivElement>(null);
+  const detailScroll = useRef(0);
+  const [returnToDetail, setReturnToDetail] = useState(false);
+  useEffect(() => {
+    if (!returnToDetail || !detail || comparisonId) return;
+    const frame = requestAnimationFrame(() => {
+      if (detailBody.current) detailBody.current.scrollTop = detailScroll.current;
+      compareButton.current?.focus({ preventScroll: true });
+      setReturnToDetail(false);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [returnToDetail, detail, comparisonId]);
   const [returnFocus, setReturnFocus] = useState(false);
   const restoreFocus = useCallback(() => setReturnFocus(true), []);
   useEffect(() => {
@@ -91,9 +108,14 @@ export function History() {
     refreshLock.current = true;
     setRefreshing(true);
     setError(null);
+    setNotice(null);
     try {
+      await client.cancelQueries({ queryKey: historyKey });
       const document = await readHistory();
+      await client.cancelQueries({ queryKey: historyKey });
+      if (!mounted.current) return;
       client.setQueryData(historyKey, document);
+      setNotice('History refreshed.');
       if (detail) {
         const latest = document.results.find((entry) => entry.id === detail.id);
         if (latest) setDetail(latest);
@@ -108,7 +130,7 @@ export function History() {
         restoreFocus();
       }
     } catch (e) {
-      setError(String(e));
+      if (mounted.current) setError(String(e));
     } finally {
       refreshLock.current = false;
       setRefreshing(false);
@@ -124,8 +146,7 @@ export function History() {
     }
   }, [query.data, editingNote, query.isError, detail, closeDetail]);
   function resetFilters() {
-    setMode('all');
-    setSearch('');
+    reset();
   }
   return (
     <main className="page history-page">
@@ -135,14 +156,14 @@ export function History() {
       </h1>
       <p>Completed sessions you chose to save. Stored on this Mac.</p>
       {notice && !detail && <p role="status">{notice}</p>}
-      {!!allResults.length && (
+      {
         <section className="history-filters" aria-label="Filter history">
           <div>
             <label htmlFor="history-mode">Workout type</label>
             <select
               id="history-mode"
               value={mode}
-              onChange={(e) => setMode(e.target.value as HistoryMode)}
+              onChange={(e) => useHistoryFilters.setState({ mode: e.target.value as HistoryMode })}
             >
               <option value="all">All workouts</option>
               <option value="emom">EMOM</option>
@@ -159,18 +180,19 @@ export function History() {
               id="history-search"
               type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => useHistoryFilters.setState({ search: e.target.value })}
               placeholder="Exercise name, description or note"
             />
           </div>
-          <Button variant="secondary" onClick={resetFilters} disabled={!filtered}>
+          <DateControls now={now} />
+          <Button variant="secondary" onClick={resetFilters} disabled={!canReset}>
             Reset filters
           </Button>
           <p role="status">
             {results.length} of {allResults.length} saved results
           </p>
         </section>
-      )}
+      }
       <Button
         variant="secondary"
         disabled={refreshing || query.isFetching}
@@ -190,7 +212,7 @@ export function History() {
         <section className="history-empty">
           <h2>{filtered ? 'No results match these filters.' : 'No saved results yet.'}</h2>
           {filtered ? (
-            <p>Try another workout type or search term.</p>
+            <p>Try another date range, workout type or search term.</p>
           ) : (
             <>
               <p>Finish a workout and choose Save result to start your training log.</p>
@@ -251,15 +273,23 @@ export function History() {
       {comparisonId && (
         <ComparisonView
           resultId={comparisonId}
-          onClose={() => {
+          onClose={async () => {
+            await client.cancelQueries({ queryKey: historyKey });
+            const document = await readHistory();
+            await client.cancelQueries({ queryKey: historyKey });
+            if (!mounted.current) return;
+            client.setQueryData(historyKey, document);
             setComparisonId(null);
-            requestAnimationFrame(() => {
-              if (!mounted.current) return;
-              const origin = comparisonOrigin.current;
-              (origin?.isConnected ? origin : historyHeading.current)?.focus({
-                preventScroll: true,
-              });
-            });
+            setError(null);
+            const latest = document.results.find((result) => result.id === comparisonId);
+            if (latest) {
+              setDetail(latest);
+              setNotice(null);
+              setReturnToDetail(true);
+            } else {
+              setNotice('This result is no longer in history.');
+              restoreFocus();
+            }
           }}
         />
       )}
@@ -270,8 +300,9 @@ export function History() {
             if (!repeatLock.current && !refreshLock.current) closeDetail();
           }}
           className="history-detail"
+          initialFocus={returnToDetail ? compareButton : undefined}
         >
-          <div className="history-detail-body">
+          <div ref={detailBody} className="history-detail-body">
             <section aria-label="Saved workout note">
               <h3>Workout note</h3>
               <p className="history-note">{detail.note || 'No note yet.'}</p>
@@ -346,7 +377,9 @@ export function History() {
             <Button
               variant="secondary"
               disabled={repeating || refreshing}
+              ref={compareButton}
               onClick={() => {
+                detailScroll.current = detailBody.current?.scrollTop ?? 0;
                 setComparisonId(detail.id);
                 setDetail(null);
               }}

@@ -48,3 +48,24 @@ it('searches normalized notes on timer-only sessions without changing order or m
   expect(filterHistory(results, 'countdown', 'cafe\u0301 recovery')).toHaveLength(1);
   expect(filterHistory(results, 'emom', 'recovery')).toHaveLength(0);
 });
+
+it('combines inclusive/exclusive date boundaries with mode and note search across all modes', () => {
+  const modes = [undefined, 'countdown', 'intervals', 'amrap', 'forTime', 'ladder'] as const;
+  const results = modes.flatMap((type, i) =>
+    [999, 1000, 1999, 2000].map((completedAt) => ({
+      id: `${i}-${completedAt}`,
+      completedAt,
+      note: 'Café recovery',
+      elapsedMs: 60000,
+      checkedExerciseIds: [],
+      config: { type, exercises: [] },
+    })),
+  ) as unknown as WorkoutResult[];
+  const snapshot = JSON.stringify(results);
+  expect(filterHistory(results, 'all', 'cafe\u0301', { start: 1000, end: 2000 })).toHaveLength(12);
+  for (const mode of modes) {
+    const filtered = filterHistory(results, mode ?? 'emom', 'recovery', { start: 1000, end: 2000 });
+    expect(filtered.map((r) => r.completedAt)).toEqual([1999, 1000]);
+  }
+  expect(JSON.stringify(results)).toBe(snapshot);
+});

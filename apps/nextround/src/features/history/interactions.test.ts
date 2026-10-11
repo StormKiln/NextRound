@@ -135,3 +135,25 @@ it('does not navigate after unmount during fullscreen exit', async () => {
   await act(async () => resolve());
   expect(mocks.navigate).not.toHaveBeenCalled();
 });
+
+it('older comparison query cannot replace the freshly returned result', async () => {
+  setup();
+  fireEvent.click(await screen.findByRole('button', { name: /^View result/ }));
+  let resolveOld!: (value: typeof doc) => void;
+  mocks.read.mockReturnValueOnce(
+    new Promise((resolve) => {
+      resolveOld = resolve;
+    }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Compare attempts' }));
+  await screen.findByText('Loading attempts…');
+  const fresh = { ...doc, results: [{ ...doc.results[0], note: 'Fresh returned note' }] };
+  mocks.read.mockResolvedValueOnce(fresh);
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+  await screen.findByText('Fresh returned note');
+  await act(async () => {
+    resolveOld(doc);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  });
+  await waitFor(() => expect(screen.getByText('Fresh returned note')).toBeTruthy());
+});

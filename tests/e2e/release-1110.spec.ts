@@ -72,6 +72,11 @@ test('comparison returns focus to its history origin, or the heading if removed'
     await expect(dialog.getByText('1 matching attempt', { exact: true })).toBeVisible();
     if (useEscape) await page.keyboard.press('Escape');
     else await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Compare attempts', exact: true })).toBeFocused();
+    await page
+      .getByRole('dialog', { name: 'EMOM result', exact: true })
+      .getByRole('button', { name: 'Close', exact: true })
+      .click();
     await expect(origin).toBeFocused();
   }
   await origin.click();
