@@ -50,6 +50,9 @@ for (const mode of configs) {
         );
     }, results);
     await page.goto('/history');
+    await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.getByText(/active time · 1 exercise(?:$| ·)/).first()).toBeVisible();
     await page
       .getByRole('button', { name: /View result:/ })
@@ -68,6 +71,9 @@ for (const mode of configs) {
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await page.reload();
+    await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.getByRole('button', { name: /View result:/ })).toHaveCount(2);
     await page.getByLabel('Search history').fill('pushups');
     await expect(page.getByRole('button', { name: /View result:/ })).toHaveCount(2);

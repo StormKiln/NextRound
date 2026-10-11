@@ -26,6 +26,9 @@ test('personal library creates, edits, archives, restores and preserves draft sn
   await page.getByRole('button', { name: 'Save exercise', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Café squat', exact: true })).toBeVisible();
   await page.reload();
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible({
+    timeout: 15000,
+  });
   await expect(page.getByRole('heading', { name: 'Café squat', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await page.getByRole('button', { name: 'Build an EMOM', exact: true }).click();

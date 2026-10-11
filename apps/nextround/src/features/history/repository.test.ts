@@ -232,3 +232,71 @@ it('preserves Ladder progress and rejects incomplete success or unrelated progre
   ).toMatchObject({ ladderCompletedMovements: 1 });
   expect(() => copyResult({ ...result, ladderCompletedMovements: 1 })).toThrow();
 });
+
+it('edits notes without changing performed snapshots or duplicate-save retries', async () => {
+  const f = fixture();
+  await f.repo.mutate({ action: 'save', result });
+  const note = '24 kg\nNext time: slower 🏋️';
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note });
+  expect((await createHistoryRepository(f.storage).read()).results).toEqual([{ ...result, note }]);
+  await f.repo.mutate({ action: 'save', result });
+  expect((await f.repo.read()).results).toEqual([{ ...result, note }]);
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: note, note: ' \n ' });
+  expect((await f.repo.read()).results).toEqual([result]);
+});
+it('rejects stale or missing note edits and preserves bytes after write failure', async () => {
+  const f = fixture();
+  await f.repo.mutate({ action: 'save', result });
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note: 'Newer' });
+  const before = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note: 'Stale' }),
+  ).rejects.toThrow(/note changed/);
+  expect(f.raw()).toBe(before);
+  f.fail(true);
+  await expect(
+    f.repo.mutate({ action: 'note', id: result.id, expectedNote: 'Newer', note: 'Edited' }),
+  ).rejects.toThrow('Disk full');
+  expect(f.raw()).toBe(before);
+  f.fail(false);
+  await f.repo.mutate({ action: 'delete', id: result.id });
+  await expect(
+    f.repo.mutate({ action: 'note', id: result.id, expectedNote: 'Newer', note: 'Missing' }),
+  ).rejects.toThrow(/no longer/);
+  expect((await f.repo.read()).results).toEqual([]);
+});
+it('validates Unicode note limits and preserves malformed stored notes', async () => {
+  const f = fixture();
+  await f.repo.mutate({ action: 'save', result });
+  const note = '😀'.repeat(2000);
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note });
+  expect((await f.repo.read()).results[0].note).toBe(note);
+  await expect(
+    f.repo.mutate({ action: 'note', id: result.id, expectedNote: note, note: `${note}x` }),
+  ).rejects.toThrow(/2,000/);
+  for (const invalidNote of [42, null, 'x'.repeat(2001)]) {
+    const raw = JSON.stringify({ version: 1, results: [{ ...result, note: invalidNote }] });
+    f.put(raw);
+    await expect(f.repo.mutate({ action: 'delete', id: result.id })).rejects.toThrow();
+    expect(f.raw()).toBe(raw);
+  }
+});
+
+it('normalizes blank legacy notes without changing usage counts', async () => {
+  const { deriveUsage } = await import('../setup/exercise-suggestions');
+  const f = fixture();
+  f.put(JSON.stringify({ version: 1, results: [{ ...result, note: ' \n ' }] }));
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note: 'Observation' });
+  expect(deriveUsage(await f.repo.read())).toEqual(deriveUsage({ version: 1, results: [result] }));
+});
+
+it('uses the same explicit Unicode blank-note semantics as native storage', async () => {
+  const f = fixture();
+  await f.repo.mutate({ action: 'save', result });
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note: '\ufeff' });
+  expect((await f.repo.read()).results[0].note).toBeUndefined();
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note: '\u0085' });
+  expect((await f.repo.read()).results[0].note).toBe('\u0085');
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '\u0085', note: 'Next edit' });
+  expect((await f.repo.read()).results[0].note).toBe('Next edit');
+});

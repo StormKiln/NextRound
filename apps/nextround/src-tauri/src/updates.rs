@@ -31,6 +31,9 @@ pub async fn install_app_update(app: tauri::AppHandle, version: String) -> Resul
     {
         let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
         rt.update();
+        if rt.note_editing {
+            return Err("Save or discard your workout note before installing an update.".into());
+        }
         if rt
             .session
             .as_ref()

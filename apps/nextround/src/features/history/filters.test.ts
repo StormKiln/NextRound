@@ -40,3 +40,11 @@ it('finds picker spelling aliases in historical snapshots and retains descriptio
   expect(filterHistory(results, 'emom', 'slow tempo')).toHaveLength(1);
   expect(filterHistory(results, 'ladder', 'pushups')).toHaveLength(0);
 });
+
+it('searches normalized notes on timer-only sessions without changing order or mode filtering', () => {
+  const results = [
+    { id: 'notes', completedAt: 1, config: { type: 'countdown' }, note: 'Café\n   recovery 🏋️' },
+  ] as WorkoutResult[];
+  expect(filterHistory(results, 'countdown', 'cafe\u0301 recovery')).toHaveLength(1);
+  expect(filterHistory(results, 'emom', 'recovery')).toHaveLength(0);
+});

@@ -11,6 +11,7 @@ export function filterHistory(results: WorkoutResult[], mode: HistoryMode, query
       (result) =>
         (mode === 'all' || (result.config.type ?? 'emom') === mode) &&
         (!needle ||
+          normalized(result.note ?? '').includes(needle) ||
           result.config.exercises?.some(
             (exercise) =>
               matchesExercise({ ...exercise, id: exercise.catalogId ?? exercise.id }, query) ||

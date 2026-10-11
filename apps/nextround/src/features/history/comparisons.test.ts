@@ -132,3 +132,14 @@ it('does not rank unspecified For Time work and preserves sub-tenth timing diffe
     '0.001 seconds faster',
   );
 });
+
+it('keeps annotation changes out of comparison matching and progress', () => {
+  const first = result('first', 1, 60000);
+  const later = result('later', 2, 50000);
+  const annotated = { ...later, note: 'Different observations' };
+  expect(compareAttempts(annotated, first)).toBe(compareAttempts(later, first));
+  expect(comparableAttempts([first, annotated], annotated).map((r) => r.id)).toEqual([
+    'later',
+    'first',
+  ]);
+});

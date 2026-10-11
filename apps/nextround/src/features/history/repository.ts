@@ -9,7 +9,9 @@ import {
 } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { copyValidatedConfig, type TemplateStorage } from '../templates/repository';
+import { normalizeNote } from './note-text';
 export type WorkoutResult = {
+  note?: string;
   ladderCompletedMovements?: number;
   outcome?: ForTimeOutcome;
   id: string;
@@ -22,7 +24,8 @@ export type WorkoutResult = {
 export type HistoryDocument = { version: 1; results: WorkoutResult[] };
 export type HistoryMutation =
   | { action: 'save'; result: WorkoutResult }
-  | { action: 'delete'; id: string };
+  | { action: 'delete'; id: string }
+  | { action: 'note'; id: string; expectedNote: string; note: string };
 export const HISTORY_STORAGE_KEY = 'nextround.workout-history.v1';
 const invalid = 'Workout history could not be read. Existing data has been preserved.';
 export function copyResult(value: unknown): WorkoutResult {
@@ -31,6 +34,7 @@ export function copyResult(value: unknown): WorkoutResult {
     Object.keys(value).some(
       (key) =>
         ![
+          'note',
           'id',
           'completedAt',
           'elapsedMs',
@@ -45,6 +49,11 @@ export function copyResult(value: unknown): WorkoutResult {
     throw new Error(invalid);
   const entry = value as WorkoutResult;
   const config = copyValidatedConfig(entry.config);
+  if (
+    entry.note !== undefined &&
+    (typeof entry.note !== 'string' || Array.from(entry.note).length > 2000)
+  )
+    throw new Error(invalid);
   if (
     typeof entry.id !== 'string' ||
     !entry.id.trim() ||
@@ -83,6 +92,7 @@ export function copyResult(value: unknown): WorkoutResult {
       throw new Error(invalid);
   } else if (entry.amrapProgress !== undefined) throw new Error(invalid);
   return {
+    ...(normalizeNote(entry.note ?? '') ? { note: entry.note } : {}),
     ...(config.type === 'ladder'
       ? { ladderCompletedMovements: entry.ladderCompletedMovements }
       : {}),
@@ -130,7 +140,10 @@ export function createHistoryRepository(storage: TemplateStorage) {
         const result = copyResult(input.result);
         const existing = document.results.find((entry) => entry.id === result.id);
         if (existing) {
-          if (JSON.stringify(existing) !== JSON.stringify(result))
+          if (
+            JSON.stringify({ ...existing, note: undefined }) !==
+            JSON.stringify({ ...result, note: undefined })
+          )
             throw new Error('This session is already saved with different data.');
           return document;
         }
@@ -138,7 +151,17 @@ export function createHistoryRepository(storage: TemplateStorage) {
       } else {
         const index = document.results.findIndex((entry) => entry.id === input.id);
         if (index < 0) throw new Error('This result no longer exists. Refresh and try again.');
-        document.results.splice(index, 1);
+        if (input.action === 'note') {
+          if (typeof input.note !== 'string' || Array.from(input.note).length > 2000)
+            throw new Error('Notes can contain up to 2,000 characters.');
+          const result = document.results[index];
+          if ((result.note ?? '') !== input.expectedNote)
+            throw new Error(
+              'This note changed elsewhere. Refresh history to review the latest note before saving.',
+            );
+          if (normalizeNote(input.note)) result.note = input.note;
+          else delete result.note;
+        } else document.results.splice(index, 1);
       }
       storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(document));
       return structuredClone(document);
