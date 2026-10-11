@@ -98,3 +98,38 @@
 .comparison-attempts p {
   margin: 8px 0;
 }
+
+.history-detail[open],
+.history-note-editor[open] {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  text-align: left;
+}
+.history-detail > h2,
+.history-detail > .dialog-actions,
+.history-detail > [role="alert"],
+.history-note-editor > h2,
+.history-note-editor > .dialog-actions {
+  flex-shrink: 0;
+}
+.history-detail-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 12px 8px 4px;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+}
+.history-note {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.history-note-editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 100px;
+  max-height: 240px;
+}
