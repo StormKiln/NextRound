@@ -1,11 +1,45 @@
 import { countLabel, formatTarget } from '@nextround/core';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { attemptSummary, comparableAttempts, compareAttempts } from './comparisons';
 import { historyKey, readHistory } from './repository';
 
-export function ComparisonView({ resultId, onClose }: { resultId: string; onClose: () => void }) {
+export function ComparisonView({
+  resultId,
+  onClose,
+}: {
+  resultId: string;
+  onClose: () => Promise<void>;
+}) {
+  const [returning, setReturning] = useState(false);
+  const [returnError, setReturnError] = useState<string | null>(null);
+  const returnLock = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  async function close() {
+    if (returnLock.current) return;
+    returnLock.current = true;
+    setReturning(true);
+    setReturnError(null);
+    try {
+      await onClose();
+    } catch {
+      if (mounted.current)
+        setReturnError(
+          'The result could not be read. Your history is preserved. Try returning again.',
+        );
+    } finally {
+      returnLock.current = false;
+      if (mounted.current) setReturning(false);
+    }
+  }
   const query = useQuery({
     queryKey: historyKey,
     queryFn: readHistory,
@@ -15,8 +49,12 @@ export function ComparisonView({ resultId, onClose }: { resultId: string; onClos
   const selected = query.data?.results.find((r) => r.id === resultId);
   const attempts = selected ? comparableAttempts(query.data?.results ?? [], selected) : [];
   return (
-    <Dialog title="Compare attempts" onClose={onClose} className="comparison-dialog">
+    <Dialog title="Compare attempts" onClose={() => void close()} className="comparison-dialog">
       <div className="comparison-body">
+        <p>
+          Comparisons include all matching saved attempts, regardless of the date, type or search
+          filters on the history list.
+        </p>
         <p>
           Matches use the saved movement identities, names, descriptions, order, targets and workout
           rules. Changed prescriptions stay separate. Lead-in and warning settings do not affect
@@ -93,15 +131,18 @@ export function ComparisonView({ resultId, onClose }: { resultId: string; onClos
           </>
         )}
       </div>
+      {returnError && <p role="alert">{returnError}</p>}
       <div className="dialog-actions">
         <Button
           variant="secondary"
           onClick={() => void query.refetch()}
-          disabled={query.isFetching}
+          disabled={query.isFetching || returning}
         >
           Refresh attempts
         </Button>
-        <Button onClick={onClose}>Close</Button>
+        <Button disabled={returning} onClick={() => void close()}>
+          {returning ? 'Returning…' : returnError ? 'Retry return' : 'Close'}
+        </Button>
       </div>
     </Dialog>
   );
