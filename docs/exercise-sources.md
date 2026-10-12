@@ -131,3 +131,28 @@ The following primary coaching references inform terminology and the selected va
 | Dumbbell man maker | [Nourish Move Love coach demonstration](https://www.nourishmovelove.com/dumbbell-arm-workout/) provides the compound movement. Our counted sequence is push-up, row each arm, squat/curl, standing press and reset; two non-rolling dumbbells are required. |
 
 Equipment settings currently express equipment types, not quantities or geometry. The two-dumbbell movements explicitly name both the quantity and non-rolling requirement in their descriptions. Core holds use seconds only; other additions use reps/seconds, with compound and alternating counting conventions stated. No calorie estimates or unsupported distance targets are supplied. Focus tags are browsing aids and include important secondary areas; whole-body is explicitly assigned to the ten whole-body additions. Full and short plural search aliases are tested.
+
+## 1.17.0 additions
+
+Reviewed October 12, 2026. Twenty additions bring the catalog from 103 to **123**. The full previous records are retained in `catalog-1160-baseline.json`. Descriptions are original short cues; no source images or text are bundled. Default targets are editable starting suggestions, not pace predictions or exercise prescriptions.
+
+| New movements | Reference and variant decision |
+| --- | --- |
+| Walking lunge | [Catalyst Athletics: Lunge](https://www.catalystathletics.com/exercise/354/Lunge/) includes the walking variation. This entry travels forward without load rather than returning to the start after each rep. |
+| Cossack squat | [Catalyst Athletics](https://www.catalystathletics.com/exercise/584/Cossack-Squat/). Unloaded wide-stance lateral squat; distinct from stepping out into a lateral lunge. Each side counts once. |
+| Wall push-up | [Mayo Clinic: modified pushups, including wall variation](https://www.mayoclinic.org/healthy-lifestyle/fitness/multimedia/modified-pushup/vid-20084674). Requires a sturdy wall, explicitly stated; no purchased apparatus. |
+| Diamond push-up; triceps kickback | [ACE triceps exercise study and technique](https://contentcdn.eacefitness.com/certifiednews/images/article/pdfs/ACETricepsStudy.pdf). Diamond refers to the close-hand triangle push-up; our kickback uses two light dumbbells with a standing hinge, no supporting bench. |
+| Prone Y raise; prone T raise | [ACE prone scapular series](https://www.acefitness.org/resources/everyone/exercise-library/249/prone-scapular-shoulder-stabilization-series-i-y-t-w-o-formation/). Two separate arm paths, unloaded and face down, not a combined series rep. |
+| Side-plank leg raise | [ACE Kick Start phase II](https://www.acefitness.org/resources/everyone/blog/6595/ace-s-kick-start-workout-phase-ii/) describes the raised-leg side-plank progression. Our dynamic version counts a top-leg raise/lower, distinct from the catalog's static side plank and hip lift. |
+| Glute-bridge walkout | [Catalyst Athletics: glute-ham bridge walkout](https://www.catalystathletics.com/exercise/731/Glute-Ham-Bridge-Walkout/). One full out-and-back sequence counts once. |
+| Dumbbell standing biceps curl; bent-over reverse fly | [Mayo Clinic Health System dumbbell demonstrations](https://www.mayoclinichealthsystem.org/hometown-health/speaking-of-health/pump-you-up-exercise-with-dumbbells-video). Standing bilateral variants, two dumbbells, no bench. |
+| Dumbbell hammer curl | [ACE hammer curl](https://www.acefitness.org/resources/everyone/exercise-library/10/hammer-curl/). Neutral grip, bilateral paired rep. |
+| Dumbbell lateral raise | [ACE lateral raise](https://www.acefitness.org/resources/everyone/exercise-library/26/lateral-raise/). Two light weights; one paired lift/lower counts once. |
+| Dumbbell front raise | [ACE front raise](https://www.acefitness.org/resources/everyone/exercise-library/54/front-raise/). Bilateral forward arm path. |
+| Dumbbell overhead triceps extension | [ACE triceps extension](https://www.acefitness.org/resources/everyone/exercise-library/74/triceps-extension/). One dumbbell held with both hands, no bench. |
+| Dumbbell farmer carry; kettlebell two-bell farmer carry | [ACE farmer carry](https://www.acefitness.org/resources/everyone/exercise-library/359/farmer-s-carry/). Bilateral carries with the named implement; explicitly require two weights. Seconds/metres only. |
+| Kettlebell single-arm floor press | [StrongFirst floor press](https://www.strongfirst.com/using-the-floor-to-strengthen-your-press/). Single kettlebell; one press/lower counts once on the chosen arm. |
+| Kettlebell front-rack carry | [StrongFirst carries](https://www.strongfirst.com/two-important-carries-clinician/). Single-arm rack carry, distinct from a suitcase carry; choose a side per interval. |
+| Kettlebell sumo deadlift | [Muscle & Strength one-kettlebell sumo deadlift demonstration](https://www.muscleandstrength.com/exercises/one-kettlebell-sumo-deadlift). Explicit wider stance and turned-out toes distinguish this from the standard catalog deadlift. |
+
+Equipment vocabulary continues to describe implement types, not quantities: descriptions specify one versus two weights. The wall push-up is grouped with no-apparatus movements and states its wall requirement. Carries accept seconds/metres and are excluded from reps-only Ladder selection; the other 17 additions accept reps/seconds. Paired arm movements count each simultaneous pair once, alternating leg movements count each side once, and unilateral exercises use per-side targets. Focus metadata describes movement emphasis, not medical or therapeutic claims.

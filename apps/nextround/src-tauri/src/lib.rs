@@ -2,6 +2,7 @@ mod exercises;
 use tauri_plugin_opener::OpenerExt;
 mod audio;
 mod history;
+mod history_export;
 mod templates;
 pub mod timer;
 mod update_gate;
@@ -309,6 +310,7 @@ pub fn run() {
             get_close_behavior,
             set_close_behavior,
             history::read_workout_history,
+            history_export::save_history_csv,
             history::mutate_workout_history,
             exercises::read_personal_exercises,
             exercises::mutate_personal_exercises,
@@ -330,6 +332,7 @@ pub fn run() {
         get_close_behavior,
         set_close_behavior,
         history::read_workout_history,
+        history_export::save_history_csv,
         history::mutate_workout_history,
         exercises::read_personal_exercises,
         exercises::mutate_personal_exercises,

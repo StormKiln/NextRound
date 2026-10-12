@@ -18,6 +18,7 @@ import { mutateHistoryIntoCache, readHistoryIntoCache } from './cache';
 import { ComparisonView } from './comparison-view';
 import { DateControls, useCalendarNow } from './date-controls';
 import { dateBounds } from './date-filters';
+import { HistoryExport } from './export-dialog';
 import { useHistoryFilters } from './filter-state';
 import { filterHistory, type HistoryMode } from './filters';
 import { NoteEditor } from './note-editor';
@@ -71,6 +72,7 @@ export function History() {
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const dialogError = error ?? (query.isError ? String(query.error) : null);
+  const [exportRows, setExportRows] = useState<WorkoutResult[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const { mode, search, date, draftPreset, start, end, reset } = useHistoryFilters();
   const now = useCalendarNow();
@@ -228,13 +230,41 @@ export function History() {
           </p>
         </section>
       )}
-      <Button
-        variant="secondary"
-        disabled={refreshing || query.isFetching || mutation.isPending}
-        onClick={() => void refresh()}
-      >
-        Refresh history
-      </Button>
+      <div className="dialog-actions">
+        <Button
+          disabled={
+            !results.length ||
+            query.isPending ||
+            query.isFetching ||
+            query.isError ||
+            refreshing ||
+            mutation.isPending
+          }
+          onClick={() => {
+            setNotice(null);
+            setExportRows(results.map(copyResult));
+          }}
+        >
+          Export CSV
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={refreshing || query.isFetching || mutation.isPending}
+          onClick={() => void refresh()}
+        >
+          Refresh history
+        </Button>
+      </div>
+      {exportRows && (
+        <HistoryExport
+          results={exportRows}
+          onClose={() => setExportRows(null)}
+          onSaved={() => {
+            setExportRows(null);
+            setNotice('CSV exported.');
+          }}
+        />
+      )}
       {error && !detail && !deleting && <p role="alert">{error}</p>}
       {query.isPending && <p role="status">Loading workout history…</p>}
       {query.isError && (

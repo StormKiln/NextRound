@@ -739,6 +739,146 @@ export const exercises: ExerciseEntry[] = [
       'Use two non-rolling dumbbells. From plank, do a push-up and one row per arm. Bring feet forward into a squat, curl weights to shoulders, then stand and press overhead. Lower to reset. The entire sequence is one rep; use light weights.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'walking-lunge',
+    name: 'Walking lunge',
+    description:
+      'Step forward into a lunge, then bring the rear leg through into the next step. Keep the front heel grounded and torso tall. Each step is one rep; alternate legs. Use a clear walking space.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'cossack-squat',
+    name: 'Cossack squat',
+    description:
+      'Start in a wide stance. Shift into one hip while keeping the opposite leg straight, toes lifting if comfortable. Keep the bent-leg heel down. Return through centre and alternate; each side is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pushup-wall',
+    name: 'Wall push-up',
+    description:
+      'Place hands on a clear, sturdy wall at shoulder height and step back. Bend elbows to bring your chest toward the wall, keeping the body straight, then press away. One lower-and-press is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pushup-diamond',
+    name: 'Diamond push-up',
+    description:
+      'In a high plank, bring hands close together beneath your chest. Bend elbows to lower with control, then press up without sagging at the hips. One lower-and-press is one rep; use a comfortable hand spacing.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'prone-y-raise',
+    name: 'Prone Y raise',
+    description:
+      'Lie face down with arms reaching diagonally overhead in a Y, thumbs up. Lift both arms slightly without arching your back or lifting your chin, then lower. One paired lift-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'prone-t-raise',
+    name: 'Prone T raise',
+    description:
+      'Lie face down with arms out to the sides in a T, thumbs up. Lift both arms slightly as shoulder blades draw together; keep neck long and trunk still. Lower under control. One paired lift-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'side-plank-leg-raise',
+    name: 'Side-plank leg raise',
+    description:
+      'Hold a side plank on your forearm with elbow beneath shoulder. Keep hips lifted while raising and lowering the top leg without rolling backward. Each leg lift is one rep on that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'glute-bridge-walkout',
+    name: 'Glute-bridge walkout',
+    description:
+      'Lie on your back, knees bent, and lift hips into a bridge. Take small heel steps away, only as far as hips stay level, then walk back. One complete out-and-back is one rep. Keep shoulders grounded.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-biceps-curl',
+    name: 'Dumbbell standing biceps curl',
+    description:
+      'Stand holding two dumbbells with palms forward. Keep elbows near your sides as you curl both weights toward your shoulders, then lower without swinging. One paired curl-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-hammer-curl',
+    name: 'Dumbbell hammer curl',
+    description:
+      'Stand holding two dumbbells with palms facing inward. Curl both weights while keeping elbows near your ribs and wrists straight, then lower slowly. One paired curl-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-lateral-raise',
+    name: 'Dumbbell lateral raise',
+    description:
+      'Stand with two light dumbbells at your sides. With a slight elbow bend, raise both arms out to about shoulder height without shrugging, then lower. One paired raise-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-front-raise',
+    name: 'Dumbbell front raise',
+    description:
+      'Stand holding two light dumbbells in front of your thighs. Raise both arms forward to shoulder height without leaning back, then lower with control. Keep elbows softly bent. One paired lift-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-reverse-fly',
+    name: 'Dumbbell bent-over reverse fly',
+    description:
+      'Hold two light dumbbells and hinge at the hips with knees softly bent. Raise arms out to the sides without swinging or rounding your back, then lower. One paired raise-and-lower is one rep; no bench is required.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-triceps-kickback',
+    name: 'Dumbbell triceps kickback',
+    description:
+      'Hold two light dumbbells, hinge at the hips and bring upper arms alongside your torso. Keep upper arms still as you straighten both elbows, then bend them to reset. One paired extension-and-return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-overhead-triceps-extension',
+    name: 'Dumbbell overhead triceps extension',
+    description:
+      'Hold one dumbbell securely with both hands overhead. Keep ribs down as you bend elbows to lower the weight behind your head, then extend without swinging. One lower-and-extend is one rep; use a comfortable range.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-farmer-carry',
+    name: 'Dumbbell farmer carry',
+    description:
+      'Hold two dumbbells at your sides and walk with short, controlled steps. Stand tall without leaning or shrugging and keep a clear path. Use elapsed seconds or metres travelled; steps are not repetitions.',
+    supportedUnits: ['seconds', 'metres'],
+  },
+  {
+    id: 'kettlebell-single-arm-floor-press',
+    name: 'Kettlebell single-arm floor press',
+    description:
+      'Lie on your back with knees bent and one kettlebell supported at your chest. Press above the shoulder, then lower until the upper arm rests gently on the floor. One press-and-lower is one rep on that arm; switch between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-front-rack-carry',
+    name: 'Kettlebell front-rack carry',
+    description:
+      'Hold one kettlebell in the rack beside your chest with wrist straight. Walk steadily without leaning or twisting. Choose one side per interval and switch between sets. Use seconds or metres travelled, not step counts.',
+    supportedUnits: ['seconds', 'metres'],
+  },
+  {
+    id: 'kettlebell-farmer-carry',
+    name: 'Kettlebell two-bell farmer carry',
+    description:
+      'Hold one kettlebell in each hand at your sides. Walk with short, steady steps, keeping torso tall and shoulders relaxed. Use a clear path and two bells. Measure seconds or metres travelled, not repetitions.',
+    supportedUnits: ['seconds', 'metres'],
+  },
+  {
+    id: 'kettlebell-sumo-deadlift',
+    name: 'Kettlebell sumo deadlift',
+    description:
+      'Use one kettlebell between your feet in a wider-than-shoulder stance, toes turned out comfortably. Bend hips and knees to grip it, stand tall, then lower under control. Keep knees tracking toes. One lift-and-lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 export async function listExercises() {
   return exercises;

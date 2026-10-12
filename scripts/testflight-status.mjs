@@ -1,8 +1,19 @@
 import { sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { setTimeout } from 'node:timers/promises';
+import { pollProcessing, validateRequest } from './testflight-processing.mjs';
 
-const metadata = JSON.parse(readFileSync('testflight/metadata.json', 'utf8'));
+const statusOnly = process.argv.includes('--status-only');
+const metadata = statusOnly
+  ? {
+      version: process.env.TESTFLIGHT_VERSION,
+      build: process.env.TESTFLIGHT_BUILD,
+      bundle: process.env.TESTFLIGHT_BUNDLE,
+    }
+  : JSON.parse(readFileSync('testflight/metadata.json', 'utf8'));
+if (statusOnly && process.argv.includes('--preflight'))
+  throw new Error('Status-only cannot run upload preflight.');
+const minutes = validateRequest(metadata, process.env.TESTFLIGHT_WAIT_MINUTES ?? '10');
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 function token() {
   const now = Math.floor(Date.now() / 1000);
@@ -58,22 +69,21 @@ if (process.argv.includes('--preflight')) {
   process.exit(0);
 }
 console.log(`App Store Connect app ${app}; waiting for build ${metadata.build}`);
-let previous;
-for (let attempt = 0; attempt < 40; attempt++) {
-  const builds = await get('builds', { 'filter[app]': app, 'filter[version]': metadata.build });
-  const state = builds.data[0]?.attributes.processingState ?? 'NOT_VISIBLE_YET';
-  if (state !== previous) console.log(`Build processing: ${state}`);
-  previous = state;
-  if (state === 'VALID') {
-    console.log(
-      `Build ${metadata.version} (${metadata.build}) processed successfully. Assign it to an internal TestFlight group in App Store Connect.`,
-    );
-    process.exit(0);
-  }
-  if (['FAILED', 'INVALID'].includes(state))
-    throw new Error(`Apple rejected build processing: ${state}`);
-  await setTimeout(15000);
+const result = await pollProcessing({
+  metadata,
+  app,
+  get,
+  attempts: minutes * 4,
+  sleep: setTimeout,
+  log: console.log,
+});
+if (result) {
+  console.log(
+    `Build ${result.version} (${result.build}) [${result.id}] processed successfully for macOS. Verify internal TestFlight group availability in App Store Connect.`,
+  );
+} else {
+  console.error(
+    `Build processing remains pending after ${minutes} minutes. Run the TestFlight processing status workflow with this exact version/build to check again. Do not reupload just to check processing.`,
+  );
+  process.exitCode = 2;
 }
-throw new Error(
-  'Upload succeeded, but processing is still pending after 10 minutes. Check App Store Connect before uploading again.',
-);
