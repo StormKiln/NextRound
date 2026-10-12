@@ -63,10 +63,12 @@ export function ComparisonView({
         {query.isFetching ? (
           <p role="status">Loading attempts…</p>
         ) : query.isError ? (
-          <div role="alert">
-            <p>History could not be read. Existing results are preserved.</p>
-            <Button onClick={() => void query.refetch()}>Retry comparisons</Button>
-          </div>
+          !returnError && (
+            <div role="alert">
+              <p>History could not be read. Existing results are preserved.</p>
+              <Button onClick={() => void query.refetch()}>Retry comparisons</Button>
+            </div>
+          )
         ) : !selected ? (
           <p role="status">
             This result is no longer in history. Close this view and choose another result.

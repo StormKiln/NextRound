@@ -11,3 +11,5 @@ Source checks passed: 209 TypeScript, 49 Rust and 19 release-tooling tests, type
 Independent review found that note-editor read failures were not reflected in History after closing the editor (#216). The failing browser reproduction now passes after moving error status into the shared query. Re-review found no remaining actionable issues.
 
 An isolated 760×620 native bundle was built under `com.stormkiln.nextround.validation1160` with synthetic history. Physical interaction and installed-channel evidence remain pending while the host is locked; they are tracked in #215 without implying completion.
+
+The expanded full suite exposed duplicate comparison/return error alerts after shared error propagation. The comparison now presents the specific return-recovery message once; all 14 affected date/history browser scenarios pass after the correction.
