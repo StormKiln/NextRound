@@ -54,6 +54,10 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 
 ![Workout history with an inclusive custom date range and saved EMOM and Countdown results](docs/screenshots/history-dates.png)
 
+**See the bigger picture.** Training summary follows the applied history filters. This 1.16.0 screenshot shows the shared app interface in the browser validation build with sample sessions.
+
+![Workout history showing three saved sessions, 30 minutes of workout time and three active days](docs/screenshots/training-summary.png)
+
 **Make a variation.** Duplicate a saved workout without replacing your current setup. This 1.15.0 screenshot was captured in the native macOS validation app with sample data.
 
 ![Duplicate a saved workout with an editable name and a summary of its settings](docs/screenshots/duplicate-workout.png)
