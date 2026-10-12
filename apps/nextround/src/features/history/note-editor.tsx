@@ -4,9 +4,10 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
+import { mutateHistoryIntoCache, readHistoryIntoCache } from './cache';
 import { setNativeNoteGuard, useNoteGuard } from './note-guard';
 import { normalizeNote } from './note-text';
-import { historyKey, mutateHistory, readHistory, type WorkoutResult } from './repository';
+import type { WorkoutResult } from './repository';
 
 export function NoteEditor({
   result,
@@ -23,6 +24,7 @@ export function NoteEditor({
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
+  const mounted = useRef(true);
   const [error, setError] = useState<string | null>(null);
   const [latest, setLatest] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
@@ -36,6 +38,7 @@ export function NoteEditor({
   });
   useEffect(() => {
     let disposed = false;
+    mounted.current = true;
     useNoteGuard.setState({ onQuit: () => setIntent('quit') });
     void setNativeNoteGuard(true)
       .then(() => {
@@ -46,11 +49,13 @@ export function NoteEditor({
       });
     return () => {
       disposed = true;
+      mounted.current = false;
       useNoteGuard.setState({ onQuit: null });
       void setNativeNoteGuard(false).catch(() => {});
     };
   }, []);
   async function finish(quit = false, navigate = false) {
+    if (!mounted.current) return;
     await setNativeNoteGuard(false);
     useNoteGuard.setState({ onQuit: null });
     if (quit && isTauri()) {
@@ -73,20 +78,20 @@ export function NoteEditor({
     try {
       await action();
     } catch (e) {
-      setError(String(e));
+      if (mounted.current) setError(String(e));
     } finally {
       lock.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   async function save() {
-    const document = await mutateHistory({
+    await mutateHistoryIntoCache(client, {
       action: 'note',
       id: result.id,
       expectedNote: expected,
       note: text,
     });
-    client.setQueryData(historyKey, document);
+    if (!mounted.current) return;
     setExpected(normalizeNote(text));
     onSaved();
   }
@@ -135,8 +140,8 @@ export function NoteEditor({
             disabled={busy || !ready}
             onClick={() =>
               void run(async () => {
-                const document = await readHistory();
-                client.setQueryData(historyKey, document);
+                const document = await readHistoryIntoCache(client, () => mounted.current);
+                if (!mounted.current) return;
                 const current = document.results.find((entry) => entry.id === result.id);
                 setMissing(!current);
                 if (current) {

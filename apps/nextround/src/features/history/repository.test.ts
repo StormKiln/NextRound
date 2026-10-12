@@ -57,7 +57,7 @@ it('saves an immutable snapshot once per session, preserves identity and survive
   expect(saved.results).toEqual([result]);
   await expect(f.repo.mutate({ action: 'save', result: input })).rejects.toThrow(/already saved/);
   expect((await f.repo.read()).results).toEqual([result]);
-  await f.repo.mutate({ action: 'delete', id: result.id });
+  await f.repo.mutate({ action: 'delete', id: result.id, expected: result });
   expect((await f.repo.read()).results).toEqual([]);
 });
 it('failed writes are retryable and preserve previous records', async () => {
@@ -127,7 +127,9 @@ it('rejects extra history fields without overwriting them, matching native stora
     const f = fixture();
     const raw = JSON.stringify(value);
     f.put(raw);
-    await expect(f.repo.mutate({ action: 'delete', id: result.id })).rejects.toThrow();
+    await expect(
+      f.repo.mutate({ action: 'delete', id: result.id, expected: result }),
+    ).rejects.toThrow();
     expect(f.raw()).toBe(raw);
   }
 });
@@ -259,7 +261,7 @@ it('rejects stale or missing note edits and preserves bytes after write failure'
   ).rejects.toThrow('Disk full');
   expect(f.raw()).toBe(before);
   f.fail(false);
-  await f.repo.mutate({ action: 'delete', id: result.id });
+  await f.repo.mutate({ action: 'delete', id: result.id, expected: { ...result, note: 'Newer' } });
   await expect(
     f.repo.mutate({ action: 'note', id: result.id, expectedNote: 'Newer', note: 'Missing' }),
   ).rejects.toThrow(/no longer/);
@@ -277,7 +279,9 @@ it('validates Unicode note limits and preserves malformed stored notes', async (
   for (const invalidNote of [42, null, 'x'.repeat(2001)]) {
     const raw = JSON.stringify({ version: 1, results: [{ ...result, note: invalidNote }] });
     f.put(raw);
-    await expect(f.repo.mutate({ action: 'delete', id: result.id })).rejects.toThrow();
+    await expect(
+      f.repo.mutate({ action: 'delete', id: result.id, expected: result }),
+    ).rejects.toThrow();
     expect(f.raw()).toBe(raw);
   }
 });
@@ -299,4 +303,25 @@ it('uses the same explicit Unicode blank-note semantics as native storage', asyn
   expect((await f.repo.read()).results[0].note).toBe('\u0085');
   await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '\u0085', note: 'Next edit' });
   expect((await f.repo.read()).results[0].note).toBe('Next edit');
+});
+
+it('requires review before deleting a changed result and preserves failed writes', async () => {
+  const f = fixture();
+  await f.repo.mutate({ action: 'save', result });
+  await f.repo.mutate({ action: 'note', id: result.id, expectedNote: '', note: 'New note' });
+  const before = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'delete', id: result.id, expected: result }),
+  ).rejects.toThrow(/changed/);
+  expect(f.raw()).toBe(before);
+  const latest = (await f.repo.read()).results[0];
+  f.fail(true);
+  await expect(
+    f.repo.mutate({ action: 'delete', id: result.id, expected: latest }),
+  ).rejects.toThrow('Disk full');
+  expect(f.raw()).toBe(before);
+  f.fail(false);
+  const reordered = Object.fromEntries(Object.entries(latest).reverse()) as WorkoutResult;
+  await f.repo.mutate({ action: 'delete', id: result.id, expected: reordered });
+  expect((await f.repo.read()).results).toEqual([]);
 });

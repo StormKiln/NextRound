@@ -24,7 +24,7 @@ export type WorkoutResult = {
 export type HistoryDocument = { version: 1; results: WorkoutResult[] };
 export type HistoryMutation =
   | { action: 'save'; result: WorkoutResult }
-  | { action: 'delete'; id: string }
+  | { action: 'delete'; id: string; expected: WorkoutResult }
   | { action: 'note'; id: string; expectedNote: string; note: string };
 export const HISTORY_STORAGE_KEY = 'nextround.workout-history.v1';
 const invalid = 'Workout history could not be read. Existing data has been preserved.';
@@ -119,6 +119,30 @@ export function parseHistoryDocument(value: unknown): HistoryDocument {
   if (new Set(results.map((result) => result.id)).size !== results.length) throw new Error(invalid);
   return { version: 1, results };
 }
+// Match native optional/default fields and ignore object property order.
+function comparisonSnapshot(result: WorkoutResult): string {
+  const config = result.config as WorkoutConfig & { minutes?: number };
+  return JSON.stringify(
+    {
+      ...result,
+      config: {
+        ...config,
+        type: config.type ?? 'emom',
+        minutes: config.minutes ?? 0,
+        exercises: config.exercises ?? [],
+      },
+    },
+    (_key, value) =>
+      value && typeof value === 'object' && !Array.isArray(value)
+        ? Object.fromEntries(
+            Object.keys(value)
+              .sort()
+              .filter((key) => value[key] != null)
+              .map((key) => [key, value[key]]),
+          )
+        : value,
+  );
+}
 export function createHistoryRepository(storage: TemplateStorage) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<HistoryDocument> {
@@ -161,7 +185,12 @@ export function createHistoryRepository(storage: TemplateStorage) {
             );
           if (normalizeNote(input.note)) result.note = input.note;
           else delete result.note;
-        } else document.results.splice(index, 1);
+        } else {
+          const expected = copyResult(input.expected);
+          if (comparisonSnapshot(document.results[index]) !== comparisonSnapshot(expected))
+            throw new Error('This result changed. Refresh history to review it before deleting.');
+          document.results.splice(index, 1);
+        }
       }
       storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(document));
       return structuredClone(document);

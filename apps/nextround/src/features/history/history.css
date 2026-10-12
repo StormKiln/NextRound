@@ -164,3 +164,35 @@
 .comparison-dialog > [role="alert"] {
   flex-shrink: 0;
 }
+
+.history-summary {
+  margin: 1.5rem 0;
+}
+.history-summary h2 {
+  font-size: 1.25rem;
+}
+.history-summary dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.history-summary dl > div {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  min-width: 0;
+}
+.history-summary dt {
+  color: var(--muted);
+}
+.history-summary dd {
+  margin: 0.5rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 540px) {
+  .history-summary dl {
+    grid-template-columns: 1fr;
+  }
+}
