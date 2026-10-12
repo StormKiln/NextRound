@@ -6,15 +6,19 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.14.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.14.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 1.15.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.15.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
 - **Build your exercise order:** browse 103 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
 - **Generate a workout:** choose My Favorites, Try something new or Mix It Up and the exercise count. Suggestions use retained local history and equipment preferences; review and adjust targets before starting.
-- **Reuse your favourites:** save named workouts for all six modes, update or save a separate copy, mark favourites, and filter by name and workout type.
+- **Reuse your favourites:** save named workouts for all six modes, update, duplicate directly from Home, mark favourites, and filter by name and workout type.
 - **Review your training:** explicitly save completed results, review the performed workout, compare matching attempts, add searchable notes, or repeat a result from setup. Later exercise/template edits never rewrite historical snapshots.
+
+### Duplicate saved workouts
+
+Duplicate saved workouts directly from Home to make independent, unfavourited variants without replacing your current setup. Saved-workout filters stay with you as you navigate during the app session.
 
 ### Find history by date
 
@@ -83,7 +87,7 @@ Local test builds are not public signed/notarized releases. See [contributing](C
 
 ## Further reading
 
-- [1.14.0 release notes](docs/release-notes-1.14.0.md)
+- [1.15.0 release notes](docs/release-notes-1.15.0.md)
 - [1.13.0: workout notes](docs/release-notes-1.13.0.md)
 - [1.12.0: saved-workout favourites](docs/release-notes-1.12.0.md)
 - [Exercise sources](docs/exercise-sources.md) and [taxonomy](docs/exercise-taxonomy.md)

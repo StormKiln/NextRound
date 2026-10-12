@@ -27,6 +27,9 @@ test('saved countdown survives reload, loads an isolated draft, searches, rename
   await page.getByRole('button', { name: 'Rename Recovery', exact: true }).click();
   await page.getByLabel('Workout name').fill('Easy day');
   await page.getByRole('button', { name: 'Save name', exact: true }).click();
+  // Navigation now preserves the Recovery search; the renamed row no longer matches.
+  await expect(page.getByLabel('Search saved workouts')).toHaveValue('recovery');
+  await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
   await page.getByRole('button', { name: 'Delete Easy day', exact: true }).click();
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Easy day', exact: true })).toBeVisible();
