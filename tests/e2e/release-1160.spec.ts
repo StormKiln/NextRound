@@ -91,13 +91,15 @@ test('failed refresh labels cached summary and list until a successful retry', a
   await page.evaluate((key) => localStorage.setItem(key, '{broken'), key);
   await page.getByRole('button', { name: 'Refresh history', exact: true }).click();
   await expect(page.getByText('Previously loaded history. It may be out of date.')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(1);
   await expect(page.getByRole('button', { name: /^View result:/ })).toHaveCount(2);
   await page.evaluate(({ key, original }) => localStorage.setItem(key, original), {
     key,
     original,
   });
-  await page.getByRole('button', { name: 'Refresh history', exact: true }).click();
+  await page.getByRole('button', { name: 'Retry history', exact: true }).click();
   await expect(page.getByText('Previously loaded history. It may be out of date.')).toHaveCount(0);
+  await expect(page.getByRole('alert')).toHaveCount(0);
 });
 test('saving a note immediately changes search membership and totals', async ({ page }) => {
   await page.getByLabel('Search history').fill('Recovery');

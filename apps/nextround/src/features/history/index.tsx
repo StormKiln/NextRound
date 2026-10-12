@@ -70,6 +70,7 @@ export function History() {
   const deleteLock = useRef(false);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const dialogError = error ?? (query.isError ? String(query.error) : null);
   const [notice, setNotice] = useState<string | null>(null);
   const { mode, search, date, draftPreset, start, end, reset } = useHistoryFilters();
   const now = useCalendarNow();
@@ -135,10 +136,8 @@ export function History() {
         );
         if (!latest) restoreFocus();
       }
-    } catch (e) {
-      if (mounted.current) {
-        setError(String(e));
-      }
+    } catch {
+      // The coordinator exposes read errors through the shared query, including dialogs.
     } finally {
       refreshLock.current = false;
       if (mounted.current) setRefreshing(false);
@@ -350,7 +349,7 @@ export function History() {
             <ResultSnapshot result={detail} />
           </div>
           {notice && <p role="status">{notice}</p>}
-          {error && <p role="alert">{error}</p>}
+          {dialogError && <p role="alert">{dialogError}</p>}
           <div className="dialog-actions">
             <Button
               variant="secondary"
@@ -441,9 +440,9 @@ export function History() {
             <ResultSnapshot result={deleting} />
           </div>
           {notice && <p role="status">{notice}</p>}
-          {error && (
+          {dialogError && (
             <div role="alert">
-              <p>{error}</p>
+              <p>{dialogError}</p>
               <Button disabled={mutation.isPending || refreshing} onClick={() => void refresh()}>
                 Refresh history
               </Button>
