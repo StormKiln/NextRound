@@ -12,7 +12,8 @@ export type TemplateMutation =
   | { action: 'update'; id: string; expected: WorkoutTemplate; name: string; config: WorkoutConfig }
   | { action: 'rename'; id: string; name: string; expectedName: string }
   | { action: 'favourite'; id: string; favourite: boolean }
-  | { action: 'delete'; id: string };
+  | { action: 'duplicate'; id: string; expected: WorkoutTemplate; name: string }
+  | { action: 'delete'; id: string; expected: WorkoutTemplate };
 export type TemplateStorage = Pick<Storage, 'getItem' | 'setItem'>;
 export const TEMPLATE_STORAGE_KEY = 'nextround.workout-templates.v1';
 const invalid = 'Saved workouts could not be read. Existing data has been preserved.';
@@ -169,7 +170,27 @@ export function createBrowserRepository(storage: TemplateStorage) {
         const index = document.templates.findIndex((template) => template.id === input.id);
         if (index < 0)
           throw new Error('This saved workout no longer exists. Refresh and try again.');
-        if (input.action === 'update') {
+        if (input.action === 'duplicate' || input.action === 'delete') {
+          const current = document.templates[index];
+          if (
+            current.id !== input.expected.id ||
+            current.name !== input.expected.name ||
+            canonical(current.config) !== canonical(input.expected.config)
+          )
+            throw new Error(
+              'This saved workout changed. Refresh to review it before confirming again.',
+            );
+          if (input.action === 'delete') document.templates.splice(index, 1);
+          else {
+            if (document.templates.length >= 100)
+              throw new Error('You can save up to 100 workouts. Delete one before saving another.');
+            document.templates.push({
+              id: crypto.randomUUID(),
+              name: nameValue(input.name),
+              config: copyValidatedConfig(current.config),
+            });
+          }
+        } else if (input.action === 'update') {
           if (
             canonical({
               id: document.templates[index].id,
@@ -191,8 +212,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
             name: nameValue(input.name),
             config: copyValidatedConfig(input.config),
           };
-        } else if (input.action === 'delete') document.templates.splice(index, 1);
-        else if (input.action === 'favourite') {
+        } else if (input.action === 'favourite') {
           if (input.favourite) document.templates[index].favourite = true;
           else delete document.templates[index].favourite;
         } else {

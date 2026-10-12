@@ -105,3 +105,13 @@ fieldset.template-search {
   margin: 0;
   min-width: 0;
 }
+
+.template-review {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: grid;
+  gap: 0.5rem;
+}
+.template-review ol {
+  padding-left: 1.5rem;
+}

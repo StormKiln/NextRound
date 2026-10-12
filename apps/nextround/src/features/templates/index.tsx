@@ -1,5 +1,5 @@
 import type { WorkoutConfig } from '@nextround/core';
-import { countLabel, formatTime } from '@nextround/core';
+import { countLabel, formatTarget, formatTime } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
@@ -15,17 +15,34 @@ import {
   type WorkoutTemplate,
 } from './repository';
 import './templates.css';
+import { copyName, useTemplateFilters } from './filter-state';
 
 const queryKey = ['workout-templates'];
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 function useTemplateMutation() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (mutation: TemplateMutation) => mutateTemplates(mutation),
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey });
+    mutationFn: async (mutation: TemplateMutation) => {
+      await client.cancelQueries({ queryKey });
+      const document = await mutateTemplates(mutation);
+      await client.cancelQueries({ queryKey });
+      client.setQueryData(queryKey, document);
+      return document;
     },
   });
+}
+function workoutSummary(config: WorkoutConfig) {
+  return config.type === 'ladder'
+    ? `Ladder · ${config.ladder.direction} · ${config.ladder.startReps} starting reps`
+    : config.type === 'forTime'
+      ? `For Time · ${config.timeCapSeconds ? `${formatTime(config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
+      : config.type === 'amrap'
+        ? `AMRAP · ${formatTime(config.durationSeconds * 1000)} cap`
+        : config.type === 'intervals'
+          ? `Intervals · ${countLabel(config.rounds, 'round')} · ${config.workSeconds}s work / ${config.restSeconds}s rest`
+          : config.type === 'countdown'
+            ? `Countdown · ${config.durationSeconds} seconds`
+            : `EMOM · ${countLabel(config.minutes, 'round')}`;
 }
 export function SaveWorkoutButton({
   getConfig,
@@ -174,16 +191,32 @@ export function TemplateLibrary({
     setAction(null);
     restoreFocus();
   }
-  const [favouritesOnly, setFavouritesOnly] = useState(false);
-  const [workoutType, setWorkoutType] = useState('all');
+  const { search, favouritesOnly, workoutType, reset: resetFilters } = useTemplateFilters();
+  const clearFilterFeedback = () => {
+    setHiddenCopy(false);
+    setNotice('');
+  };
+  const setSearch = (search: string) => {
+    clearFilterFeedback();
+    useTemplateFilters.setState({ search });
+  };
+  const setWorkoutType = (workoutType: string) => {
+    clearFilterFeedback();
+    useTemplateFilters.setState({ workoutType });
+  };
+  const setFavouritesOnly = (favouritesOnly: boolean) => {
+    clearFilterFeedback();
+    useTemplateFilters.setState({ favouritesOnly });
+  };
+  const operationLock = useRef(false);
+  const [hiddenCopy, setHiddenCopy] = useState(false);
   const [notice, setNotice] = useState('');
 
   const mutation = useTemplateMutation();
   const [loading, setLoading] = useState(false);
   const busy = mutation.isPending || loading;
-  const [search, setSearch] = useState('');
   const [action, setAction] = useState<{
-    type: 'rename' | 'delete' | 'load';
+    type: 'rename' | 'delete' | 'load' | 'duplicate';
     template: WorkoutTemplate;
   } | null>(null);
   const [name, setName] = useState('');
@@ -199,11 +232,18 @@ export function TemplateLibrary({
         (workoutType === 'all' || (t.config.type ?? 'emom') === workoutType),
     ) ?? [];
   async function refresh() {
-    if (busy) return;
+    if (busy || operationLock.current) return;
+    operationLock.current = true;
     setLoading(true);
     setError(null);
+    setNotice('');
+    setHiddenCopy(false);
     try {
+      await client.cancelQueries({ queryKey });
       const latest = await readTemplates();
+      if (!mounted.current) return;
+      await client.cancelQueries({ queryKey });
+      if (!mounted.current) return;
       client.setQueryData(queryKey, latest);
       if (action) {
         const entry = latest.templates.find((t) => t.id === action.template.id);
@@ -216,36 +256,48 @@ export function TemplateLibrary({
         }
       } else setNotice('Saved workouts refreshed.');
     } catch (e) {
-      setError(message(e));
+      if (mounted.current) setError(message(e));
     } finally {
-      setLoading(false);
+      operationLock.current = false;
+      if (mounted.current) setLoading(false);
     }
   }
   async function favourite(template: WorkoutTemplate, button: HTMLElement) {
-    if (busy) return;
+    if (busy || operationLock.current) return;
+    operationLock.current = true;
     origin.current = button;
     setError(null);
     setNotice('');
+    setHiddenCopy(false);
     try {
+      await client.cancelQueries({ queryKey });
       await mutation.mutateAsync({
         action: 'favourite',
         id: template.id,
         favourite: !template.favourite,
       });
+      if (!mounted.current) return;
       setNotice(`${template.name} ${template.favourite ? 'removed from' : 'added to'} favourites.`);
       restoreFocus();
     } catch (e) {
-      setError(message(e));
+      if (mounted.current) setError(message(e));
+    } finally {
+      operationLock.current = false;
     }
   }
   async function submit() {
-    if (!action || busy) return;
+    if (!action || busy || operationLock.current) return;
+    operationLock.current = true;
     setLoading(true);
     setError(null);
+    setNotice('');
+    setHiddenCopy(false);
     try {
+      await client.cancelQueries({ queryKey });
       if (action.type === 'load') {
         // Re-read so stale cards never load deleted, corrupted or externally changed records.
         const latest = await readTemplates();
+        if (!mounted.current) return;
         const entry = latest.templates.find((t) => t.id === action.template.id);
         if (!entry) throw new Error('This saved workout no longer exists. Refresh and try again.');
         onLoad(copyValidatedConfig(entry.config), structuredClone(entry));
@@ -253,20 +305,32 @@ export function TemplateLibrary({
         await mutation.mutateAsync(
           action.type === 'rename'
             ? { action: 'rename', id: action.template.id, expectedName: action.template.name, name }
-            : { action: 'delete', id: action.template.id },
+            : action.type === 'duplicate'
+              ? { action: 'duplicate', id: action.template.id, expected: action.template, name }
+              : { action: 'delete', id: action.template.id, expected: action.template },
         );
+      if (!mounted.current) return;
+      const hidden =
+        action.type === 'duplicate' &&
+        (favouritesOnly ||
+          !normalizeSearch(name.trim()).includes(normalizeSearch(search)) ||
+          (workoutType !== 'all' && (action.template.config.type ?? 'emom') !== workoutType));
+      setHiddenCopy(hidden);
       setNotice(
-        action.type === 'rename'
-          ? 'Workout renamed.'
-          : action.type === 'delete'
-            ? 'Workout deleted.'
-            : '',
+        action.type === 'duplicate'
+          ? `Workout copied as “${name.trim()}”.${hidden ? ' The copy is hidden by your current filters.' : ''}`
+          : action.type === 'rename'
+            ? 'Workout renamed.'
+            : action.type === 'delete'
+              ? 'Workout deleted.'
+              : '',
       );
       closeAction();
     } catch (e) {
-      setError(message(e));
+      if (mounted.current) setError(message(e));
     } finally {
-      setLoading(false);
+      operationLock.current = false;
+      if (mounted.current) setLoading(false);
     }
   }
   return (
@@ -278,6 +342,18 @@ export function TemplateLibrary({
         <p>Keep your favourites ready for the next round.</p>
       </div>
       {!action && notice && <p role="status">{notice}</p>}
+      {!action && hiddenCopy && (
+        <Button
+          variant="secondary"
+          onClick={() => {
+            resetFilters();
+            setHiddenCopy(false);
+            setNotice('Filters cleared. Your copied workout is shown.');
+          }}
+        >
+          Show copied workout
+        </Button>
+      )}
       {!action && error && <p role="alert">{error}</p>}
       <Button variant="secondary" disabled={busy || query.isPending} onClick={() => void refresh()}>
         Refresh saved workouts
@@ -286,7 +362,7 @@ export function TemplateLibrary({
       {query.isError ? (
         <div role="alert">
           <p>{message(query.error)}</p>
-          <Button variant="secondary" onClick={() => void query.refetch()}>
+          <Button variant="secondary" disabled={busy} onClick={() => void refresh()}>
             Retry saved workouts
           </Button>
         </div>
@@ -333,9 +409,8 @@ export function TemplateLibrary({
                   variant="secondary"
                   disabled={!search && !favouritesOnly && workoutType === 'all'}
                   onClick={() => {
-                    setSearch('');
-                    setFavouritesOnly(false);
-                    setWorkoutType('all');
+                    resetFilters();
+                    clearFilterFeedback();
                   }}
                 >
                   Clear filters
@@ -357,19 +432,7 @@ export function TemplateLibrary({
               <li key={template.id}>
                 <div className="template-summary">
                   <h3>{template.name}</h3>
-                  <p>
-                    {template.config.type === 'ladder'
-                      ? `Ladder · ${template.config.ladder.direction} · ${template.config.ladder.startReps} starting reps`
-                      : template.config.type === 'forTime'
-                        ? `For Time · ${template.config.timeCapSeconds ? `${formatTime(template.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
-                        : template.config.type === 'amrap'
-                          ? `AMRAP · ${formatTime(template.config.durationSeconds * 1000)} cap`
-                          : template.config.type === 'intervals'
-                            ? `Intervals · ${countLabel(template.config.rounds, 'round')} · ${template.config.workSeconds}s work / ${template.config.restSeconds}s rest`
-                            : template.config.type === 'countdown'
-                              ? `Countdown · ${template.config.durationSeconds} seconds`
-                              : `EMOM · ${countLabel(template.config.minutes, 'round')}`}
-                  </p>
+                  <p>{workoutSummary(template.config)}</p>
                 </div>
                 <div className="template-actions">
                   <Button
@@ -381,7 +444,7 @@ export function TemplateLibrary({
                   >
                     {template.favourite ? '★ Favourite' : '☆ Favourite'}
                   </Button>
-                  {(['load', 'rename', 'delete'] as const).map((type) => (
+                  {(['load', 'duplicate', 'rename', 'delete'] as const).map((type) => (
                     <Button
                       key={type}
                       variant={type === 'load' ? 'default' : 'secondary'}
@@ -390,8 +453,9 @@ export function TemplateLibrary({
                       onClick={(event) => {
                         origin.current = event.currentTarget;
                         setNotice('');
+                        setHiddenCopy(false);
                         setAction({ type, template });
-                        setName(template.name);
+                        setName(type === 'duplicate' ? copyName(template.name) : template.name);
                         setError(null);
                       }}
                     >
@@ -408,7 +472,7 @@ export function TemplateLibrary({
         <Dialog
           title={`${action.type[0].toUpperCase() + action.type.slice(1)} saved workout`}
           onClose={() => {
-            if (!busy) closeAction();
+            if (!busy && !operationLock.current) closeAction();
           }}
         >
           <form
@@ -418,8 +482,14 @@ export function TemplateLibrary({
               void submit();
             }}
           >
-            {action.type === 'rename' ? (
+            {action.type === 'rename' || action.type === 'duplicate' ? (
               <>
+                {action.type === 'duplicate' && (
+                  <p>
+                    Create an independent copy of “{action.template.name}”. Your current setup stays
+                    as it is.
+                  </p>
+                )}
                 <label htmlFor={nameId}>Workout name</label>
                 <Input
                   id={nameId}
@@ -436,6 +506,43 @@ export function TemplateLibrary({
                   ? `Delete “${action.template.name}”? This cannot be undone.`
                   : `Load “${action.template.name}”? This replaces the current setup for this workout mode.`}
               </p>
+            )}
+            {(action.type === 'duplicate' || action.type === 'delete') && (
+              <section aria-label="Saved workout to review" className="template-review">
+                <p>{workoutSummary(action.template.config)}</p>
+                <p>
+                  Lead-in: {action.template.config.leadInSeconds}s · Warning:{' '}
+                  {action.template.config.warningSeconds}s
+                </p>
+                {action.template.config.type === 'ladder' && (
+                  <p>
+                    {action.template.config.ladder.rungs} rungs ·{' '}
+                    {action.template.config.ladder.increment} rep increment ·{' '}
+                    {action.template.config.timeCapSeconds
+                      ? `${action.template.config.timeCapSeconds}s cap`
+                      : 'No time cap'}
+                  </p>
+                )}
+                {(action.template.config.type === 'countdown' ||
+                  action.template.config.type === 'forTime') && (
+                  <p>Checklist: {action.template.config.showChecklist !== false ? 'On' : 'Off'}</p>
+                )}
+                <details>
+                  <summary>
+                    Review exercises ({action.template.config.exercises?.length ?? 0})
+                  </summary>
+                  <ol>
+                    {action.template.config.exercises?.map((exercise) => (
+                      <li key={exercise.id}>
+                        <strong>{exercise.name}</strong>
+                        {exercise.target && <> · {formatTarget(exercise.target)}</>}
+                        {exercise.description && <p>{exercise.description}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                  {!action.template.config.exercises?.length && <p>No exercises specified.</p>}
+                </details>
+              </section>
             )}
             {notice && <p role="status">{notice}</p>}
             {error && (
@@ -458,7 +565,10 @@ export function TemplateLibrary({
               <Button
                 type="submit"
                 variant={action.type === 'delete' ? 'destructive' : 'default'}
-                disabled={busy || (action.type === 'rename' && !name.trim())}
+                disabled={
+                  busy ||
+                  ((action.type === 'rename' || action.type === 'duplicate') && !name.trim())
+                }
               >
                 {busy
                   ? action.type === 'load'
@@ -468,7 +578,9 @@ export function TemplateLibrary({
                     ? 'Load workout'
                     : action.type === 'delete'
                       ? 'Delete workout'
-                      : 'Save name'}
+                      : action.type === 'duplicate'
+                        ? 'Create copy'
+                        : 'Save name'}
               </Button>
             </div>
           </form>

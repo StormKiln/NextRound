@@ -50,8 +50,14 @@ pub enum Mutation {
         id: String,
         favourite: bool,
     },
+    Duplicate {
+        id: String,
+        expected: WorkoutTemplate,
+        name: String,
+    },
     Delete {
         id: String,
+        expected: WorkoutTemplate,
     },
 }
 pub struct TemplateStore {
@@ -64,6 +70,17 @@ fn name_value(name: &str) -> Result<String, String> {
         return Err("Enter a workout name from 1 to 120 characters.".into());
     }
     Ok(name.into())
+}
+fn require_current(current: &WorkoutTemplate, expected: &WorkoutTemplate) -> Result<(), String> {
+    if current.id != expected.id
+        || current.name != expected.name
+        || current.config != expected.config
+    {
+        return Err(
+            "This saved workout changed. Refresh to review it before confirming again.".into(),
+        );
+    }
+    Ok(())
 }
 fn unique_id() -> String {
     format!(
@@ -187,12 +204,33 @@ impl TemplateStore {
                 }
                 entry.name = name_value(&name)?;
             }
-            Mutation::Delete { id } => {
+            Mutation::Duplicate { id, expected, name } => {
+                let entry = document
+                    .templates
+                    .iter()
+                    .find(|e| e.id == id)
+                    .ok_or("This saved workout no longer exists.")?;
+                require_current(entry, &expected)?;
+                if document.templates.len() >= 100 {
+                    return Err(
+                        "You can save up to 100 workouts. Delete one before saving another.".into(),
+                    );
+                }
+                let copy = WorkoutTemplate {
+                    id: unique_id(),
+                    name: name_value(&name)?,
+                    config: entry.config.clone(),
+                    favourite: false,
+                };
+                document.templates.push(copy);
+            }
+            Mutation::Delete { id, expected } => {
                 let index = document
                     .templates
                     .iter()
                     .position(|e| e.id == id)
                     .ok_or("This saved workout no longer exists.")?;
+                require_current(&document.templates[index], &expected)?;
                 document.templates.remove(index);
             }
         }
@@ -255,6 +293,109 @@ mod tests {
                 .join(format!("nextround-template-test-{}", unique_id()))
                 .join("workouts.json"),
         )
+    }
+    #[test]
+    fn duplicate_preserves_every_mode_and_capacity_is_non_destructive() {
+        let cases = serde_json::json!([
+            {"minutes":3},
+            {"type":"countdown","durationSeconds":90,"showChecklist":false},
+            {"type":"intervals","workSeconds":30,"restSeconds":10,"rounds":3},
+            {"type":"amrap","durationSeconds":90},
+            {"type":"forTime","timeCapSeconds":90,"showChecklist":false},
+            {"type":"ladder","timeCapSeconds":90,"ladder":{"direction":"pyramid","startReps":2,"increment":2,"rungs":3}}
+        ]);
+        let s = store();
+        for mut value in cases.as_array().unwrap().clone() {
+            value["leadInSeconds"] = serde_json::json!(5);
+            value["warningSeconds"] = serde_json::json!(3);
+            value["exercises"] = if value["type"] == "ladder" {
+                serde_json::json!([{"id":"a","name":"Squat"}])
+            } else {
+                serde_json::json!([{"id":"a","name":"Squat","description":"Saved description","target":{"unit":"reps","value":5}}])
+            };
+            let config: Config = serde_json::from_value(value).unwrap();
+            let document = s
+                .mutate(Mutation::Save {
+                    name: "Original".into(),
+                    config: config.clone(),
+                })
+                .unwrap();
+            let original = document.templates.last().unwrap().clone();
+            let document = s
+                .mutate(Mutation::Duplicate {
+                    id: original.id.clone(),
+                    expected: original.clone(),
+                    name: "Copy".into(),
+                })
+                .unwrap();
+            let copy = document.templates.last().unwrap();
+            assert_eq!(copy.config, config);
+            assert_ne!(copy.id, original.id);
+            assert!(!copy.favourite);
+        }
+        while s.read().unwrap().templates.len() < 100 {
+            s.mutate(Mutation::Save {
+                name: "Fill".into(),
+                config: config(),
+            })
+            .unwrap();
+        }
+        let original = s.read().unwrap().templates[0].clone();
+        let before = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(Mutation::Duplicate {
+                id: original.id.clone(),
+                expected: original,
+                name: "Overflow".into()
+            })
+            .unwrap_err()
+            .contains("100"));
+        assert_eq!(fs::read(&s.path).unwrap(), before);
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn duplicate_and_delete_require_current_content() {
+        let s = store();
+        let original = s
+            .mutate(Mutation::Save {
+                name: "Original".into(),
+                config: config(),
+            })
+            .unwrap()
+            .templates[0]
+            .clone();
+        s.mutate(Mutation::Favourite {
+            id: original.id.clone(),
+            favourite: true,
+        })
+        .unwrap();
+        let command = |action: &str| {
+            serde_json::from_value::<Mutation>(
+                serde_json::json!({"action":action,"id":original.id,"expected":original,"name":"Copy"}),
+            )
+        };
+        let copied = s.mutate(command("duplicate").unwrap()).unwrap();
+        assert_eq!(copied.templates.len(), 2);
+        assert_ne!(copied.templates[1].id, original.id);
+        assert_eq!(copied.templates[1].config, original.config);
+        assert!(!copied.templates[1].favourite);
+        s.mutate(Mutation::Rename {
+            id: original.id.clone(),
+            expected_name: original.name.clone(),
+            name: "Changed".into(),
+        })
+        .unwrap();
+        let before = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(command("duplicate").unwrap())
+            .unwrap_err()
+            .contains("changed"));
+        let delete = serde_json::from_value(
+            serde_json::json!({"action":"delete","id":original.id,"expected":original}),
+        )
+        .unwrap();
+        assert!(s.mutate(delete).unwrap_err().contains("changed"));
+        assert_eq!(fs::read(&s.path).unwrap(), before);
     }
     #[test]
     fn favourites_preserve_content_updates_and_rename_guards() {
@@ -385,7 +526,11 @@ mod tests {
             .mutate(serde_json::from_value(command.clone()).unwrap())
             .is_err());
         assert_eq!(fs::read(&s.path).unwrap(), raw);
-        s.mutate(Mutation::Delete { id: original.id }).unwrap();
+        s.mutate(Mutation::Delete {
+            id: original.id,
+            expected: s.read().unwrap().templates[0].clone(),
+        })
+        .unwrap();
         assert!(s.mutate(serde_json::from_value(command).unwrap()).is_err());
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
@@ -410,6 +555,7 @@ mod tests {
         assert_eq!(s.read().unwrap().templates[0].name, "Renamed");
         s.mutate(Mutation::Delete {
             id: saved.templates[0].id.clone(),
+            expected: s.read().unwrap().templates[0].clone(),
         })
         .unwrap();
         assert!(s.read().unwrap().templates.is_empty());

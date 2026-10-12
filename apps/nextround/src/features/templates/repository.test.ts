@@ -74,7 +74,11 @@ describe('saved workout repository', () => {
       name: ' C ',
     });
     expect((await f.repo.read()).templates[0].name).toBe('C');
-    await f.repo.mutate({ action: 'delete', id: saved.templates[0].id });
+    await f.repo.mutate({
+      action: 'delete',
+      id: saved.templates[0].id,
+      expected: (await f.repo.read()).templates[0],
+    });
     expect((await f.repo.read()).templates).toHaveLength(1);
   });
   it.each(['{broken', '{"version":2,"templates":[]}', '{"version":1,"templates":[{}]}'])(
@@ -131,7 +135,11 @@ it('updates the exact loaded template and rejects stale or deleted sources witho
     f.repo.mutate({ action: 'update', id: original.id, expected: original, name: 'Stale', config }),
   ).rejects.toThrow(/changed/);
   expect(f.raw()).toBe(before);
-  await f.repo.mutate({ action: 'delete', id: original.id });
+  await f.repo.mutate({
+    action: 'delete',
+    id: original.id,
+    expected: (await f.repo.read()).templates[0],
+  });
   await expect(
     f.repo.mutate({
       action: 'update',
@@ -284,7 +292,7 @@ it('preserves legacy data and rejects invalid metadata on every mutation', async
   f.corrupt(JSON.stringify(legacy));
   expect(await f.repo.read()).toEqual(legacy);
   await f.repo.mutate({ action: 'favourite', id: 'legacy', favourite: true });
-  await f.repo.mutate({ action: 'delete', id: 'legacy' });
+  await f.repo.mutate({ action: 'delete', id: 'legacy', expected: legacy.templates[0] });
   expect((await f.repo.read()).templates).toEqual([]);
   for (const doc of [
     { ...legacy, future: true },
@@ -297,3 +305,135 @@ it('preserves legacy data and rejects invalid metadata on every mutation', async
     expect(f.raw()).toBe(raw);
   }
 });
+
+it('duplicates independently, ignores favourite-only changes, and guards stale deletion', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Original', config })).templates[0];
+  await f.repo.mutate({ action: 'favourite', id: original.id, favourite: true });
+  const duplicated = await f.repo.mutate({
+    action: 'duplicate',
+    id: original.id,
+    expected: original,
+    name: 'Copy',
+  });
+  expect(duplicated.templates).toHaveLength(2);
+  const copy = duplicated.templates[1];
+  expect(copy.id).not.toBe(original.id);
+  expect(copy.favourite).toBeFalsy();
+  expect(copy.config).toEqual(original.config);
+  await f.repo.mutate({
+    action: 'rename',
+    id: original.id,
+    expectedName: original.name,
+    name: 'Changed',
+  });
+  const before = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'delete', id: original.id, expected: original }),
+  ).rejects.toThrow('changed');
+  await expect(
+    f.repo.mutate({ action: 'duplicate', id: original.id, expected: original, name: 'Stale' }),
+  ).rejects.toThrow('changed');
+  expect(f.raw()).toBe(before);
+  expect((await createBrowserRepository(f.storage).read()).templates[1]).toEqual(copy);
+});
+
+it('duplicate rejects missing sources, capacity and failed writes without changing storage', async () => {
+  const f = fixture();
+  const original = (await f.repo.mutate({ action: 'save', name: 'Original', config })).templates[0];
+  await expect(
+    f.repo.mutate({ action: 'duplicate', id: 'missing', expected: original, name: 'Copy' }),
+  ).rejects.toThrow('no longer exists');
+  f.corrupt(
+    JSON.stringify({
+      version: 1,
+      templates: Array.from({ length: 100 }, (_, i) => ({
+        ...original,
+        id: i === 0 ? original.id : String(i),
+      })),
+    }),
+  );
+  const full = f.raw();
+  await expect(
+    f.repo.mutate({ action: 'duplicate', id: original.id, expected: original, name: 'Copy' }),
+  ).rejects.toThrow('100');
+  expect(f.raw()).toBe(full);
+  f.corrupt(JSON.stringify({ version: 1, templates: [original] }));
+  const before = f.raw();
+  f.fail();
+  await expect(
+    f.repo.mutate({ action: 'duplicate', id: original.id, expected: original, name: 'Copy' }),
+  ).rejects.toThrow('Disk full');
+  expect(f.raw()).toBe(before);
+});
+
+it.each([
+  config,
+  {
+    type: 'countdown',
+    durationSeconds: 90,
+    leadInSeconds: 5,
+    warningSeconds: 3,
+    exercises: config.exercises,
+    showChecklist: false,
+  },
+  {
+    type: 'intervals',
+    workSeconds: 30,
+    restSeconds: 10,
+    rounds: 3,
+    leadInSeconds: 5,
+    warningSeconds: 3,
+    exercises: config.exercises,
+  },
+  {
+    type: 'amrap',
+    durationSeconds: 90,
+    leadInSeconds: 5,
+    warningSeconds: 3,
+    exercises: config.exercises,
+  },
+  {
+    type: 'forTime',
+    timeCapSeconds: 90,
+    leadInSeconds: 5,
+    warningSeconds: 3,
+    exercises: config.exercises,
+    showChecklist: false,
+  },
+  {
+    type: 'ladder',
+    timeCapSeconds: 90,
+    leadInSeconds: 5,
+    warningSeconds: 3,
+    exercises: config.exercises.map(({ target, ...e }) => e),
+    ladder: { direction: 'pyramid', startReps: 2, increment: 2, rungs: 3 },
+  },
+] as import('@nextround/core').WorkoutConfig[])(
+  'copies mode snapshots without changing draft or loaded source: %j',
+  async (workout) => {
+    const f = fixture();
+    const original = (await f.repo.mutate({ action: 'save', name: 'Source', config: workout }))
+      .templates[0];
+    const copied = (
+      await f.repo.mutate({
+        action: 'duplicate',
+        id: original.id,
+        expected: original,
+        name: 'Élan 🏋️',
+      })
+    ).templates[1];
+    expect(copied.config).toEqual(original.config);
+    expect(original.config).toEqual(workout);
+    const changed = structuredClone(copied);
+    changed.config.leadInSeconds = 9;
+    await f.repo.mutate({
+      action: 'update',
+      id: copied.id,
+      expected: copied,
+      name: copied.name,
+      config: changed.config,
+    });
+    expect((await f.repo.read()).templates[0]).toEqual(original);
+  },
+);
