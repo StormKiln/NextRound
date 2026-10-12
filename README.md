@@ -50,6 +50,10 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 
 ![Workout history with an inclusive custom date range and saved EMOM and Countdown results](docs/screenshots/history-dates.png)
 
+**Make a variation.** Duplicate a saved workout without replacing your current setup. This 1.15.0 screenshot was captured in the native macOS validation app with sample data.
+
+![Duplicate a saved workout with an editable name and a summary of its settings](docs/screenshots/duplicate-workout.png)
+
 ## Data and distribution
 
 The macOS app stores versioned JSON documents with atomic native writes for workout history, saved templates and personal exercises. Core functionality works offline; there is no account, backend, cloud sync or AI service. Notes stay separate from scores, comparison matching and exercise usage. Only completed sessions explicitly saved by the user appear in history; interrupted-session crash recovery is not available.

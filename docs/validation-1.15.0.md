@@ -6,6 +6,8 @@ Observed initial failures: missing native/browser duplication; lost library filt
 
 Final automated, native physical, review and published-channel evidence is recorded in #207 before release closure. Pending distribution checks are not implied by passing source tests.
 
-Source checks passed: 197 TypeScript, 48 Rust and 19 release-tooling tests, type/lint/format/build checks. Focused release browser scenarios passed (8); full-suite final run is tracked in #207. Independent review found no actionable defects; added native all-mode/capacity and pending-read-during-mutation coverage for noted gaps.
+Source checks passed: 197 TypeScript, 48 Rust and 19 release-tooling tests, type/lint/format/build checks. Focused release browser scenarios passed (8); the final full browser suite passed all 201 tests. Independent review found no actionable defects; added native all-mode/capacity and pending-read-during-mutation coverage for noted gaps.
 
-Physical isolated 1.15.0 app on macOS: created an unfavourited copy with unchanged source, observed hidden-copy explanation with favourites filter, retained filter across History/Home, and rejected native deletion after stored duration changed. Refresh showed the new duration before reconfirmation. Native audio/power and sandbox media smoke passed. This validation uses synthetic templates and a distinct app identity; installed-release/upgrade evidence remains separate in #207.
+Physical isolated 1.15.0 app on macOS 26.6.2: created an unfavourited copy with unchanged source, observed hidden-copy explanation with favourites filter, retained filter across History/Home, and rejected native deletion after stored duration changed. Refresh showed the new duration before reconfirmation. Native audio/power and sandbox media smoke passed. This validation uses synthetic templates and a distinct app identity; installed-release/upgrade evidence remains separate in #207.
+
+Restart confirmed the new copy persisted independently and session filters reset. The README includes a native duplication-dialog screenshot using synthetic data.
