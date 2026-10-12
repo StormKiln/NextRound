@@ -5,7 +5,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
-import { historyKey } from './repository';
+import { mutateHistoryIntoCache } from './cache';
 import './history.css';
 export function ResultActions() {
   const { pendingResult, resultStatus, saveResult, discardResult, busy, error } = useWorkout();
@@ -21,7 +21,7 @@ export function ResultActions() {
             <Button
               disabled={busy}
               onClick={async () => {
-                if (await saveResult()) await client.invalidateQueries({ queryKey: historyKey });
+                await saveResult((mutation) => mutateHistoryIntoCache(client, mutation));
               }}
             >
               {busy ? 'Saving…' : 'Save result'}

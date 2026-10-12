@@ -67,7 +67,7 @@ type State = {
   sessionId: string | null;
   pendingResult: WorkoutResult | null;
   resultStatus: 'none' | 'pending' | 'saved' | 'discarded';
-  saveResult: () => Promise<boolean>;
+  saveResult: (write?: typeof mutateHistory) => Promise<boolean>;
   discardResult: () => Promise<boolean>;
   getDraftConfig: (mode: WorkoutMode) => WorkoutConfig;
   loadConfig: (config: WorkoutConfig) => boolean;
@@ -203,12 +203,12 @@ export const useWorkout = create<State>((set, get) => ({
   sessionId: null,
   pendingResult: null,
   resultStatus: 'none',
-  saveResult: async () => {
+  saveResult: async (write = mutateHistory) => {
     const { pendingResult, busy } = get();
     if (!pendingResult || busy) return false;
     set({ busy: true, error: null, scoreLocked: true });
     try {
-      await mutateHistory({ action: 'save', result: pendingResult });
+      await write({ action: 'save', result: pendingResult });
       await adapter.resolveResult();
       set({ pendingResult: null, resultStatus: 'saved' });
       return true;

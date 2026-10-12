@@ -6,7 +6,7 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.15.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.15.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 1.16.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.16.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
@@ -19,6 +19,10 @@ NextRound is an offline workout timer and planner for **Apple Silicon Macs runni
 ### Duplicate saved workouts
 
 Duplicate saved workouts directly from Home to make independent, unfavourited variants without replacing your current setup. Saved-workout filters stay with you as you navigate during the app session.
+
+### See your training summary
+
+Workout History shows **Saved sessions**, **Workout time** and **Active days** for the same results as your applied date, workout-type and search filters. Workout time includes programmed rest and excludes pauses and lead-in; active days use local completion dates. These are saved-session totals, not measured exercise effort. Failed reads label previously loaded data instead of showing misleading zeros.
 
 ### Find history by date
 
@@ -49,6 +53,10 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 **Find the session you want.** Combine date ranges with workout type and text search. The date-filter view below is from the 1.14.0 browser preview with sample data.
 
 ![Workout history with an inclusive custom date range and saved EMOM and Countdown results](docs/screenshots/history-dates.png)
+
+**See the bigger picture.** Training summary follows the applied history filters. This 1.16.0 screenshot shows the shared app interface in the browser validation build with sample sessions.
+
+![Workout history showing three saved sessions, 30 minutes of workout time and three active days](docs/screenshots/training-summary.png)
 
 **Make a variation.** Duplicate a saved workout without replacing your current setup. This 1.15.0 screenshot was captured in the native macOS validation app with sample data.
 
@@ -91,7 +99,7 @@ Local test builds are not public signed/notarized releases. See [contributing](C
 
 ## Further reading
 
-- [1.15.0 release notes](docs/release-notes-1.15.0.md)
+- [1.16.0 release notes](docs/release-notes-1.16.0.md)
 - [1.13.0: workout notes](docs/release-notes-1.13.0.md)
 - [1.12.0: saved-workout favourites](docs/release-notes-1.12.0.md)
 - [Exercise sources](docs/exercise-sources.md) and [taxonomy](docs/exercise-taxonomy.md)

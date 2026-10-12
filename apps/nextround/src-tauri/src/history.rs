@@ -41,6 +41,7 @@ pub enum Mutation {
     },
     Delete {
         id: String,
+        expected: Box<WorkoutResult>,
     },
     Note {
         id: String,
@@ -205,12 +206,21 @@ impl HistoryStore {
                     note
                 };
             }
-            Mutation::Delete { id } => {
+            Mutation::Delete { id, mut expected } => {
+                validate_result(&expected)?;
+                if blank_note(&expected.note) {
+                    expected.note.clear();
+                }
                 let index = document
                     .results
                     .iter()
                     .position(|r| r.id == id)
                     .ok_or("This result no longer exists. Refresh and try again.")?;
+                if &document.results[index] != expected.as_ref() {
+                    return Err(
+                        "This result changed. Refresh history to review it before deleting.".into(),
+                    );
+                }
                 document.results.remove(index);
             }
         }
@@ -238,6 +248,30 @@ pub fn mutate_workout_history(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn changed_result_cannot_be_deleted_without_review() {
+        let s = store();
+        let original = result();
+        s.mutate(Mutation::Save {
+            result: Box::new(original.clone()),
+        })
+        .unwrap();
+        s.mutate(Mutation::Note {
+            id: original.id.clone(),
+            expected_note: String::new(),
+            note: "Changed".into(),
+        })
+        .unwrap();
+        let before = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(Mutation::Delete {
+                id: original.id.clone(),
+                expected: Box::new(original.clone())
+            })
+            .is_err());
+        assert_eq!(fs::read(&s.path).unwrap(), before);
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
     #[test]
     fn unicode_blank_notes_remain_editable() {
         let s = store();
@@ -299,6 +333,7 @@ mod tests {
         s.mutate(command(&unicode, " \n ").unwrap()).unwrap();
         assert_eq!(s.read().unwrap().results, vec![original.clone()]);
         s.mutate(Mutation::Delete {
+            expected: Box::new(original.clone()),
             id: original.id.clone(),
         })
         .unwrap();
@@ -429,6 +464,7 @@ mod tests {
             })
             .is_err());
         s.mutate(Mutation::Delete {
+            expected: Box::new(result()),
             id: "session-1".into(),
         })
         .unwrap();
@@ -452,6 +488,7 @@ mod tests {
             fs::write(&s.path, &bytes).unwrap();
             assert!(s
                 .mutate(Mutation::Delete {
+                    expected: Box::new(result()),
                     id: "session-1".into()
                 })
                 .is_err());

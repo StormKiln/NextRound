@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { LadderResult } from '@/features/ladder/progress';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
+import { mutateHistoryIntoCache, readHistoryIntoCache } from './cache';
 import { ComparisonView } from './comparison-view';
 import { DateControls, useCalendarNow } from './date-controls';
 import { dateBounds } from './date-filters';
@@ -22,11 +23,12 @@ import { filterHistory, type HistoryMode } from './filters';
 import { NoteEditor } from './note-editor';
 import {
   copyResult,
+  type HistoryMutation,
   historyKey,
-  mutateHistory,
   readHistory,
   type WorkoutResult,
 } from './repository';
+import { formatWorkoutTime, summarizeHistory } from './summary';
 import '../templates/templates.css';
 import './history.css';
 
@@ -46,8 +48,7 @@ export function History() {
   const query = useQuery({ queryKey: historyKey, queryFn: readHistory, retry: false });
   const client = useQueryClient();
   const mutation = useMutation({
-    mutationFn: mutateHistory,
-    onSuccess: () => client.invalidateQueries({ queryKey: historyKey }),
+    mutationFn: (input: HistoryMutation) => mutateHistoryIntoCache(client, input),
   });
   const navigate = useNavigate();
   const repeatLock = useRef(false);
@@ -66,13 +67,17 @@ export function History() {
   const [editingNote, setEditingNote] = useState<WorkoutResult | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const refreshLock = useRef(false);
+  const deleteLock = useRef(false);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const dialogError = error ?? (query.isError ? String(query.error) : null);
   const [notice, setNotice] = useState<string | null>(null);
   const { mode, search, date, draftPreset, start, end, reset } = useHistoryFilters();
   const now = useCalendarNow();
   const allResults = query.data?.results ?? [];
   const results = filterHistory(allResults, mode, search, dateBounds(date, now));
+  const summary = summarizeHistory(results);
+  const stale = query.isError;
   const filtered = mode !== 'all' || search.trim() !== '' || date.preset !== 'all';
   const canReset = filtered || draftPreset !== 'all' || !!start || !!end;
   const compareButton = useRef<HTMLButtonElement>(null);
@@ -104,17 +109,14 @@ export function History() {
     restoreFocus();
   }, [restoreFocus]);
   async function refresh() {
-    if (refreshLock.current) return;
+    if (refreshLock.current || deleteLock.current) return;
     refreshLock.current = true;
     setRefreshing(true);
     setError(null);
     setNotice(null);
     try {
-      await client.cancelQueries({ queryKey: historyKey });
-      const document = await readHistory();
-      await client.cancelQueries({ queryKey: historyKey });
+      const document = await readHistoryIntoCache(client, () => mounted.current);
       if (!mounted.current) return;
-      client.setQueryData(historyKey, document);
       setNotice('History refreshed.');
       if (detail) {
         const latest = document.results.find((entry) => entry.id === detail.id);
@@ -124,16 +126,21 @@ export function History() {
           closeDetail();
         }
       }
-      if (deleting && !document.results.some((entry) => entry.id === deleting.id)) {
-        setDeleting(null);
-        setNotice('This result is no longer in history.');
-        restoreFocus();
+      if (deleting) {
+        const latest = document.results.find((entry) => entry.id === deleting.id);
+        setDeleting(latest ?? null);
+        setNotice(
+          latest
+            ? 'History refreshed. Review this result before confirming deletion.'
+            : 'This result is no longer in history.',
+        );
+        if (!latest) restoreFocus();
       }
-    } catch (e) {
-      if (mounted.current) setError(String(e));
+    } catch {
+      // The coordinator exposes read errors through the shared query, including dialogs.
     } finally {
       refreshLock.current = false;
-      setRefreshing(false);
+      if (mounted.current) setRefreshing(false);
     }
   }
   useEffect(() => {
@@ -188,14 +195,42 @@ export function History() {
           <Button variant="secondary" onClick={resetFilters} disabled={!canReset}>
             Reset filters
           </Button>
-          <p role="status">
-            {results.length} of {allResults.length} saved results
-          </p>
+          {query.data && (
+            <p role="status">
+              {results.length} of {allResults.length} saved results
+              {stale ? ' (previously loaded)' : ''}
+            </p>
+          )}
         </section>
       }
+      {query.data && (
+        <section className="history-summary" aria-label="Training summary">
+          <h2>Training summary</h2>
+          {stale && <p role="status">Previously loaded history. It may be out of date.</p>}
+          <dl>
+            <div>
+              <dt>Saved sessions</dt>
+              <dd>{summary.sessions.toLocaleString()}</dd>
+            </div>
+            <div>
+              <dt>Workout time</dt>
+              <dd>{formatWorkoutTime(summary.elapsedMs)}</dd>
+            </div>
+            <div>
+              <dt>Active days</dt>
+              <dd>{summary.activeDays.toLocaleString()}</dd>
+            </div>
+          </dl>
+          <p className="muted">
+            Based on the results matching your applied filters. Workout time includes programmed
+            rest, excludes pauses and lead-in, and is not a measure of exercise effort. Active days
+            use each session’s completion date in your local time zone.
+          </p>
+        </section>
+      )}
       <Button
         variant="secondary"
-        disabled={refreshing || query.isFetching}
+        disabled={refreshing || query.isFetching || mutation.isPending}
         onClick={() => void refresh()}
       >
         Refresh history
@@ -208,7 +243,7 @@ export function History() {
           <Button onClick={() => void query.refetch()}>Retry history</Button>
         </div>
       )}
-      {!query.isPending && !query.isError && results.length === 0 && (
+      {query.data && !stale && results.length === 0 && (
         <section className="history-empty">
           <h2>{filtered ? 'No results match these filters.' : 'No saved results yet.'}</h2>
           {filtered ? (
@@ -223,7 +258,7 @@ export function History() {
         </section>
       )}
       <ul className="template-list history-list">
-        {(!query.isError ? results : []).map((result, index) => (
+        {results.map((result, index) => (
           <li key={result.id}>
             <div className="template-summary">
               <h2>{modeName(result)}</h2>
@@ -274,11 +309,8 @@ export function History() {
         <ComparisonView
           resultId={comparisonId}
           onClose={async () => {
-            await client.cancelQueries({ queryKey: historyKey });
-            const document = await readHistory();
-            await client.cancelQueries({ queryKey: historyKey });
+            const document = await readHistoryIntoCache(client, () => mounted.current);
             if (!mounted.current) return;
-            client.setQueryData(historyKey, document);
             setComparisonId(null);
             setError(null);
             const latest = document.results.find((result) => result.id === comparisonId);
@@ -314,58 +346,10 @@ export function History() {
                 {detail.note ? 'Edit note' : 'Add note'}
               </Button>
             </section>
-            <p>
-              {new Date(detail.completedAt).toLocaleString()} ·{' '}
-              {detail.config.type === 'forTime' || detail.config.type === 'ladder'
-                ? formatElapsed(detail.elapsedMs)
-                : formatTime(detail.elapsedMs)}{' '}
-              active workout time
-            </p>
-            <p>
-              {detail.config.type === 'forTime' || detail.config.type === 'ladder'
-                ? `${detail.outcome === 'finished' ? 'Finished' : 'Time cap reached'} · ${detail.config.timeCapSeconds ? `${formatTime(detail.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
-                : detail.config.type === 'amrap' && detail.amrapProgress
-                  ? formatAmrapProgress(detail.config, detail.amrapProgress)
-                  : detail.config.type === 'intervals'
-                    ? `${countLabel(detail.config.rounds, 'round')} · ${detail.config.workSeconds}s work / ${detail.config.restSeconds}s rest`
-                    : detail.config.type !== 'countdown' && detail.config.type !== 'amrap'
-                      ? `${countLabel(detail.config.minutes, 'one-minute round')}`
-                      : `${detail.config.durationSeconds}s countdown`}
-            </p>
-            <p>
-              Lead-in: {detail.config.leadInSeconds}s · Warning: {detail.config.warningSeconds}s
-            </p>
-            <p className="muted">
-              Targets are your planned work, not measured results. Checkmarks record what you ticked
-              off.
-            </p>
-            {detail.config.type === 'ladder' && (
-              <LadderResult
-                config={detail.config}
-                completed={detail.ladderCompletedMovements ?? 0}
-              />
-            )}
-            <ol className="history-exercises">
-              {detail.config.exercises?.map((exercise) => (
-                <li key={exercise.id}>
-                  <strong>{exercise.name}</strong>
-                  {exercise.target && <span> · Target: {formatTarget(exercise.target)}</span>}
-                  {exercise.description && <p>{exercise.description}</p>}
-                  {(detail.config.type === 'countdown' || detail.config.type === 'forTime') &&
-                    detail.config.showChecklist !== false && (
-                      <p>
-                        {detail.checkedExerciseIds.includes(exercise.id)
-                          ? 'Checked off'
-                          : 'Not checked off'}
-                      </p>
-                    )}
-                </li>
-              ))}
-            </ol>
-            {!detail.config.exercises?.length && <p>No exercises were specified.</p>}
+            <ResultSnapshot result={detail} />
           </div>
           {notice && <p role="status">{notice}</p>}
-          {error && <p role="alert">{error}</p>}
+          {dialogError && <p role="alert">{dialogError}</p>}
           <div className="dialog-actions">
             <Button
               variant="secondary"
@@ -438,21 +422,27 @@ export function History() {
       {deleting && (
         <Dialog
           title="Delete this result?"
+          className="history-detail"
           onClose={() => {
-            if (!mutation.isPending && !refreshLock.current) {
+            if (!deleteLock.current && !refreshLock.current) {
               setDeleting(null);
               restoreFocus();
             }
           }}
         >
-          <p>
-            This removes the saved {modeName(deleting)} session from{' '}
-            {new Date(deleting.completedAt).toLocaleString()}. Your saved workout templates are
-            kept.
-          </p>
-          {error && (
+          <div className="history-detail-body">
+            <p>
+              This removes the saved {modeName(deleting)} session from{' '}
+              {new Date(deleting.completedAt).toLocaleString()}. Your saved workout templates are
+              kept.
+            </p>
+            <p className="history-note">{deleting.note || 'No note yet.'}</p>
+            <ResultSnapshot result={deleting} />
+          </div>
+          {notice && <p role="status">{notice}</p>}
+          {dialogError && (
             <div role="alert">
-              <p>{error}</p>
+              <p>{dialogError}</p>
               <Button disabled={mutation.isPending || refreshing} onClick={() => void refresh()}>
                 Refresh history
               </Button>
@@ -463,6 +453,7 @@ export function History() {
               variant="ghost"
               disabled={mutation.isPending || refreshing}
               onClick={() => {
+                if (deleteLock.current || refreshLock.current) return;
                 setDeleting(null);
                 restoreFocus();
               }}
@@ -473,13 +464,24 @@ export function History() {
               variant="destructive"
               disabled={mutation.isPending || refreshing}
               onClick={async () => {
+                if (deleteLock.current || refreshLock.current) return;
+                deleteLock.current = true;
                 setError(null);
                 try {
-                  await mutation.mutateAsync({ action: 'delete', id: deleting.id });
-                  setDeleting(null);
-                  restoreFocus();
+                  await mutation.mutateAsync({
+                    action: 'delete',
+                    id: deleting.id,
+                    expected: deleting,
+                  });
+                  if (mounted.current) {
+                    setDeleting(null);
+                    restoreFocus();
+                    setNotice('Result deleted.');
+                  }
                 } catch (e) {
-                  setError(String(e));
+                  if (mounted.current) setError(String(e));
+                } finally {
+                  deleteLock.current = false;
                 }
               }}
             >
@@ -496,5 +498,57 @@ export function History() {
         />
       )}
     </main>
+  );
+}
+
+function ResultSnapshot({ result }: { result: WorkoutResult }) {
+  return (
+    <>
+      <p>
+        {new Date(result.completedAt).toLocaleString()} ·{' '}
+        {result.config.type === 'forTime' || result.config.type === 'ladder'
+          ? formatElapsed(result.elapsedMs)
+          : formatTime(result.elapsedMs)}{' '}
+        active workout time
+      </p>
+      <p>
+        {result.config.type === 'forTime' || result.config.type === 'ladder'
+          ? `${result.outcome === 'finished' ? 'Finished' : 'Time cap reached'} · ${result.config.timeCapSeconds ? `${formatTime(result.config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
+          : result.config.type === 'amrap' && result.amrapProgress
+            ? formatAmrapProgress(result.config, result.amrapProgress)
+            : result.config.type === 'intervals'
+              ? `${countLabel(result.config.rounds, 'round')} · ${result.config.workSeconds}s work / ${result.config.restSeconds}s rest`
+              : result.config.type !== 'countdown' && result.config.type !== 'amrap'
+                ? `${countLabel(result.config.minutes, 'one-minute round')}`
+                : `${result.config.durationSeconds}s countdown`}
+      </p>
+      <p>
+        Lead-in: {result.config.leadInSeconds}s · Warning: {result.config.warningSeconds}s
+      </p>
+      <p className="muted">
+        Targets are your planned work, not measured results. Checkmarks record what you ticked off.
+      </p>
+      {result.config.type === 'ladder' && (
+        <LadderResult config={result.config} completed={result.ladderCompletedMovements ?? 0} />
+      )}
+      <ol className="history-exercises">
+        {result.config.exercises?.map((exercise) => (
+          <li key={exercise.id}>
+            <strong>{exercise.name}</strong>
+            {exercise.target && <span> · Target: {formatTarget(exercise.target)}</span>}
+            {exercise.description && <p>{exercise.description}</p>}
+            {(result.config.type === 'countdown' || result.config.type === 'forTime') &&
+              result.config.showChecklist !== false && (
+                <p>
+                  {result.checkedExerciseIds.includes(exercise.id)
+                    ? 'Checked off'
+                    : 'Not checked off'}
+                </p>
+              )}
+          </li>
+        ))}
+      </ol>
+      {!result.config.exercises?.length && <p>No exercises were specified.</p>}
+    </>
   );
 }
