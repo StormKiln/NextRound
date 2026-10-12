@@ -60,7 +60,7 @@ test('changed result is reviewed and explicitly reconfirmed before deletion at m
     .click();
   const dialog = page.getByRole('dialog', { name: 'Delete this result?' });
   await page.evaluate((key) => {
-    const doc = JSON.parse(localStorage.getItem(key)!);
+    const doc = JSON.parse(localStorage.getItem(key) ?? 'null');
     doc.results[0].note = 'New observation';
     localStorage.setItem(key, JSON.stringify(doc));
   }, key);
@@ -87,7 +87,7 @@ test('changed result is reviewed and explicitly reconfirmed before deletion at m
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 test('failed refresh labels cached summary and list until a successful retry', async ({ page }) => {
-  const original = await page.evaluate((key) => localStorage.getItem(key)!, key);
+  const original = await page.evaluate((key) => localStorage.getItem(key) ?? 'null', key);
   await page.evaluate((key) => localStorage.setItem(key, '{broken'), key);
   await page.getByRole('button', { name: 'Refresh history', exact: true }).click();
   await expect(page.getByText('Previously loaded history. It may be out of date.')).toBeVisible();
@@ -117,4 +117,25 @@ test('saving a note immediately changes search membership and totals', async ({ 
     '1 min',
     '1',
   ]);
+});
+
+test('failed note-editor refresh remains visible after closing the editor and detail', async ({
+  page,
+}) => {
+  await page
+    .getByRole('button', { name: /^View result:/ })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'Edit note' }).click();
+  await page.evaluate((key) => localStorage.setItem(key, '{broken'), key);
+  await page
+    .getByRole('dialog', { name: 'Workout note', exact: true })
+    .getByRole('button', { name: 'Refresh history' })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Workout note', exact: true }).getByRole('alert'),
+  ).toContainText('preserved');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByText('Previously loaded history. It may be out of date.')).toBeVisible();
 });

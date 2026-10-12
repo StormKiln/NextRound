@@ -15,12 +15,28 @@ function ordered<T>(client: QueryClient, operation: () => Promise<T>): Promise<T
 export function readHistoryIntoCache(client: QueryClient, active: () => boolean) {
   return ordered(client, async () => {
     if (active()) await client.cancelQueries({ queryKey: historyKey });
-    const document = await readHistory();
-    if (active()) {
-      await client.cancelQueries({ queryKey: historyKey });
-      if (active()) client.setQueryData(historyKey, document);
+    try {
+      const document = await readHistory();
+      if (active()) {
+        await client.cancelQueries({ queryKey: historyKey });
+        if (active()) client.setQueryData(historyKey, document);
+      }
+      return document;
+    } catch (error) {
+      if (active()) {
+        await client.cancelQueries({ queryKey: historyKey });
+        if (active())
+          client
+            .getQueryCache()
+            .find({ queryKey: historyKey })
+            ?.setState({
+              status: 'error',
+              error: error instanceof Error ? error : new Error(String(error)),
+              errorUpdatedAt: Date.now(),
+            });
+      }
+      throw error;
     }
-    return document;
   });
 }
 export function mutateHistoryIntoCache(client: QueryClient, mutation: HistoryMutation) {

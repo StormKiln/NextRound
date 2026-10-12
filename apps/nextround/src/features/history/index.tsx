@@ -68,8 +68,6 @@ export function History() {
   const [refreshing, setRefreshing] = useState(false);
   const refreshLock = useRef(false);
   const deleteLock = useRef(false);
-  const [readFailed, setReadFailed] = useState(false);
-  useEffect(() => setReadFailed(false), [query.dataUpdatedAt]);
   const [deleting, setDeleting] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -78,7 +76,7 @@ export function History() {
   const allResults = query.data?.results ?? [];
   const results = filterHistory(allResults, mode, search, dateBounds(date, now));
   const summary = summarizeHistory(results);
-  const stale = query.isError || readFailed;
+  const stale = query.isError;
   const filtered = mode !== 'all' || search.trim() !== '' || date.preset !== 'all';
   const canReset = filtered || draftPreset !== 'all' || !!start || !!end;
   const compareButton = useRef<HTMLButtonElement>(null);
@@ -118,7 +116,6 @@ export function History() {
     try {
       const document = await readHistoryIntoCache(client, () => mounted.current);
       if (!mounted.current) return;
-      setReadFailed(false);
       setNotice('History refreshed.');
       if (detail) {
         const latest = document.results.find((entry) => entry.id === detail.id);
@@ -141,7 +138,6 @@ export function History() {
     } catch (e) {
       if (mounted.current) {
         setError(String(e));
-        setReadFailed(true);
       }
     } finally {
       refreshLock.current = false;
@@ -316,7 +312,6 @@ export function History() {
           onClose={async () => {
             const document = await readHistoryIntoCache(client, () => mounted.current);
             if (!mounted.current) return;
-            setReadFailed(false);
             setComparisonId(null);
             setError(null);
             const latest = document.results.find((result) => result.id === comparisonId);

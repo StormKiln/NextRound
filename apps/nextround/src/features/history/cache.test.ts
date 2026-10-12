@@ -109,3 +109,19 @@ it('an unmounted refresh does not cancel or replace a new route query', async ()
   expect(client.getQueryData(historyKey)).toEqual(fresh);
   client.clear();
 });
+
+it('shares explicit read failures without discarding cached data, then recovers', async () => {
+  const client = new QueryClient();
+  client.setQueryData(historyKey, fresh);
+  mocks.read.mockRejectedValueOnce(new Error('Unreadable history'));
+  await expect(readHistoryIntoCache(client, () => true)).rejects.toThrow('Unreadable');
+  expect(client.getQueryState(historyKey)?.status).toBe('error');
+  expect(client.getQueryData(historyKey)).toEqual(fresh);
+  mocks.read.mockResolvedValueOnce(fresh);
+  await readHistoryIntoCache(client, () => true);
+  expect(client.getQueryState(historyKey)?.status).toBe('success');
+  mocks.read.mockRejectedValueOnce(new Error('Obsolete view'));
+  await expect(readHistoryIntoCache(client, () => false)).rejects.toThrow('Obsolete');
+  expect(client.getQueryState(historyKey)?.status).toBe('success');
+  client.clear();
+});
