@@ -60,6 +60,10 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 
 ![Workout history showing three saved sessions, 30 minutes of workout time and three active days](docs/screenshots/training-summary.png)
 
+**Export a report.** Save the filtered sessions as a CSV, with notes included only when selected. This 1.17.0 browser validation screenshot uses a short sample session.
+
+![History CSV export with an optional workout-notes checkbox](docs/screenshots/history-csv.png)
+
 **Make a variation.** Duplicate a saved workout without replacing your current setup. This 1.15.0 screenshot was captured in the native macOS validation app with sample data.
 
 ![Duplicate a saved workout with an editable name and a summary of its settings](docs/screenshots/duplicate-workout.png)

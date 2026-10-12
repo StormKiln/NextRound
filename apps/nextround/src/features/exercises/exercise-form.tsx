@@ -41,7 +41,13 @@ export function ExerciseForm({
   const keepEditingRef = useRef<HTMLButtonElement>(null);
   const shape = (exercise: PersonalExercise) =>
     JSON.stringify({
-      ...exercise,
+      id: exercise.id,
+      sourceId: exercise.sourceId,
+      archived: exercise.archived,
+      category: exercise.category,
+      defaultTarget: exercise.defaultTarget
+        ? { unit: exercise.defaultTarget.unit, value: exercise.defaultTarget.value }
+        : null,
       name: exercise.name.trim(),
       description: exercise.description.trim(),
       equipment: [...exercise.equipment].sort(),

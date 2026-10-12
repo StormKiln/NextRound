@@ -31,12 +31,12 @@ function token() {
   }).toString('base64url');
   return `${body}.${signature}`;
 }
-async function get(path, params) {
+async function get(path, params, timeoutMs = 30000) {
   const response = await fetch(
     `https://api.appstoreconnect.apple.com/v1/${path}?${new URLSearchParams(params)}`,
     {
       headers: { Authorization: `Bearer ${token()}` },
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(timeoutMs),
     },
   );
   if (!response.ok)

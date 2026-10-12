@@ -140,3 +140,40 @@ test('metadata-only edits and failed saves remain protected at minimum window si
   await confirm.getByRole('button', { name: 'Discard changes' }).click();
   await expect(page.getByRole('button', { name: 'Copy Wall push-up', exact: true })).toBeFocused();
 });
+
+test('native key ordering does not make an unchanged or reverted default target dirty', async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'nextround.personal-exercises.v1',
+      JSON.stringify({
+        version: 1,
+        exercises: [
+          {
+            archived: false,
+            category: 'Other bodyweight',
+            defaultTarget: { unit: 'reps', value: 7 },
+            description: 'Original cue',
+            equipment: [],
+            id: 'personal:native',
+            name: 'Native movement',
+            supportedUnits: ['reps'],
+            targetAreas: ['core'],
+          },
+        ],
+      }),
+    ),
+  );
+  await page.goto('/exercises');
+  await page.getByRole('button', { name: 'Edit Native movement', exact: true }).click();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Edit Native movement', exact: true }).click();
+  await page.getByLabel('Default amount').fill('9');
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Keep editing', exact: true }).click();
+  await page.getByLabel('Default amount').fill('7');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

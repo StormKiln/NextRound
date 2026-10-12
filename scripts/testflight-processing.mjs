@@ -10,14 +10,35 @@ export function validateRequest(metadata, waitMinutes) {
     throw new Error('Wait minutes must be an integer from 1 to 60.');
   return minutes;
 }
-export async function pollProcessing({ metadata, app, get, attempts, sleep, log }) {
+export async function pollProcessing({
+  metadata,
+  app,
+  get,
+  attempts,
+  sleep,
+  log,
+  waitMs = attempts * 15000,
+  now = Date.now,
+}) {
+  const deadline = now() + waitMs;
   let previous;
   for (let attempt = 0; attempt < attempts; attempt++) {
-    const payload = await get('builds', {
-      'filter[app]': app,
-      'filter[version]': metadata.build,
-      include: 'preReleaseVersion',
-    });
+    if (now() >= deadline) return null;
+    let payload;
+    try {
+      payload = await get(
+        'builds',
+        {
+          'filter[app]': app,
+          'filter[version]': metadata.build,
+          include: 'preReleaseVersion',
+        },
+        Math.max(1, Math.min(30000, deadline - now())),
+      );
+    } catch (error) {
+      if (now() >= deadline && error?.name === 'TimeoutError') return null;
+      throw error;
+    }
     if (payload.data.length > 1) throw new Error('Multiple builds matched the requested identity.');
     const build = payload.data[0];
     if (build) {
@@ -40,7 +61,7 @@ export async function pollProcessing({ metadata, app, get, attempts, sleep, log 
     if (state === 'VALID') return { id: build.id, ...metadata };
     if (['FAILED', 'INVALID'].includes(state))
       throw new Error(`Apple rejected build processing: ${state}`);
-    if (attempt + 1 < attempts) await sleep(15000);
+    if (attempt + 1 < attempts) await sleep(Math.max(0, Math.min(15000, deadline - now())));
   }
   return null;
 }

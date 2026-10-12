@@ -83,7 +83,9 @@ it('exports all six modes with named recorded progress and blank inapplicable fi
     },
   ];
   const lines = historyCsv(rows, false).slice(1).trimEnd().split('\r\n');
-  const headers = lines.shift()!.split(',');
+  const first = lines.shift();
+  if (!first) throw new Error('Missing CSV header');
+  const headers = first.split(',');
   const cells = lines.map((line) =>
     Object.fromEntries(line.split(',').map((value, i) => [headers[i], value])),
   );

@@ -61,3 +61,26 @@ test('rejects ambiguous build responses and missing identity relationships', asy
   await assert.rejects(run(async () => ({ ...build(), data: [...build().data, ...build().data] })));
   await assert.rejects(run(async () => ({ ...build(), included: [] })));
 });
+
+test('polling stops at the elapsed budget even when API calls are slow', async () => {
+  let now = 0;
+  let calls = 0;
+  const result = await run(
+    async () => {
+      calls++;
+      now += 20_000;
+      return build('PROCESSING');
+    },
+    {
+      attempts: 4,
+      waitMs: 30_000,
+      now: () => now,
+      sleep: async (ms) => {
+        now += ms;
+      },
+    },
+  );
+  assert.equal(result, null);
+  assert.equal(calls, 1);
+  assert.equal(now, 30_000);
+});
