@@ -177,3 +177,31 @@ test('native key ordering does not make an unchanged or reverted default target 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time', 'ladder']) {
+  test(`new carries use time targets and stay out of reps-only selection in ${mode}`, async ({
+    page,
+  }) => {
+    await page.goto(`/${mode}`);
+    await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
+    await page.getByLabel('Search exercises').fill('db farmers carry');
+    const choice = page.getByRole('button', { name: /^Dumbbell farmer carry / });
+    if (mode === 'ladder') await expect(choice).toHaveCount(0);
+    else {
+      await choice.click();
+      const row = page.getByTestId('exercise-entry').filter({ hasText: 'Dumbbell farmer carry' });
+      if (mode === 'emom' || mode === 'amrap') await expect(row).toContainText('30 sec');
+      await row
+        .getByRole('button', { name: /^(Edit|Set) target for Dumbbell farmer carry$/ })
+        .click();
+      await expect(page.getByLabel('Target unit').locator('option')).toHaveText([
+        'Seconds',
+        'Metres',
+      ]);
+      await page.getByLabel('Target unit').selectOption('metres');
+      await page.getByLabel('Target amount').fill('25');
+      await page.getByRole('button', { name: 'Save target', exact: true }).click();
+      await expect(row).toContainText('25 m');
+    }
+  });
+}
