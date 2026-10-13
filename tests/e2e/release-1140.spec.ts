@@ -157,7 +157,9 @@ test('comparison return read failure retains dialog and supports retry', async (
   await page.getByRole('button', { name: 'Compare attempts', exact: true }).click();
   await page.evaluate((key) => localStorage.setItem(key, '{broken'), key);
   await page.getByRole('button', { name: 'Close', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('history is preserved');
+  await expect(
+    page.getByRole('dialog', { name: 'Compare attempts', exact: true }).getByRole('alert'),
+  ).toContainText('history is preserved');
   await expect(page.getByRole('dialog', { name: 'Compare attempts', exact: true })).toBeVisible();
   await page.evaluate(({ key, original }) => localStorage.setItem(key, original), {
     key,

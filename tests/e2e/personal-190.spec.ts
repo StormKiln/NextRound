@@ -229,6 +229,7 @@ test('personal form reports stale edits without dropping changes and leaves keyb
   expect(bounds && bounds.x >= 0 && bounds.y + bounds.height <= 620).toBeTruthy();
   await page.screenshot({ path: info.outputPath('personal-form-minimum.png') });
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Discard changes', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 test('saved-workout search finds equivalent Unicode while keeping distinct IDs', async ({
@@ -296,6 +297,7 @@ test('closing and reopening after a personal conflict loads the current record',
   await page.getByRole('button', { name: 'Save exercise', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('changed');
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: 'Discard changes', exact: true }).click();
   await page.getByRole('button', { name: 'Edit Original', exact: true }).click();
   await expect(page.getByLabel('Description (optional)', { exact: true })).toHaveValue(
     'Concurrent cue',

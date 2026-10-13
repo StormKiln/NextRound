@@ -85,6 +85,7 @@ def main():
     app_id = validate_profile(profile, app_der, team, config['identifier'])
     prepare_embedded_profile(profile_path)
     entitlements = {'com.apple.security.app-sandbox': True,
+                    'com.apple.security.files.user-selected.read-write': True,
                     # WKWebView's networking process requires this even for bundled content.
                     'com.apple.security.network.client': True,
                     'com.apple.application-identifier': app_id,

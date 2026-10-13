@@ -64,6 +64,7 @@ icons:
 
 .PHONY: test-release release-metadata release-keychain check-workflows
 test-release:
+	node --test scripts/testflight-processing.test.mjs
 	python3 -m unittest discover -s tests/release
 
 release-metadata:

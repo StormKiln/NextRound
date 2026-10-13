@@ -1,12 +1,13 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { metadataFor } from '@/data/equipment';
 import { exercises } from '@/data/exercises';
 import { normalizeSearch } from '@/lib/search';
+import { matchesExercise } from '../setup/exercise-suggestions';
 import { ExerciseForm, newPersonal } from './exercise-form';
 import { personalQueryKey, useExerciseLibrary } from './library';
 import { mutatePersonalExercises, type PersonalExercise } from './repository';
@@ -34,6 +35,15 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
     initial: PersonalExercise;
     expected?: PersonalExercise;
   } | null>(null);
+  const editorOrigin = useRef<string | null>(null);
+  useEffect(() => {
+    if (editing || !editorOrigin.current) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(editorOrigin.current ?? '')?.focus();
+      editorOrigin.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [editing]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const ready = !personal.isPending && !personal.isError;
@@ -65,7 +75,14 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
         Your movements, saved on this Mac. Editing or archiving preserves existing workout copies.
       </p>
       <div className="dialog-actions">
-        <Button disabled={!ready || busy} onClick={() => setEditing({ initial: newPersonal() })}>
+        <Button
+          id="personal-create"
+          disabled={!ready || busy}
+          onClick={() => {
+            editorOrigin.current = 'personal-create';
+            setEditing({ initial: newPersonal() });
+          }}
+        >
           Create exercise
         </Button>
         <Button variant="secondary" disabled={!ready || busy} onClick={() => setBundled(!bundled)}>
@@ -103,7 +120,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
       <div className="personal-list">
         {bundled
           ? exercises
-              .filter((e) => normalizeSearch(e.name).includes(normalizeSearch(search)))
+              .filter((e) => matchesExercise(e, search))
               .map((e) => (
                 <section key={e.id}>
                   <div>
@@ -114,8 +131,12 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                   <Button
                     variant="secondary"
                     disabled={!ready || busy}
+                    id={`personal-copy-${e.id}`}
                     aria-label={`Copy ${e.name}`}
-                    onClick={() => setEditing({ initial: copyExercise(e) })}
+                    onClick={() => {
+                      editorOrigin.current = `personal-copy-${e.id}`;
+                      setEditing({ initial: copyExercise(e) });
+                    }}
                   >
                     Copy to my exercises
                   </Button>
@@ -135,8 +156,12 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                   <Button
                     variant="secondary"
                     disabled={busy}
+                    id={`personal-edit-${e.id}`}
                     aria-label={`Edit ${e.name}`}
-                    onClick={() => setEditing({ initial: e, expected: e })}
+                    onClick={() => {
+                      editorOrigin.current = `personal-edit-${e.id}`;
+                      setEditing({ initial: e, expected: e });
+                    }}
                   >
                     Edit
                   </Button>
@@ -151,6 +176,14 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                 </div>
               </section>
             ))}
+        {ready && bundled && !exercises.some((e) => matchesExercise(e, search)) && (
+          <div role="status">
+            <p>No bundled exercises match.</p>
+            <Button variant="secondary" onClick={() => setSearch('')}>
+              Clear exercise search
+            </Button>
+          </div>
+        )}
         {ready && !bundled && !entries.length && (
           <p>
             No personal exercises match. Create one, copy a bundled movement, or show archived

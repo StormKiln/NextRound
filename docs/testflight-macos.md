@@ -106,3 +106,17 @@ The Tauri updater signing key is unrelated to TestFlight. App Store/TestFlight b
 Once a successfully uploaded build finishes processing, open **NextRound → TestFlight → macOS**. Resolve any export-compliance prompt, create an **Internal Testing** group, add yourself as an eligible App Store Connect user, and assign the build. Install TestFlight from the Mac App Store and accept the invitation. External testers require the additional beta-review process.
 
 Source: [Apple: Add internal testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers/).
+
+## Recheck an uploaded build without another upload
+
+If the upload succeeds but Apple's processing check times out, open **Actions → TestFlight processing status → Run workflow** on `main`. Enter the exact marketing version (for example `1.17.0`) and build number printed by the original TestFlight run, then a wait budget from 1 to 60 minutes. This workflow only reads App Store Connect; it does not import signing keys, build, package, upload, or assign tester groups.
+
+The check verifies the bundle identifier, macOS platform, marketing version and build number before reporting success. `VALID` means processing completed; confirm availability in the intended internal TestFlight group separately. A pending timeout exits with status 2 and may be checked again with the same inputs. `FAILED`/`INVALID`, identity mismatch and API/authentication failures are errors requiring investigation. Do not trigger a new upload merely to ask whether an existing build has finished processing.
+
+Locally, with the existing App Store Connect API environment configured, the equivalent read-only command is:
+
+```sh
+TESTFLIGHT_VERSION=1.17.0 TESTFLIGHT_BUILD=YOUR_BUILD_NUMBER \
+TESTFLIGHT_BUNDLE=com.stormkiln.nextround TESTFLIGHT_WAIT_MINUTES=10 \
+node scripts/testflight-status.mjs --status-only
+```
