@@ -49,6 +49,10 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 
 ![Exercise picker with grouped movements, suggestions and equipment controls](docs/screenshots/exercise-picker.png)
 
+**Keep your movements handy.** Star exercises, then combine Favourites only with search and other filters. This 1.18.0 browser validation screenshot shows the picker at the minimum window size.
+
+![Exercise favourites with a starred Cat-cow movement and fixed equipment controls](docs/screenshots/exercise-favourites.png)
+
 **Remember your progress.** Review completed sessions, add notes, compare attempts and repeat a workout from setup.
 
 ![Saved EMOM result with a workout note and exercise targets](docs/screenshots/workout-notes.png)

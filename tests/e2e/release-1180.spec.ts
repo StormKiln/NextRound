@@ -127,6 +127,7 @@ test('failed star writes preserve the selected state and recover without losing 
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('My push-up');
   await page.getByRole('button', { name: 'Favourite My push-up', exact: true }).click();
+  await page.getByLabel('Favourites only', { exact: true }).check();
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
@@ -138,6 +139,9 @@ test('failed star writes preserve the selected state and recover without losing 
   await expect(
     page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
+  ).toBeFocused();
   await expect(page.getByText(/Exercise favourites could not be saved/)).toBeVisible();
   expect(
     await page.evaluate(
@@ -183,7 +187,7 @@ test('stars retain personal identity across archive and restore without transfer
   await page.getByRole('button', { name: 'Restore My push-up', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Archive My push-up', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await page.getByRole('link', { name: /EMOM/ }).click();
+  await page.getByRole('button', { name: 'Build an EMOM', exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Favourites only', { exact: true }).check();
   await page.getByLabel('Search exercises').fill('My push-up');

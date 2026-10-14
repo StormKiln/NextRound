@@ -77,7 +77,8 @@ export function ExerciseEditor({
     window.addEventListener('storage', changed);
     return () => window.removeEventListener('storage', changed);
   }, [favorites.load]);
-  const favoritesReady = favorites.loaded && !favorites.error;
+  // A failed write retains the last successfully read selection.
+  const favoritesReady = favorites.loaded;
   const toggleFavorite = (id: string) => {
     const removing = favorites.ids.includes(id);
     if (favorites.toggle(id) && removing && favoritesOnly)
@@ -615,9 +616,20 @@ export function ExerciseEditor({
               Your workout order and timing stay the same.
             </p>
           )}
-          <Button variant="secondary" onClick={() => setManage(true)}>
-            Manage my exercises
-          </Button>
+          <div className="picker-actions">
+            <Button variant="secondary" onClick={() => setManage(true)}>
+              Manage my exercises
+            </Button>
+            <label className="personal-check">
+              <input
+                type="checkbox"
+                checked={favoritesOnly}
+                disabled={!favoritesReady}
+                onChange={(event) => setFavoritesOnly(event.target.checked)}
+              />
+              Favourites only
+            </label>
+          </div>
           <Input
             ref={exerciseSearchRef}
             aria-label="Search exercises"
@@ -625,22 +637,13 @@ export function ExerciseEditor({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <label className="personal-check">
-            <input
-              type="checkbox"
-              checked={favoritesOnly}
-              disabled={!favoritesReady}
-              onChange={(event) => setFavoritesOnly(event.target.checked)}
-            />
-            Favourites only
-          </label>
-          {favorites.error && (
-            <div role="alert">
-              <p>{favorites.error} Manual selection remains available.</p>
-              <Button onClick={favorites.load}>Retry exercise favourites</Button>
-            </div>
-          )}
           <div className="picker-body" ref={pickerBodyRef}>
+            {favorites.error && (
+              <div role="alert">
+                <p>{favorites.error} Manual selection remains available.</p>
+                <Button onClick={favorites.load}>Retry exercise favourites</Button>
+              </div>
+            )}
             <FocusControls view={view} onView={setView} selected={areas} onChange={setAreas} />
             {personal.isPending && <p role="status">Loading personal exercises…</p>}
             {personal.isError && (

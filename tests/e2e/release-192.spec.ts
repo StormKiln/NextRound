@@ -74,6 +74,8 @@ test('generator validates counts, cancels cleanly and supports keyboard preset s
   const trigger = page.getByRole('button', { name: 'Create a workout', exact: true });
   await trigger.click();
   await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'My favorites', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: 'Most used', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Create a workout' });

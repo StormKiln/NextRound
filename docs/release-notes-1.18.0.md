@@ -15,6 +15,7 @@ The library now contains 143 exercises: ten new equipment-free movements, six du
 - Personal exercise search handles name variants such as pushup and push-up consistently with the picker.
 - Empty personal search results offer a clear-search action.
 - Renaming an exercise out of the current filter returns keyboard focus to search.
-- Unreadable or unsavable star preferences show recovery controls without silently replacing stored data.
+- Unreadable or unsavable star preferences show recovery controls without silently replacing stored data. Failed writes keep the existing favourite selection and keyboard focus.
+- Compact picker controls leave more room for matching exercises at the minimum window size.
 
 For Apple Silicon Macs on macOS 14 or later. GitHub copies use the signed updater; Apple copies remain managed by TestFlight/App Store. Each distribution channel retains its own local data.
