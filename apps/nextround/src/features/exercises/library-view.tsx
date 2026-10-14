@@ -44,12 +44,23 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   }, [editing]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const archiveOrigin = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (busy || !archiveOrigin.current) return;
+    const origin = archiveOrigin.current;
+    archiveOrigin.current = null;
+    // A disabled or removed action can lose focus while the native write completes.
+    // Do not override navigation the user performed during that write.
+    if (document.activeElement === document.body || document.activeElement === origin)
+      (document.getElementById(origin.id) ?? searchRef.current)?.focus();
+  }, [busy]);
   const ready = !personal.isPending && !personal.isError;
   const entries = (ready ? (personal.data?.exercises ?? []) : []).filter(
     (e) => (archived || !e.archived) && matchesExercise(e, search),
   );
-  const archive = async (entry: PersonalExercise) => {
+  const archive = async (entry: PersonalExercise, origin: HTMLButtonElement) => {
     if (busy) return;
+    archiveOrigin.current = document.activeElement === origin ? origin : null;
     setBusy(true);
     setError('');
     try {
@@ -167,8 +178,9 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                   <Button
                     variant="ghost"
                     disabled={busy}
+                    id={`personal-archive-${e.id}`}
                     aria-label={`${e.archived ? 'Restore' : 'Archive'} ${e.name}`}
-                    onClick={() => void archive(e)}
+                    onClick={(event) => void archive(e, event.currentTarget)}
                   >
                     {e.archived ? 'Restore' : 'Archive'}
                   </Button>
@@ -178,7 +190,13 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
         {ready && bundled && !exercises.some((e) => matchesExercise(e, search)) && (
           <div role="status">
             <p>No bundled exercises match.</p>
-            <Button variant="secondary" onClick={() => setSearch('')}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSearch('');
+                searchRef.current?.focus();
+              }}
+            >
               Clear exercise search
             </Button>
           </div>

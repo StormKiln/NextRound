@@ -149,10 +149,21 @@ export function ExerciseEditor({
   const [customError, setCustomError] = useState('');
   const [search, setSearch] = useState('');
   const pickerBodyRef = useRef<HTMLDivElement>(null);
+  const pickerFilterKey = JSON.stringify([
+    search,
+    areas,
+    view,
+    favoritesOnly,
+    showAllEquipment,
+    equipmentKey,
+  ]);
+  const priorPickerFilterKey = useRef(pickerFilterKey);
   useEffect(() => {
-    // A new query must reveal its first match even after browsing a long list.
-    if (search && pickerBodyRef.current) pickerBodyRef.current.scrollTop = 0;
-  }, [search]);
+    // Explicit result filters reveal the list start; background usage/star refreshes do not.
+    if (priorPickerFilterKey.current !== pickerFilterKey && pickerBodyRef.current)
+      pickerBodyRef.current.scrollTop = 0;
+    priorPickerFilterKey.current = pickerFilterKey;
+  }, [pickerFilterKey]);
 
   const listRef = useRef<HTMLOListElement>(null);
   const previousLength = useRef(exercises.length);
