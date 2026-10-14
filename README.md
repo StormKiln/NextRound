@@ -6,7 +6,7 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.19.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.19.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 1.20.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.20.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
@@ -81,6 +81,11 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 
 ![Duplicate a saved workout with an editable name and a summary of its settings](docs/screenshots/duplicate-workout.png)
 
+**Preview before loading.** Inspect a saved workout’s timing, movements and targets without changing your current setup. This physical Mac screenshot shows sample data at the minimum window size.
+
+![Saved workout preview with timing, exercise targets and fixed actions](docs/screenshots/workout-preview.png)
+
+
 ## Data and distribution
 
 The macOS app stores versioned JSON documents with atomic native writes for workout history, saved templates and personal exercises. Core functionality works offline; there is no account, backend, cloud sync or AI service. Notes stay separate from scores, comparison matching and exercise usage. Only completed sessions explicitly saved by the user appear in history; interrupted-session crash recovery is not available.
@@ -117,6 +122,8 @@ Before browser tests, install Chromium with `npm exec --offline --yes --package=
 Local test builds are not public signed/notarized releases. See [contributing](CONTRIBUTING.md), [GitHub release instructions](docs/release.md) and [TestFlight packaging](docs/testflight-macos.md). PRs use required checks and the merge queue without required reviewer approvals.
 
 ## Further reading
+
+- [1.20.0 release notes](docs/release-notes-1.20.0.md)
 
 - [1.19.0 release notes](docs/release-notes-1.19.0.md)
 - [1.17.0 release notes](docs/release-notes-1.17.0.md)

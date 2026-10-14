@@ -100,3 +100,62 @@ it('duplicate submission is locked until one write completes', async () => {
   });
   expect((client.getQueryData(['workout-templates']) as typeof doc).templates).toHaveLength(2);
 });
+
+it('a delayed favourite write does not steal focus from search', async () => {
+  const entry = {
+    id: 'focus',
+    name: 'Focus',
+    config: { type: 'countdown', durationSeconds: 30, leadInSeconds: 0, warningSeconds: 0 },
+  };
+  const doc = { version: 1, templates: [entry] };
+  mocks.read.mockResolvedValue(doc);
+  let finish!: (value: unknown) => void;
+  mocks.mutate.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(h(QueryClientProvider, { client }, h(TemplateLibrary, { onLoad: vi.fn() })));
+  const button = await screen.findByRole('button', { name: 'Favourite Focus' });
+  button.focus();
+  fireEvent.click(button);
+  await waitFor(() => expect(button.hasAttribute('disabled')).toBe(true));
+  const search = screen.getByLabelText('Search saved workouts');
+  search.focus();
+  await act(async () => {
+    finish({ ...doc, templates: [{ ...entry, favourite: true }] });
+  });
+  await screen.findByRole('button', { name: 'Unfavourite Focus' });
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  expect(document.activeElement).toBe(search);
+});
+
+it('failed favourite saves preserve intentional navigation', async () => {
+  const entry = {
+    id: 'failed',
+    name: 'Failed',
+    config: { type: 'countdown', durationSeconds: 30, leadInSeconds: 0, warningSeconds: 0 },
+  };
+  mocks.read.mockResolvedValue({ version: 1, templates: [entry] });
+  let fail!: (reason: Error) => void;
+  mocks.mutate.mockReturnValue(
+    new Promise((_, reject) => {
+      fail = reject;
+    }),
+  );
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(h(QueryClientProvider, { client }, h(TemplateLibrary, { onLoad: vi.fn() })));
+  const button = await screen.findByRole('button', { name: 'Favourite Failed' });
+  button.focus();
+  fireEvent.click(button);
+  await waitFor(() => expect(button.hasAttribute('disabled')).toBe(true));
+  const search = screen.getByLabelText('Search saved workouts');
+  search.focus();
+  await act(async () => {
+    fail(new Error('Disk unavailable'));
+  });
+  await screen.findByRole('alert');
+  expect(document.activeElement).toBe(search);
+  expect(button.getAttribute('aria-pressed')).toBe('false');
+});

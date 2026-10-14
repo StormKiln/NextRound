@@ -140,6 +140,9 @@ function canonical(value: unknown): string {
       .join(',')}}`;
   return JSON.stringify(value);
 }
+export function sameTemplate(a: WorkoutTemplate, b: WorkoutTemplate): boolean {
+  return canonical(a) === canonical(b);
+}
 export function createBrowserRepository(storage: TemplateStorage) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<TemplateDocument> {
