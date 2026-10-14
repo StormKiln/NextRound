@@ -1,5 +1,5 @@
 import type { WorkoutConfig } from '@nextround/core';
-import { countLabel, formatTarget, formatTime } from '@nextround/core';
+import { formatTarget } from '@nextround/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
@@ -16,6 +16,8 @@ import {
 } from './repository';
 import './templates.css';
 import { copyName, useTemplateFilters } from './filter-state';
+import { WorkoutPreview } from './preview';
+import { workoutSummary } from './workout-details';
 
 const queryKey = ['workout-templates'];
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
@@ -30,19 +32,6 @@ function useTemplateMutation() {
       return document;
     },
   });
-}
-function workoutSummary(config: WorkoutConfig) {
-  return config.type === 'ladder'
-    ? `Ladder · ${config.ladder.direction} · ${config.ladder.startReps} starting reps`
-    : config.type === 'forTime'
-      ? `For Time · ${config.timeCapSeconds ? `${formatTime(config.timeCapSeconds * 1000)} cap` : 'No time cap'}`
-      : config.type === 'amrap'
-        ? `AMRAP · ${formatTime(config.durationSeconds * 1000)} cap`
-        : config.type === 'intervals'
-          ? `Intervals · ${countLabel(config.rounds, 'round')} · ${config.workSeconds}s work / ${config.restSeconds}s rest`
-          : config.type === 'countdown'
-            ? `Countdown · ${config.durationSeconds} seconds`
-            : `EMOM · ${countLabel(config.minutes, 'round')}`;
 }
 export function SaveWorkoutButton({
   getConfig,
@@ -179,8 +168,14 @@ export function TemplateLibrary({
       mounted.current = false;
     };
   }, []);
-  function restoreFocus() {
+  function restoreFocus(onlyIfLost = false) {
     requestAnimationFrame(() => {
+      if (
+        onlyIfLost &&
+        document.activeElement !== document.body &&
+        document.activeElement !== origin.current
+      )
+        return;
       if (mounted.current)
         (origin.current?.isConnected ? origin.current : heading.current)?.focus({
           preventScroll: true,
@@ -194,6 +189,7 @@ export function TemplateLibrary({
   const { search, favouritesOnly, workoutType, reset: resetFilters } = useTemplateFilters();
   const clearFilterFeedback = () => {
     setHiddenCopy(false);
+    setHiddenRename(false);
     setNotice('');
   };
   const setSearch = (search: string) => {
@@ -210,9 +206,17 @@ export function TemplateLibrary({
   };
   const operationLock = useRef(false);
   const [hiddenCopy, setHiddenCopy] = useState(false);
+  const [hiddenRename, setHiddenRename] = useState(false);
+  const searchInput = useRef<HTMLInputElement>(null);
+  function focusSearch() {
+    requestAnimationFrame(() => {
+      if (mounted.current) (searchInput.current ?? heading.current)?.focus({ preventScroll: true });
+    });
+  }
   const [notice, setNotice] = useState('');
 
   const mutation = useTemplateMutation();
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const busy = mutation.isPending || loading;
   const [action, setAction] = useState<{
@@ -238,6 +242,7 @@ export function TemplateLibrary({
     setError(null);
     setNotice('');
     setHiddenCopy(false);
+    setHiddenRename(false);
     try {
       await client.cancelQueries({ queryKey });
       const latest = await readTemplates();
@@ -269,6 +274,7 @@ export function TemplateLibrary({
     setError(null);
     setNotice('');
     setHiddenCopy(false);
+    setHiddenRename(false);
     try {
       await client.cancelQueries({ queryKey });
       await mutation.mutateAsync({
@@ -278,7 +284,7 @@ export function TemplateLibrary({
       });
       if (!mounted.current) return;
       setNotice(`${template.name} ${template.favourite ? 'removed from' : 'added to'} favourites.`);
-      restoreFocus();
+      restoreFocus(true);
     } catch (e) {
       if (mounted.current) setError(message(e));
     } finally {
@@ -292,6 +298,7 @@ export function TemplateLibrary({
     setError(null);
     setNotice('');
     setHiddenCopy(false);
+    setHiddenRename(false);
     try {
       await client.cancelQueries({ queryKey });
       if (action.type === 'load') {
@@ -315,12 +322,15 @@ export function TemplateLibrary({
         (favouritesOnly ||
           !normalizeSearch(name.trim()).includes(normalizeSearch(search)) ||
           (workoutType !== 'all' && (action.template.config.type ?? 'emom') !== workoutType));
+      const renamedHidden =
+        action.type === 'rename' && !normalizeSearch(name.trim()).includes(normalizeSearch(search));
       setHiddenCopy(hidden);
+      setHiddenRename(renamedHidden);
       setNotice(
         action.type === 'duplicate'
           ? `Workout copied as “${name.trim()}”.${hidden ? ' The copy is hidden by your current filters.' : ''}`
           : action.type === 'rename'
-            ? 'Workout renamed.'
+            ? `Workout renamed.${renamedHidden ? ` “${name.trim()}” is hidden by your current filters.` : ''}`
             : action.type === 'delete'
               ? 'Workout deleted.'
               : '',
@@ -342,13 +352,28 @@ export function TemplateLibrary({
         <p>Keep your favourites ready for the next round.</p>
       </div>
       {!action && notice && <p role="status">{notice}</p>}
+      {!action && hiddenRename && (
+        <Button
+          variant="secondary"
+          onClick={() => {
+            resetFilters();
+            clearFilterFeedback();
+            setNotice('Filters cleared. Your renamed workout is shown.');
+            focusSearch();
+          }}
+        >
+          Show renamed workout
+        </Button>
+      )}
       {!action && hiddenCopy && (
         <Button
           variant="secondary"
           onClick={() => {
             resetFilters();
             setHiddenCopy(false);
+            setHiddenRename(false);
             setNotice('Filters cleared. Your copied workout is shown.');
+            focusSearch();
           }}
         >
           Show copied workout
@@ -376,6 +401,7 @@ export function TemplateLibrary({
               <label htmlFor={searchId}>Search saved workouts</label>
               <Input
                 id={searchId}
+                ref={searchInput}
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -411,6 +437,7 @@ export function TemplateLibrary({
                   onClick={() => {
                     resetFilters();
                     clearFilterFeedback();
+                    focusSearch();
                   }}
                 >
                   Clear filters
@@ -444,6 +471,19 @@ export function TemplateLibrary({
                   >
                     {template.favourite ? '★ Favourite' : '☆ Favourite'}
                   </Button>
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    aria-label={`Preview ${template.name}`}
+                    onClick={(event) => {
+                      origin.current = event.currentTarget;
+                      clearFilterFeedback();
+                      setError(null);
+                      setPreviewId(template.id);
+                    }}
+                  >
+                    Preview
+                  </Button>
                   {(['load', 'duplicate', 'rename', 'delete'] as const).map((type) => (
                     <Button
                       key={type}
@@ -454,6 +494,7 @@ export function TemplateLibrary({
                         origin.current = event.currentTarget;
                         setNotice('');
                         setHiddenCopy(false);
+                        setHiddenRename(false);
                         setAction({ type, template });
                         setName(type === 'duplicate' ? copyName(template.name) : template.name);
                         setError(null);
@@ -467,6 +508,17 @@ export function TemplateLibrary({
             ))}
           </ul>
         </>
+      )}
+      {previewId && (
+        <WorkoutPreview
+          key={previewId}
+          id={previewId}
+          onLoad={onLoad}
+          onClose={() => {
+            setPreviewId(null);
+            restoreFocus();
+          }}
+        />
       )}
       {action && (
         <Dialog
