@@ -24,5 +24,5 @@ default = ["direct-update"]
 direct-update = ["dep:tauri-plugin-updater"]
 
 [dev-dependencies]
-minisign-verify = "0.2.5"
-base64 = "0.22"
+minisign-verify = "0.3.0"
+base64 = "0.23"
