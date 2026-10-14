@@ -16,13 +16,13 @@ test('saved history drives usage and suggestions across restart and deletion', a
   await page.clock.resume();
   await page.goto('/countdown');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
-  await page.getByRole('button', { name: 'My favorites', exact: true }).click();
+  await page.getByRole('button', { name: 'Most used', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Add suggested Push-up', exact: true }),
   ).toContainText('Used in 1 saved workout');
   await page.getByRole('button', { name: 'Add suggested Push-up', exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
-  await page.getByRole('button', { name: 'My favorites', exact: true }).click();
+  await page.getByRole('button', { name: 'Most used', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Add suggested Push-up', exact: true }),
   ).toHaveCount(0);
@@ -47,7 +47,7 @@ test('unreadable history allows manual exercise selection without invented count
   await page.goto('/countdown');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Retry exercise usage' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'My favorites', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Most used', exact: true })).toHaveCount(0);
   await page.getByLabel('Search exercises').fill('pushup');
   await page.getByRole('button', { name: /^Push-up / }).click();
   await expect(page.getByRole('button', { name: 'Remove Push-up', exact: true })).toBeVisible();

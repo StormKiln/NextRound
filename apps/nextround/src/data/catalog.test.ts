@@ -4,7 +4,7 @@ import baseline from './catalog-baseline.json';
 import { exercises } from './exercises';
 
 it('adds twenty distinct exercises without changing the original catalog identities', () => {
-  expect(exercises).toHaveLength(123);
+  expect(exercises).toHaveLength(143);
   expect(exercises.slice(0, 43).map((e) => e.id)).toEqual(baseline);
   expect(exercises.slice(43, 63).map((e) => e.name)).toEqual([
     'Glute bridge',
@@ -35,10 +35,10 @@ import fullBaseline from './catalog-160-baseline.json';
 import { metadataFor } from './equipment';
 
 it('1.7 adds twenty whole-body/core movements with valid metadata and targets preserving every prior record', () => {
-  expect(exercises).toHaveLength(123);
+  expect(exercises).toHaveLength(143);
   expect(exercises.slice(0, 83)).toEqual(fullBaseline);
   const additions = exercises.slice(83, 103);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(123);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(143);
   expect(additions.filter((e) => metadataFor(e)?.targetAreas?.includes('whole-body'))).toHaveLength(
     10,
   );
@@ -87,7 +87,7 @@ it('finds full plural names for every 1.7 catalog movement', () => {
 
 it('1.17 adds twenty distinct movements, including equipment-free options and distance carries', () => {
   expect(exercises.slice(0, 103)).toEqual(previousCatalog);
-  const additions = exercises.slice(103);
+  const additions = exercises.slice(103, 123);
   expect(additions).toHaveLength(20);
   expect(additions.filter((e) => metadataFor(e)?.equipment.length === 0)).toHaveLength(8);
   expect(additions.filter((e) => metadataFor(e)?.equipment.includes('dumbbell'))).toHaveLength(8);
@@ -103,5 +103,38 @@ it('1.17 adds twenty distinct movements, including equipment-free options and di
       expect(e.supportedUnits).toEqual(['seconds', 'metres']);
       expect(defaultEmomTarget(e)).toEqual({ unit: 'seconds', value: 30 });
     }
+  }
+});
+
+import release1170 from './catalog-1170-baseline.json';
+
+it('1.18 preserves all prior entries and adds twenty complete, searchable, eligible movements', () => {
+  expect(exercises.slice(0, 123)).toEqual(release1170);
+  expect(exercises).toHaveLength(143);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(143);
+  const added = exercises.slice(123);
+  expect(added.filter((e) => metadataFor(e)?.equipment.length === 0)).toHaveLength(10);
+  expect(added.filter((e) => metadataFor(e)?.equipment.includes('dumbbell'))).toHaveLength(6);
+  expect(added.filter((e) => metadataFor(e)?.equipment.includes('kettlebell'))).toHaveLength(4);
+  for (const e of added) {
+    expect(e.description?.length).toBeGreaterThan(50);
+    expect(e.description?.length).toBeLessThanOrEqual(240);
+    expect(metadataFor(e)?.targetAreas?.length).toBeGreaterThan(0);
+    expect(metadataFor(e)?.aliases.length).toBeGreaterThan(0);
+    for (const alias of metadataFor(e)?.aliases ?? []) expect(matchesExercise(e, alias)).toBe(true);
+    expect(e.supportedUnits).toContain(defaultEmomTarget(e).unit);
+    expect(defaultEmomTarget(e).value).toBeLessThanOrEqual(30);
+    expect(e.supportedUnits).not.toContain('calories');
+  }
+  for (const id of [
+    'childs-pose',
+    'cobra-stretch',
+    'downward-facing-dog',
+    'half-kneeling-hip-flexor-stretch',
+    'dumbbell-suitcase-carry',
+  ]) {
+    const entry = added.find((e) => e.id === id)!;
+    expect(entry.supportedUnits).not.toContain('reps');
+    expect(defaultEmomTarget(entry).unit).toBe('seconds');
   }
 });

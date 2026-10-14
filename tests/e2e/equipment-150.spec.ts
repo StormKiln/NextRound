@@ -98,7 +98,7 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time']) {
     await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
     await page.getByLabel('Search exercises').fill('dumbbell');
     await expect(
-      page.locator('.exercise-group summary').filter({ hasText: /^Dumbbell 19$/ }),
+      page.locator('.exercise-group summary').filter({ hasText: /^Dumbbell 25$/ }),
     ).toBeVisible();
     await page.keyboard.press('Escape');
   });

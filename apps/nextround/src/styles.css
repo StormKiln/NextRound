@@ -1321,6 +1321,7 @@ textarea {
 }
 .picker-body .library-list {
   overflow: visible;
+  margin-top: 0;
 }
 .picker-empty {
   padding: 16px 4px;
@@ -1594,7 +1595,7 @@ textarea {
 }
 .picker-body .focus-controls {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(120px, 1fr) auto;
   align-items: center;
   gap: 8px 12px;
   margin-bottom: 8px;
@@ -1634,4 +1635,50 @@ textarea {
   border: 1px solid #5d5147;
   border-radius: 12px;
   box-shadow: 0 12px 32px #0008;
+}
+
+.exercise-choice {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+.exercise-choice > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.library-list .exercise-choice .exercise-favorite {
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  padding: 10px;
+  justify-content: center;
+  align-self: center;
+  border: 1px solid #48433f;
+  border-radius: 8px;
+}
+.exercise-favorite[aria-pressed="true"] {
+  color: #ffb77c;
+}
+.library-list .exercise-favorite:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.picker-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.picker-actions .personal-check {
+  margin: 0;
+}
+.library-list .exercise-choice > button:first-child {
+  padding: 12px 5px;
+}
+.picker-body .focus-controls > details:not([open]) {
+  grid-column: 3;
+  grid-row: 1;
 }

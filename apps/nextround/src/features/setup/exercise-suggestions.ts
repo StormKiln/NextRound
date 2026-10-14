@@ -1,7 +1,7 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { metadataFor } from '@/data/equipment';
 import type { HistoryDocument } from '../history/repository';
-export type SuggestionPreset = 'favorites' | 'new' | 'mix';
+export type SuggestionPreset = 'frequent' | 'favorites' | 'new' | 'mix';
 
 import { normalizeSearch } from '@/lib/search';
 
@@ -38,15 +38,23 @@ export function suggestExercises(
   counts: Map<string, number>,
   preset: SuggestionPreset,
   limit = 3,
+  favoriteIds: readonly string[] = [],
 ): ExerciseEntry[] {
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) return [];
   const unique = [...new Map(library.map((entry) => [entry.id, entry])).values()];
   const alphabetical = (a: ExerciseEntry, b: ExerciseEntry) =>
     a.name.localeCompare(b.name, 'en') || a.id.localeCompare(b.id, 'en');
+  if (preset === 'favorites') {
+    const starred = new Set(favoriteIds);
+    return unique
+      .filter((entry) => starred.has(entry.id))
+      .sort(alphabetical)
+      .slice(0, limit);
+  }
   const count = (entry: ExerciseEntry) => counts.get(entry.id) ?? 0;
   const rare = [...unique].sort((a, b) => count(a) - count(b) || alphabetical(a, b));
   const frequent = [...unique].sort((a, b) => count(b) - count(a) || alphabetical(a, b));
-  if (preset === 'favorites') return frequent.slice(0, limit);
+  if (preset === 'frequent') return frequent.slice(0, limit);
   if (preset === 'new' || !unique.some((entry) => count(entry) > 0)) return rare.slice(0, limit);
   const rareIds = new Set(rare.slice(0, Math.ceil(rare.length / 2)).map((e) => e.id));
   const high = frequent.filter((e) => !rareIds.has(e.id));

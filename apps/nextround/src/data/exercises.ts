@@ -879,6 +879,165 @@ export const exercises: ExerciseEntry[] = [
       'Use one kettlebell between your feet in a wider-than-shoulder stance, toes turned out comfortably. Bend hips and knees to grip it, stand tall, then lower under control. Keep knees tracking toes. One lift-and-lower is one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'cat-cow',
+    name: 'Cat-cow',
+    description:
+      'On hands and knees, gently round your back, then ease into a small arch while keeping movement comfortable. Move slowly with your breath. One round-and-arch cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'childs-pose',
+    name: 'Child’s pose',
+    description:
+      'Kneel with knees comfortably apart and sit hips toward your heels. Reach arms forward and let your chest settle between your thighs without forcing the range. Breathe steadily; use a seconds target.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'cobra-stretch',
+    name: 'Cobra stretch',
+    description:
+      'Lie face down with hands beneath shoulders. Gently lift your chest while keeping hips on the floor and elbows softly bent. Stay in a comfortable range, then lower slowly. Stop if painful. Use a seconds target.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'prone-contralateral-raise',
+    name: 'Prone contralateral limb raise',
+    description:
+      'Lie face down with arms long. Lift one arm and the opposite leg a little without twisting or lifting your chin, then lower. Alternate sides; each opposite arm-and-leg lift and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'downward-facing-dog',
+    name: 'Downward-facing dog',
+    description:
+      'From a high plank, lift hips up and back into an inverted V. Keep hands planted and bend knees if needed to lengthen your back comfortably. Breathe without forcing heels down. Use a seconds target.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'diagonal-glute-lunge',
+    name: 'Diagonal glute-activation lunge',
+    description:
+      'Step one foot forward and slightly across your body. Bend hips and knees while keeping the front knee aligned with its toes, then push back to standing. Use a comfortable step. Alternate sides; each lunge and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'high-plank-t-spine-rotation',
+    name: 'High-plank T-spine rotation',
+    description:
+      'From a high plank, press one hand into the floor and turn your chest and hips as the other arm reaches up. Return the hand, then alternate sides. Keep control through the turn. Each opening and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'high-plank-hip-rotation',
+    name: 'High-plank hip rotation',
+    description:
+      'From a high plank, bring one knee toward your chest, then gently across your torso. Keep shoulders level and avoid sagging. Return the foot to plank and alternate sides. Each knee tuck, rotation and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'side-lying-hip-adduction',
+    name: 'Side-lying hip adduction',
+    description:
+      'Lie on your side with legs long and the lower leg slightly forward. Lift the lower leg a little, keeping hips stacked, then lower slowly. Each lift and return is one rep on that side; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'half-kneeling-hip-flexor-stretch',
+    name: 'Half-kneeling hip-flexor stretch',
+    description:
+      'Kneel on one knee with the other foot in front. Gently tuck your pelvis and move hips forward a little without arching your back. Breathe in a comfortable stretch. Use seconds on one side; switch sides between intervals.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'dumbbell-diagonal-raise',
+    name: 'Dumbbell diagonal raise',
+    description:
+      'Hold one light dumbbell near the opposite thigh. With a soft elbow, lift it diagonally across your body and out to shoulder height without turning your hips. Lower slowly. Each lift and return is one rep; switch arms between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-front-squat',
+    name: 'Two-dumbbell front squat',
+    description:
+      'Hold two dumbbells at your shoulders. Sit hips down and back into a comfortable squat, keeping heels grounded and knees tracking toes. Stand tall without bouncing. One squat and stand is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-lateral-lunge',
+    name: 'Dumbbell lateral lunge',
+    description:
+      'Hold two dumbbells at your sides. Step sideways, sit into that hip and lower the weights beside the bent leg while the other leg stays long. Push back to centre. Alternate sides; each lunge and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-suitcase-carry',
+    name: 'Dumbbell suitcase carry',
+    description:
+      'Hold one dumbbell at your side and walk steadily along a clear path. Keep your torso tall without leaning toward or away from the weight. Use seconds or metres; switch hands between sets. Steps are not repetitions.',
+    supportedUnits: ['seconds', 'metres'],
+  },
+
+  {
+    id: 'dumbbell-renegade-row',
+    name: 'Dumbbell renegade row',
+    description:
+      'Support yourself on two non-rolling dumbbells in a plank, feet apart; lower knees to scale. Row one weight toward your ribs without twisting, then lower. Alternate arms; each row and return is one rep. No push-up is required.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-floor-fly',
+    name: 'Dumbbell floor fly',
+    description:
+      'Lie on your back with knees bent and two light dumbbells above your chest. Keep elbows softly bent as arms open until upper arms gently meet the floor, then bring weights together above you. One opening and closing is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-figure-eight',
+    name: 'Kettlebell figure eight',
+    description:
+      'Use a light bell in a wide stance with knees soft. Hinge and pass it between your legs from hand to hand, circling each leg in a figure eight. Keep your back steady and transfers controlled. One full loop around both legs is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-half-turkish-getup',
+    name: 'Kettlebell half Turkish get-up',
+    description:
+      'Lie with a light bell above one shoulder and that knee bent. Roll to the opposite elbow, press to the hand, then lift hips. Reverse to lying; do not stand. One up-and-down is one rep on that side. Practise unloaded first.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-low-windmill',
+    name: 'Kettlebell low windmill',
+    description:
+      'Stand wide with a light bell in one lowered hand and the free arm raised. Hinge hips back, guiding the bell down the inside of that leg in a comfortable range, then stand. Each hinge and return is one rep; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-pullover-crunch',
+    name: 'Kettlebell pull-over crunch',
+    description:
+      'Lie with knees bent and a light bell held securely in both hands. Bring it from a comfortable overhead range above your chest, then curl shoulders up. Lower shoulders and return the bell slowly. One pullover and crunch is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 export async function listExercises() {
   return exercises;

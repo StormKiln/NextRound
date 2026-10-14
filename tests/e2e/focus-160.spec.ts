@@ -9,7 +9,7 @@ test('focus groups overlap by identity and match any selected area with equipmen
   await page.getByLabel('Search exercises').fill('kettlebell bent-over row');
   await expect(page.locator('.exercise-group summary')).toHaveText(['Arms 1', 'Back 1', 'Lats 1']);
   await expect(page.getByRole('button', { name: /^Kettlebell bent-over row / })).toHaveCount(3);
-  await page.getByRole('button', { name: 'My favorites', exact: true }).click();
+  await page.getByRole('button', { name: 'Most used', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Add suggested Kettlebell bent-over row', exact: true }),
   ).toHaveCount(1);
@@ -29,7 +29,7 @@ test('focus groups overlap by identity and match any selected area with equipmen
   ).toHaveCount(1);
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await expect(page.getByLabel('Group exercises by')).toHaveValue('type');
-  await expect(page.getByRole('button', { name: 'My favorites', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Most used', exact: true })).toHaveAttribute(
     'aria-pressed',
     'false',
   );

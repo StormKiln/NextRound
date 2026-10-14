@@ -18,6 +18,11 @@ const presets: { id: SuggestionPreset; label: string; description: string }[] = 
   {
     id: 'favorites',
     label: 'My favorites',
+    description: 'Exercises you explicitly starred, in alphabetical order.',
+  },
+  {
+    id: 'frequent',
+    label: 'Most used',
     description: 'Your most-used exercises, based on saved workouts.',
   },
   {
@@ -37,8 +42,14 @@ export function ExerciseRecommendations({
   onPreset,
   view,
   emptyState,
+  favoriteIds = [],
+  favoritesReady = false,
+  onFavorite,
 }: {
   emptyState?: ReactNode;
+  favoriteIds?: readonly string[];
+  favoritesReady?: boolean;
+  onFavorite?: (id: string) => void;
   preset: SuggestionPreset | null;
   onPreset: (preset: SuggestionPreset) => void;
   view: PickerView;
@@ -56,12 +67,19 @@ export function ExerciseRecommendations({
   const candidates = library.filter(
     (entry) => !selectedIds.has(entry.id) && matchesExercise(entry, search),
   );
-  const suggestions = preset && counts ? suggestExercises(candidates, counts, preset) : [];
+  const usablePreset = preset === 'favorites' ? favoritesReady : !!counts;
+  const suggestions =
+    preset && usablePreset
+      ? suggestExercises(candidates, counts ?? new Map(), preset, 3, favoriteIds)
+      : [];
   const hasUsage = !!counts && [...counts.values()].some((count) => count > 0);
   const hasEligibleUsage = !!counts && candidates.some((entry) => (counts.get(entry.id) ?? 0) > 0);
   const searching = !!normalizeSearch(search);
   const groups = (
     <ExerciseGroups
+      favoriteIds={favoriteIds}
+      favoritesReady={favoritesReady}
+      onFavorite={onFavorite}
       view={view}
       library={library}
       search={search}
@@ -88,34 +106,36 @@ export function ExerciseRecommendations({
           <Button onClick={() => void query.refetch()}>Retry exercise usage</Button>
         </div>
       )}
-      {counts && (
+      {(counts || favoritesReady) && (
         <section className="exercise-suggestions" aria-label="Exercise suggestions">
-          <p>Suggestions from your saved workouts</p>
+          <p>Choose starred movements or suggestions from your saved workouts.</p>
           <div className="suggestion-presets">
-            {presets.map((item) => (
-              <Button
-                key={item.id}
-                variant="secondary"
-                aria-pressed={preset === item.id}
-                onClick={() => onPreset(item.id)}
-              >
-                {item.label}
-              </Button>
-            ))}
+            {presets
+              .filter((item) => (item.id === 'favorites' ? favoritesReady : !!counts))
+              .map((item) => (
+                <Button
+                  key={item.id}
+                  variant="secondary"
+                  aria-pressed={preset === item.id}
+                  onClick={() => onPreset(item.id)}
+                >
+                  {item.label}
+                </Button>
+              ))}
           </div>
-          {!hasUsage && (
+          {counts && preset !== 'favorites' && !hasUsage && (
             <p>
               No attributed exercise history yet. Suggestions are alphabetical until you save
               catalog exercises.
             </p>
           )}
-          {hasUsage && candidates.length > 0 && !hasEligibleUsage && (
+          {preset !== 'favorites' && hasUsage && candidates.length > 0 && !hasEligibleUsage && (
             <p>
               None of the eligible exercises have saved usage. Suggestions are alphabetical within
               the current filters.
             </p>
           )}
-          {preset && (
+          {preset && usablePreset && (
             <>
               <p>
                 {presets.find((item) => item.id === preset)?.description} Review a suggestion to add
@@ -132,7 +152,9 @@ export function ExerciseRecommendations({
                       <span>
                         <strong>{entry.name}</strong>
                         <small>
-                          Used in {countLabel(counts.get(entry.id) ?? 0, 'saved workout')}
+                          {counts
+                            ? `Used in ${countLabel(counts.get(entry.id) ?? 0, 'saved workout')}`
+                            : 'Usage unavailable'}
                         </small>
                         {note && <small>{note(entry)}</small>}
                       </span>
@@ -145,8 +167,9 @@ export function ExerciseRecommendations({
                   {suggestions.length
                     ? 'Fewer than three eligible exercises match.'
                     : 'No eligible suggestions.'}{' '}
-                  Search, focus areas, equipment settings and exercises already in your workout
-                  limit these choices. You can still add repeats from the exercise list.
+                  {preset === 'favorites' && 'Star more movements or change your filters. '}Search,
+                  focus areas, equipment settings and exercises already in your workout limit these
+                  choices. You can still add repeats from the exercise list.
                 </p>
               )}
               <p className="muted">

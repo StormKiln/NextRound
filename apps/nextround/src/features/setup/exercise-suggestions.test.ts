@@ -48,11 +48,7 @@ describe('exercise usage and suggestions', () => {
       ['B', 5],
       ['C', 2],
     ]);
-    expect(suggestExercises(library, counts, 'favorites').map((e) => e.id)).toEqual([
-      'A',
-      'B',
-      'C',
-    ]);
+    expect(suggestExercises(library, counts, 'frequent').map((e) => e.id)).toEqual(['A', 'B', 'C']);
     expect(suggestExercises(library, counts, 'new').map((e) => e.id)).toEqual(['D', 'E', 'C']);
     expect(suggestExercises(library, counts, 'mix').map((e) => e.id)).toEqual(['A', 'D', 'B']);
   });
@@ -63,7 +59,7 @@ describe('exercise usage and suggestions', () => {
       'C',
     ]);
     expect(suggestExercises(library.slice(0, 1), new Map(), 'mix').map((e) => e.id)).toEqual(['A']);
-    expect(suggestExercises([], new Map(), 'favorites')).toEqual([]);
+    expect(suggestExercises([], new Map(), 'frequent')).toEqual([]);
     expect(suggestExercises([library[0], library[0]], new Map(), 'new')).toHaveLength(1);
   });
 });
