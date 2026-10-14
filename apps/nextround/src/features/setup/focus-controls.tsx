@@ -21,6 +21,23 @@ export function FocusControls({
         <option value="type">Exercise type</option>
         <option value="focus">Focus area</option>
       </select>
+      <FocusFilter selected={selected} onChange={onChange} />
+      {view === 'focus' && (
+        <p className="hint">Exercises may appear in several groups. Group counts overlap.</p>
+      )}
+    </div>
+  );
+}
+
+export function FocusFilter({
+  selected,
+  onChange,
+}: {
+  selected: FocusArea[];
+  onChange: (areas: FocusArea[]) => void;
+}) {
+  return (
+    <>
       <details>
         <summary>
           <span>Focus areas</span>{' '}
@@ -46,16 +63,18 @@ export function FocusControls({
             </label>
           ))}
         </fieldset>
-        <Button variant="ghost" disabled={!selected.length} onClick={() => onChange([])}>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={!selected.length}
+          onClick={() => onChange([])}
+        >
           Clear focus filters
         </Button>
       </details>
       {selected.length > 0 && (
         <p className="hint">Matching any: {selected.map((area) => focusAreas[area]).join(', ')}</p>
       )}
-      {view === 'focus' && (
-        <p className="hint">Exercises may appear in several groups. Group counts overlap.</p>
-      )}
-    </div>
+    </>
   );
 }

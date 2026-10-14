@@ -6,16 +6,20 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.18.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.18.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 1.19.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.19.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
 - **Build your exercise order:** browse 143 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
-- **Generate a workout:** choose My favorites for explicitly starred movements, Most used for history-ranked movements, Try something new or Mix It Up, then choose the exercise count. Equipment preferences and workout compatibility apply; review and adjust targets before starting.
+- **Generate a workout:** choose My favorites for explicitly starred movements, Most used for history-ranked movements, Try something new or Mix It Up, then choose the exercise count. Choose optional focus areas; any selected area can match. Focus, equipment preferences and workout compatibility apply together; review and adjust targets before starting.
 - **Star exercises:** mark bundled or personal movements in the picker and combine Favourites only with search, equipment and focus filters. Exercise stars stay on your Mac, separate from saved-workout favourites and usage history.
 - **Reuse your favourites:** save named workouts for all six modes, update, duplicate directly from Home, mark favourites, and filter by name and workout type.
 - **Review your training:** explicitly save completed results, review the performed workout, compare matching attempts, add searchable notes, or repeat a result from setup. Later exercise/template edits never rewrite historical snapshots.
+
+### Generate for a focus area
+
+Choose areas such as Core / abs or Legs in Create a workout. The eligible count reflects your areas, equipment and preset. Keep your chosen exercise count, timing and Undo; insufficient matches require an explicit adjustment. Focus selections last for the open generation flow, including equipment settings, and reset to All areas next time. Matching any selected area does not guarantee every area is represented.
 
 ### Duplicate saved workouts
 
@@ -52,6 +56,10 @@ The 1.13.0 interface, captured in the browser preview with sample data. The macO
 **Keep your movements handy.** Star exercises, then combine Favourites only with search and other filters. This 1.18.0 browser validation screenshot shows the picker at the minimum window size.
 
 ![Exercise favourites with a starred Cat-cow movement and fixed equipment controls](docs/screenshots/exercise-favourites.png)
+
+**Choose your focus.** The 1.19.0 generator combines focus areas with presets and equipment. This browser preview at the minimum window size shows sample selections and fixed action buttons.
+
+![Generate a workout for selected focus areas](docs/screenshots/focus-generation.png)
 
 **Remember your progress.** Review completed sessions, add notes, compare attempts and repeat a workout from setup.
 
@@ -110,7 +118,7 @@ Local test builds are not public signed/notarized releases. See [contributing](C
 
 ## Further reading
 
-- [1.18.0 release notes](docs/release-notes-1.18.0.md)
+- [1.19.0 release notes](docs/release-notes-1.19.0.md)
 - [1.17.0 release notes](docs/release-notes-1.17.0.md)
 - [History CSV export](docs/history-csv.md)
 - [1.16.0 release notes](docs/release-notes-1.16.0.md)

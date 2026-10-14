@@ -7,6 +7,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { eligibleExercise } from '@/data/equipment';
+import { type FocusArea, matchesFocus } from '@/data/focus';
 import { useExerciseFavorites } from '@/features/exercises/favorites-store';
 import { toWorkoutEntry, useExerciseLibrary } from '@/features/exercises/library';
 import { readHistory } from '@/features/history/repository';
@@ -14,6 +15,7 @@ import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget } from './emom-defaults';
 import { deriveUsage, type SuggestionPreset, suggestExercises } from './exercise-suggestions';
+import { FocusFilter } from './focus-controls';
 
 type Mode = NonNullable<WorkoutConfig['type']>;
 const presets: { id: SuggestionPreset; label: string }[] = [
@@ -176,6 +178,7 @@ function GenerateDialog({
     retry: false,
     enabled: !starred,
   });
+  const [areas, setAreas] = useState<FocusArea[]>([]);
   const [count, setCount] = useState(String(initialCount));
   const [error, setError] = useState('');
   const countRef = useRef<HTMLInputElement>(null);
@@ -200,6 +203,7 @@ function GenerateDialog({
     (entry) =>
       (!starred || favorites.ids.includes(entry.id)) &&
       eligibleExercise(entry, equipment.selection) &&
+      matchesFocus(entry, areas) &&
       (mode !== 'ladder' || !entry.supportedUnits || entry.supportedUnits.includes('reps')),
   );
   const counts = history.data ? deriveUsage(history.data).counts : new Map<string, number>();
@@ -216,47 +220,7 @@ function GenerateDialog({
       />
     );
   return (
-    <Dialog title="Create a workout" onClose={onClose}>
-      <p>
-        <strong>{presets.find((item) => item.id === preset)?.label}</strong> replaces your exercise
-        order. Workout timing stays the same, and you can undo the generated list.
-      </p>
-      <p>
-        {equipment.selection === null
-          ? 'All equipment is included.'
-          : equipment.selection.length
-            ? 'Uses your saved equipment.'
-            : 'Only exercises requiring no equipment are included.'}{' '}
-        {mode === 'ladder' && 'Ladder uses reps-compatible movements.'}
-      </p>
-      <Button id={equipmentTriggerId} variant="secondary" onClick={() => setSettings(true)}>
-        Change equipment settings
-      </Button>
-      {loading && <p role="status">Loading workout suggestions…</p>}
-      {failed && (
-        <div role="alert">
-          <p>Workout suggestions could not be loaded. Your current workout is unchanged.</p>
-          <Button
-            onClick={() => {
-              void personal.refetch();
-              void bundled.refetch();
-              if (!starred) void history.refetch();
-              if (starred) favorites.load();
-              equipment.load();
-            }}
-          >
-            Retry workout suggestions
-          </Button>
-        </div>
-      )}
-      {!loading && !failed && (
-        <p>
-          {countLabel(eligible.length, 'eligible exercise')}.{' '}
-          {starred
-            ? 'Only explicitly starred movements are included, in alphabetical order.'
-            : !counts.size && 'No attributed history yet; suggestions start alphabetically.'}
-        </p>
-      )}
+    <Dialog title="Create a workout" className="generator-dialog" onClose={onClose}>
       <form
         noValidate
         onSubmit={(event) => {
@@ -271,7 +235,7 @@ function GenerateDialog({
           const selected = suggestExercises(eligible, counts, preset, amount, favorites.ids);
           if (selected.length < amount) {
             setError(
-              `Only ${countLabel(selected.length, 'eligible exercise')} ${selected.length === 1 ? 'is' : 'are'} available. Choose a smaller count or change your equipment settings.${starred ? ' You can also star more eligible movements in the exercise picker.' : ''}`,
+              `Only ${countLabel(selected.length, 'eligible exercise')} ${selected.length === 1 ? 'is' : 'are'} available. Choose a smaller count or change your focus areas or equipment settings.${starred ? ' You can also star more eligible movements in the exercise picker.' : ''}`,
             );
             countRef.current?.focus();
             return;
@@ -279,30 +243,88 @@ function GenerateDialog({
           onGenerate(selected.map((entry) => generatedEntry(entry, mode, workSeconds)));
         }}
       >
-        <label htmlFor={countId}>Number of exercises</label>
-        <Input
-          ref={countRef}
-          id={countId}
-          type="number"
-          min={1}
-          max={100}
-          step={1}
-          value={count}
-          aria-invalid={!!error}
-          aria-describedby={error ? errorId : undefined}
-          onChange={(event) => {
-            setCount(event.target.value);
-            setError('');
-          }}
-        />
-        {error && (
-          <p id={errorId} role="alert" className="error">
-            {error}
+        <div className="generator-body">
+          <p>
+            <strong>{presets.find((item) => item.id === preset)?.label}</strong> replaces your
+            exercise order. Workout timing stays the same, and you can undo the generated list.
           </p>
-        )}
-        <p className="hint">
-          Review the movements and edit their suggested targets before starting.
-        </p>
+          <p>
+            {equipment.selection === null
+              ? 'All equipment is included.'
+              : equipment.selection.length
+                ? 'Uses your saved equipment.'
+                : 'Only exercises requiring no equipment are included.'}{' '}
+            {mode === 'ladder' && 'Ladder uses reps-compatible movements.'}
+          </p>
+          <Button
+            type="button"
+            id={equipmentTriggerId}
+            variant="secondary"
+            onClick={() => setSettings(true)}
+          >
+            Change equipment settings
+          </Button>
+          <div className="focus-controls">
+            <FocusFilter
+              selected={areas}
+              onChange={(next) => {
+                setAreas(next);
+                setError('');
+              }}
+            />
+          </div>
+          {loading && <p role="status">Loading workout suggestions…</p>}
+          {failed && (
+            <div role="alert">
+              <p>Workout suggestions could not be loaded. Your current workout is unchanged.</p>
+              <Button
+                type="button"
+                onClick={() => {
+                  void personal.refetch();
+                  void bundled.refetch();
+                  if (!starred) void history.refetch();
+                  if (starred) favorites.load();
+                  equipment.load();
+                }}
+              >
+                Retry workout suggestions
+              </Button>
+            </div>
+          )}
+          {!loading && !failed && (
+            <p>
+              {countLabel(eligible.length, 'eligible exercise')}.{' '}
+              {starred
+                ? 'Only explicitly starred movements are included, in alphabetical order.'
+                : !counts.size && 'No attributed history yet; suggestions start alphabetically.'}
+            </p>
+          )}
+          <label htmlFor={countId}>Number of exercises</label>
+          <Input
+            ref={countRef}
+            id={countId}
+            type="number"
+            min={1}
+            max={100}
+            step={1}
+            value={count}
+            aria-invalid={!!error}
+            aria-describedby={error ? errorId : undefined}
+            onChange={(event) => {
+              setCount(event.target.value);
+              setError('');
+            }}
+          />
+          {error && (
+            <p id={errorId} role="alert" className="error">
+              {error}
+            </p>
+          )}
+          <p className="hint">
+            Matches any selected area, not necessarily every area. Review movements and targets
+            before starting; suggestions are not a balanced training plan.
+          </p>
+        </div>
         <div className="dialog-actions">
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel

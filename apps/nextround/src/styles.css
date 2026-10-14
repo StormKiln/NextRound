@@ -1682,3 +1682,29 @@ textarea {
   grid-column: 3;
   grid-row: 1;
 }
+
+.generator-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+}
+.generator-dialog > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 16px;
+}
+.generator-body {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  padding: 4px 12px 8px 4px;
+}
+.generator-dialog .generator-body > p {
+  margin: 12px 0;
+}
+.generator-dialog > form > .dialog-actions {
+  flex-shrink: 0;
+  margin-top: 0;
+}

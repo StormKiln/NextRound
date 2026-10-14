@@ -64,13 +64,23 @@ export function ExerciseForm({
     else onClose();
   };
   const [error, setError] = useState('');
+  const [invalidField, setInvalidField] = useState<'name' | 'units' | 'amount' | 'unit' | null>(
+    null,
+  );
+  const clearError = () => {
+    setError('');
+    setInvalidField(null);
+  };
+  const amountRef = useRef<HTMLInputElement>(null);
+  const unitRef = useRef<HTMLSelectElement>(null);
+  const unitsRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const gate = useRef(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const client = useQueryClient();
   const change = <K extends keyof PersonalExercise>(key: K, value: PersonalExercise[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
-    setError('');
+    clearError();
   };
   const toggle = <T extends string>(values: T[], value: T) =>
     values.includes(value) ? values.filter((x) => x !== value) : [...values, value];
@@ -86,24 +96,31 @@ export function ExerciseForm({
           onSubmit={async (event) => {
             event.preventDefault();
             if (gate.current) return;
+            setInvalidField(null);
             if (!draft.name.trim()) {
+              setInvalidField('name');
               setError('Give your exercise a name.');
               nameRef.current?.focus();
               return;
             }
             if (!draft.supportedUnits.length) {
+              setInvalidField('units');
               setError('Choose at least one supported target unit.');
+              unitsRef.current?.focus();
               return;
             }
             const value = Number(amount);
-            if (
-              hasTarget &&
-              (!draft.supportedUnits.includes(unit) ||
-                !Number.isInteger(value) ||
-                value < 1 ||
-                value > (unit === 'seconds' ? 86400 : 999999))
-            ) {
-              setError('Choose a supported default unit and a positive whole target value.');
+            if (hasTarget && !draft.supportedUnits.includes(unit)) {
+              setInvalidField('unit');
+              setError('Choose a supported default unit.');
+              unitRef.current?.focus();
+              return;
+            }
+            const maximum = unit === 'seconds' ? 86400 : 999999;
+            if (hasTarget && (!Number.isInteger(value) || value < 1 || value > maximum)) {
+              setInvalidField('amount');
+              setError(`Choose a whole default amount from 1 to ${maximum}.`);
+              amountRef.current?.focus();
               return;
             }
             const exercise = {
@@ -142,8 +159,8 @@ export function ExerciseForm({
                 value={draft.name}
                 maxLength={120}
                 onChange={(e) => change('name', e.target.value)}
-                aria-invalid={!!error && !draft.name.trim()}
-                aria-describedby={error ? 'personal-error' : undefined}
+                aria-invalid={invalidField === 'name'}
+                aria-describedby={invalidField === 'name' ? 'personal-error' : undefined}
               />
               <label htmlFor="personal-description">Description (optional)</label>
               <textarea
@@ -198,13 +215,18 @@ export function ExerciseForm({
                   ))}
                 </div>
               </fieldset>
-              <fieldset>
+              <fieldset
+                aria-invalid={invalidField === 'units'}
+                aria-describedby={invalidField === 'units' ? 'personal-error' : undefined}
+              >
                 <legend>Supported targets</legend>
                 <div className="personal-options">
                   {units.map((id) => (
                     <label key={id}>
                       <input
                         type="checkbox"
+                        ref={id === units[0] ? unitsRef : undefined}
+                        aria-describedby={invalidField === 'units' ? 'personal-error' : undefined}
                         checked={draft.supportedUnits.includes(id)}
                         onChange={() => {
                           const next = toggle(draft.supportedUnits, id);
@@ -223,7 +245,7 @@ export function ExerciseForm({
                   checked={hasTarget}
                   onChange={(e) => {
                     setHasTarget(e.target.checked);
-                    setError('');
+                    clearError();
                   }}
                 />
                 Set a default target
@@ -234,13 +256,16 @@ export function ExerciseForm({
                     <label htmlFor="personal-amount">Default amount</label>
                     <Input
                       id="personal-amount"
+                      ref={amountRef}
+                      aria-invalid={invalidField === 'amount'}
+                      aria-describedby={invalidField === 'amount' ? 'personal-error' : undefined}
                       type="number"
                       min={1}
                       step={1}
                       value={amount}
                       onChange={(e) => {
                         setAmount(e.target.value);
-                        setError('');
+                        clearError();
                       }}
                     />
                   </div>
@@ -248,10 +273,13 @@ export function ExerciseForm({
                     <label htmlFor="personal-unit">Default unit</label>
                     <select
                       id="personal-unit"
+                      ref={unitRef}
+                      aria-invalid={invalidField === 'unit'}
+                      aria-describedby={invalidField === 'unit' ? 'personal-error' : undefined}
                       value={unit}
                       onChange={(e) => {
                         setUnit(e.target.value as TargetUnit);
-                        setError('');
+                        clearError();
                       }}
                     >
                       {draft.supportedUnits.map((u) => (
