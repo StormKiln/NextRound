@@ -74,7 +74,7 @@ test('generator validates counts, cancels cleanly and supports keyboard preset s
   const trigger = page.getByRole('button', { name: 'Create a workout', exact: true });
   await trigger.click();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'My Favorites', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Most used', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Create a workout' });
   const amount = dialog.getByLabel('Number of exercises');
@@ -109,7 +109,7 @@ test('generator explains insufficient eligible exercises without replacing the d
   );
   await page.goto('/emom');
   await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
-  await page.getByRole('button', { name: 'My Favorites', exact: true }).click();
+  await page.getByRole('button', { name: 'Most used', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Create a workout' });
   await dialog.getByLabel('Number of exercises').fill('100');
   await dialog.getByRole('button', { name: 'Generate workout', exact: true }).click();
@@ -127,7 +127,7 @@ for (const key of [
     await page.addInitScript((key) => localStorage.setItem(key, '{broken'), key);
     await page.goto('/emom');
     await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
-    await page.getByRole('button', { name: 'My Favorites', exact: true }).click();
+    await page.getByRole('button', { name: 'Most used', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Create a workout' });
     await expect(
       dialog.getByRole('button', { name: 'Generate workout', exact: true }),
@@ -182,7 +182,7 @@ test('whole-workout presets use saved history rankings', async ({ page }) => {
   await page.clock.resume();
   await page.goto('/countdown');
   for (const [preset, count, names] of [
-    ['My Favorites', '1', ['Push-up']],
+    ['Most used', '1', ['Push-up']],
     ['Try something new', '1', ['Abdominal crunch']],
     ['Mix It Up', '2', ['Push-up', 'Abdominal crunch']],
   ] as const) {

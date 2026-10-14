@@ -245,7 +245,7 @@ test('generator accepts boundary count and cancels settings without changing pre
 }) => {
   await page.goto('/emom');
   await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
-  await page.getByRole('button', { name: 'My Favorites', exact: true }).click();
+  await page.getByRole('button', { name: 'Most used', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Create a workout' });
   await dialog.getByLabel('Number of exercises').fill('1');
   await dialog.getByRole('button', { name: 'Change equipment settings', exact: true }).click();

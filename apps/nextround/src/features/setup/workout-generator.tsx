@@ -7,6 +7,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { eligibleExercise } from '@/data/equipment';
+import { useExerciseFavorites } from '@/features/exercises/favorites-store';
 import { toWorkoutEntry, useExerciseLibrary } from '@/features/exercises/library';
 import { readHistory } from '@/features/history/repository';
 import { useEquipment } from '@/features/settings/equipment-store';
@@ -16,7 +17,8 @@ import { deriveUsage, type SuggestionPreset, suggestExercises } from './exercise
 
 type Mode = NonNullable<WorkoutConfig['type']>;
 const presets: { id: SuggestionPreset; label: string }[] = [
-  { id: 'favorites', label: 'My Favorites' },
+  { id: 'favorites', label: 'My favorites' },
+  { id: 'frequent', label: 'Most used' },
   { id: 'new', label: 'Try something new' },
   { id: 'mix', label: 'Mix It Up' },
 ];
@@ -165,7 +167,15 @@ function GenerateDialog({
 }) {
   const { library, personal, bundled } = useExerciseLibrary();
   const equipment = useEquipment();
-  const history = useQuery({ queryKey: ['workout-history'], queryFn: readHistory, retry: false });
+  const favorites = useExerciseFavorites();
+  const starred = preset === 'favorites';
+  useEffect(() => favorites.load(), [favorites.load]);
+  const history = useQuery({
+    queryKey: ['workout-history'],
+    queryFn: readHistory,
+    retry: false,
+    enabled: !starred,
+  });
   const [count, setCount] = useState(String(initialCount));
   const [error, setError] = useState('');
   const countRef = useRef<HTMLInputElement>(null);
@@ -177,11 +187,18 @@ function GenerateDialog({
   const loading =
     personal.isPending ||
     bundled.isPending ||
-    history.isPending ||
+    (!starred && history.isPending) ||
+    (starred && !favorites.loaded && !favorites.error) ||
     (!equipment.loaded && !equipment.error);
-  const failed = personal.isError || bundled.isError || history.isError || !!equipment.error;
+  const failed =
+    personal.isError ||
+    bundled.isError ||
+    (!starred && history.isError) ||
+    (starred && !!favorites.error) ||
+    !!equipment.error;
   const eligible = library.filter(
     (entry) =>
+      (!starred || favorites.ids.includes(entry.id)) &&
       eligibleExercise(entry, equipment.selection) &&
       (mode !== 'ladder' || !entry.supportedUnits || entry.supportedUnits.includes('reps')),
   );
@@ -223,7 +240,8 @@ function GenerateDialog({
             onClick={() => {
               void personal.refetch();
               void bundled.refetch();
-              void history.refetch();
+              if (!starred) void history.refetch();
+              if (starred) favorites.load();
               equipment.load();
             }}
           >
@@ -234,7 +252,9 @@ function GenerateDialog({
       {!loading && !failed && (
         <p>
           {countLabel(eligible.length, 'eligible exercise')}.{' '}
-          {!counts.size && 'No attributed history yet; suggestions start alphabetically.'}
+          {starred
+            ? 'Only explicitly starred movements are included, in alphabetical order.'
+            : !counts.size && 'No attributed history yet; suggestions start alphabetically.'}
         </p>
       )}
       <form
@@ -248,10 +268,10 @@ function GenerateDialog({
             countRef.current?.focus();
             return;
           }
-          const selected = suggestExercises(eligible, counts, preset, amount);
+          const selected = suggestExercises(eligible, counts, preset, amount, favorites.ids);
           if (selected.length < amount) {
             setError(
-              `Only ${countLabel(selected.length, 'eligible exercise')} ${selected.length === 1 ? 'is' : 'are'} available. Choose a smaller count or change your equipment settings.`,
+              `Only ${countLabel(selected.length, 'eligible exercise')} ${selected.length === 1 ? 'is' : 'are'} available. Choose a smaller count or change your equipment settings.${starred ? ' You can also star more eligible movements in the exercise picker.' : ''}`,
             );
             countRef.current?.focus();
             return;

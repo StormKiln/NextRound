@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { eligibleExercise, equipmentNote } from '@/data/equipment';
 import { type FocusArea, focusAreas, matchesFocus, type PickerView } from '@/data/focus';
 import { ExerciseForm } from '@/features/exercises/exercise-form';
+import { FAVORITES_KEY } from '@/features/exercises/favorites';
+import { useExerciseFavorites } from '@/features/exercises/favorites-store';
 import { toWorkoutEntry, useExerciseLibrary } from '@/features/exercises/library';
 import { copyExercise, ExerciseLibrary } from '@/features/exercises/library-view';
 import type { PersonalExercise } from '@/features/exercises/repository';
@@ -64,6 +66,23 @@ export function ExerciseEditor({
     initial: PersonalExercise;
   } | null>(null);
   const equipment = useEquipment();
+  const favorites = useExerciseFavorites();
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const exerciseSearchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    favorites.load();
+    const changed = (event: StorageEvent) => {
+      if (event.key === FAVORITES_KEY || event.key === null) favorites.load();
+    };
+    window.addEventListener('storage', changed);
+    return () => window.removeEventListener('storage', changed);
+  }, [favorites.load]);
+  const favoritesReady = favorites.loaded && !favorites.error;
+  const toggleFavorite = (id: string) => {
+    const removing = favorites.ids.includes(id);
+    if (favorites.toggle(id) && removing && favoritesOnly)
+      requestAnimationFrame(() => exerciseSearchRef.current?.focus());
+  };
   const [preset, setPreset] = useState<SuggestionPreset | null>(null);
   const [view, setView] = useState<PickerView>('type');
   const [areas, setAreas] = useState<FocusArea[]>([]);
@@ -600,11 +619,27 @@ export function ExerciseEditor({
             Manage my exercises
           </Button>
           <Input
+            ref={exerciseSearchRef}
             aria-label="Search exercises"
             placeholder="Find a movement…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <label className="personal-check">
+            <input
+              type="checkbox"
+              checked={favoritesOnly}
+              disabled={!favoritesReady}
+              onChange={(event) => setFavoritesOnly(event.target.checked)}
+            />
+            Favourites only
+          </label>
+          {favorites.error && (
+            <div role="alert">
+              <p>{favorites.error} Manual selection remains available.</p>
+              <Button onClick={favorites.load}>Retry exercise favourites</Button>
+            </div>
+          )}
           <div className="picker-body" ref={pickerBodyRef}>
             <FocusControls view={view} onView={setView} selected={areas} onChange={setAreas} />
             {personal.isPending && <p role="status">Loading personal exercises…</p>}
@@ -626,6 +661,9 @@ export function ExerciseEditor({
             <div className="library-list">
               {!bundled.isPending && !bundled.isError && (
                 <ExerciseRecommendations
+                  favoriteIds={favorites.ids}
+                  favoritesReady={!!favoritesReady}
+                  onFavorite={toggleFavorite}
                   emptyState={
                     <section className="picker-empty" aria-label="No matching exercises">
                       <h3>No matching exercises.</h3>
@@ -642,6 +680,11 @@ export function ExerciseEditor({
                         <p>Equipment: only movements for your available equipment are included.</p>
                       )}
                       <div className="empty-actions">
+                        {favoritesOnly && (
+                          <Button variant="secondary" onClick={() => setFavoritesOnly(false)}>
+                            Show all favourites and non-favourites
+                          </Button>
+                        )}
                         {normalizeSearch(search) && (
                           <Button variant="secondary" onClick={() => setSearch('')}>
                             Clear search
@@ -674,7 +717,11 @@ export function ExerciseEditor({
                   preset={preset}
                   onPreset={setPreset}
                   view={view}
-                  library={availableLibrary.filter((entry) => matchesFocus(entry, areas))}
+                  library={availableLibrary.filter(
+                    (entry) =>
+                      matchesFocus(entry, areas) &&
+                      (!favoritesOnly || (favoritesReady && favorites.ids.includes(entry.id))),
+                  )}
                   note={(entry) =>
                     `${entry.id.startsWith('personal:') ? 'Personal · ' : 'Bundled · '}${equipmentNote(entry, effectiveSelection)}`
                   }

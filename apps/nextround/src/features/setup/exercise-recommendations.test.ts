@@ -47,7 +47,7 @@ beforeEach(() => {
 afterEach(cleanup);
 it('shows counts, respects search and requires explicit selection', async () => {
   setup('push ups');
-  fireEvent.click(await screen.findByRole('button', { name: 'My favorites' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Most used' }));
   expect(screen.getByRole('button', { name: 'Add suggested Push-up' }).textContent).toContain(
     'Used in 1 saved workout',
   );
@@ -58,7 +58,7 @@ it('shows counts, respects search and requires explicit selection', async () => 
 });
 it('excludes selected catalog identities while keeping manual repeats', async () => {
   setup('', [{ id: 'entry', name: 'Renamed', catalogId: 'b' }] as typeof library);
-  fireEvent.click(await screen.findByRole('button', { name: 'My favorites' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Most used' }));
   expect(screen.queryByRole('button', { name: 'Add suggested Push-up' })).toBeNull();
   expect(screen.getByText('Push-up')).toBeTruthy();
 });
@@ -69,14 +69,14 @@ it('does not turn unreadable history into zero counts and retries', async () => 
     'textContent',
     expect.stringContaining('could not be loaded'),
   );
-  expect(screen.queryByRole('button', { name: 'My favorites' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Most used' })).toBeNull();
   expect(screen.queryByText(/Used in 0/)).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Retry exercise usage' }));
-  expect(await screen.findByRole('button', { name: 'My favorites' })).toBeTruthy();
+  expect(await screen.findByRole('button', { name: 'Most used' })).toBeTruthy();
 });
 it('updates counts and ranking after saved history changes', async () => {
   setup();
-  fireEvent.click(await screen.findByRole('button', { name: 'My favorites' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Most used' }));
   expect(screen.getByRole('button', { name: 'Add suggested Push-up' }).textContent).toContain(
     'Used in 1',
   );
@@ -92,23 +92,23 @@ it('updates counts and ranking after saved history changes', async () => {
 
 it('does not show cached counts after a failed refresh', async () => {
   setup();
-  await screen.findByRole('button', { name: 'My favorites' });
+  await screen.findByRole('button', { name: 'Most used' });
   mocks.read.mockRejectedValue(new Error('Unavailable'));
   await client.invalidateQueries({ queryKey: ['workout-history'] });
   await screen.findByRole('alert');
-  expect(screen.queryByRole('button', { name: 'My favorites' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Most used' })).toBeNull();
   expect(screen.queryByText(/Used in 1/)).toBeNull();
 });
 
 it('distinguishes globally attributed history from a filtered unused catalog', async () => {
   setup('', [], [library[0]]);
-  await screen.findByRole('button', { name: 'My favorites' });
+  await screen.findByRole('button', { name: 'Most used' });
   expect(screen.queryByText(/No attributed exercise history yet/)).toBeNull();
   expect(screen.getByText(/None of the eligible exercises have saved usage/)).toBeTruthy();
 });
 it('does not call an empty eligible set unused or erase global usage', async () => {
   setup('', [], []);
-  fireEvent.click(await screen.findByRole('button', { name: 'My favorites' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Most used' }));
   expect(screen.queryByText(/No attributed exercise history yet/)).toBeNull();
   expect(screen.queryByText(/None of the eligible exercises/)).toBeNull();
   expect(screen.getByText(/No eligible suggestions/)).toBeTruthy();
@@ -119,7 +119,7 @@ it('explains custom-only history without inventing catalog counts', async () => 
     results: [{ config: { exercises: [{ id: 'custom', name: 'Custom' }] } }],
   });
   setup();
-  await screen.findByRole('button', { name: 'My favorites' });
+  await screen.findByRole('button', { name: 'Most used' });
   expect(screen.getByText(/No attributed exercise history yet/)).toBeTruthy();
   expect(screen.getByText(/1 saved exercise entries have no catalog link/)).toBeTruthy();
 });

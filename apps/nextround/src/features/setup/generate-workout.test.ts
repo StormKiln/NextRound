@@ -8,7 +8,7 @@ const counts = new Map([
   ['e2', 2],
 ]);
 it('returns the requested number of unique favorites, least-used or mixed movements', () => {
-  expect(suggestExercises(library, counts, 'favorites', 5).map((e) => e.id)).toEqual([
+  expect(suggestExercises(library, counts, 'frequent', 5).map((e) => e.id)).toEqual([
     'e0',
     'e1',
     'e2',
@@ -27,7 +27,7 @@ it('returns the requested number of unique favorites, least-used or mixed moveme
   expect(new Set(mix).size).toBe(6);
   expect(mix.slice(0, 2)).toEqual(['e0', 'e3']);
   expect(suggestExercises(library, counts, 'mix', 20)).toHaveLength(7);
-  expect(suggestExercises(library, counts, 'favorites')).toHaveLength(3);
+  expect(suggestExercises(library, counts, 'frequent')).toHaveLength(3);
 });
 
 import type { ExerciseEntry } from '@nextround/core';

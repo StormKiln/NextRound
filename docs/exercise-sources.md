@@ -156,3 +156,32 @@ Reviewed October 12, 2026. Twenty additions bring the catalog from 103 to **123*
 | Kettlebell sumo deadlift | [Muscle & Strength one-kettlebell sumo deadlift demonstration](https://www.muscleandstrength.com/exercises/one-kettlebell-sumo-deadlift). Explicit wider stance and turned-out toes distinguish this from the standard catalog deadlift. |
 
 Equipment vocabulary continues to describe implement types, not quantities: descriptions specify one versus two weights. The wall push-up is grouped with no-apparatus movements and states its wall requirement. Carries accept seconds/metres and are excluded from reps-only Ladder selection; the other 17 additions accept reps/seconds. Paired arm movements count each simultaneous pair once, alternating leg movements count each side once, and unilateral exercises use per-side targets. Focus metadata describes movement emphasis, not medical or therapeutic claims.
+
+## 1.18.0 additions
+
+Reviewed October 14, 2026. Twenty additions bring the library from 123 to **143**. `catalog-1170-baseline.json` preserves every prior entry. The cues are original summaries, with no source images bundled. Targets are editable starting suggestions. Unilateral movements use one side per set unless the cue explicitly says to alternate; alternating movements count each side as one rep. A figure eight counts a complete loop around both legs; a half get-up counts the full ascent and return.
+
+| Added movement | Technique reference |
+| --- | --- |
+| Cat-cow | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/15/cat-cow/) |
+| Child’s pose | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/227/childs-pose/) |
+| Cobra stretch | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/16/cobra/) |
+| Prone contralateral limb raise | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/53/contralateral-limb-raises/) |
+| Downward-facing dog | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/18/downward-facing-dog/) |
+| Diagonal glute-activation lunge | [ACE, cross-body variant](https://www.acefitness.org/resources/everyone/exercise-library/96/glute-activation-lunges/) |
+| High-plank T-spine rotation | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/330/high-plank-t-spine-rotation/) |
+| High-plank hip rotation | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/110/hip-rotations-push-up-position/) |
+| Side-lying hip adduction | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/39/side-lying-hip-adduction/) |
+| Half-kneeling hip-flexor stretch | [ACE](https://www.acefitness.org/resources/everyone/blog/5681/3-stretches-for-opening-up-tight-hips/) |
+| Dumbbell diagonal raise | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/371/diagonal-raise/) |
+| Two-dumbbell front squat | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/22/front-squat/) |
+| Dumbbell lateral lunge | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/364/lateral-lunge/) |
+| Dumbbell suitcase carry | [Muscle & Strength](https://www.muscleandstrength.com/exercises/dumbbell-suitcase-carry) |
+| Dumbbell renegade row | [Muscle & Strength](https://www.muscleandstrength.com/exercises/renegade-row), knee-supported scaling; existing man-maker also documents the plank row |
+| Dumbbell floor fly | [Muscle & Strength floor adaptation](https://www.muscleandstrength.com/workouts/single-pair-dumbbell-bodyweight-workout) |
+| Kettlebell figure eight | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/382/figure-eight/) |
+| Kettlebell half Turkish get-up | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/381/half-turkish-get-up/) |
+| Kettlebell low windmill | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/387/low-windmill/) |
+| Kettlebell pull-over crunch | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/380/pull-over-crunch/) |
+
+The ten bodyweight additions need no apparatus; a mat is optional. Six additions need dumbbells and four need a kettlebell. Static mobility holds use seconds; suitcase carry uses seconds/metres and neither enters reps-only Ladder. The low windmill holds the bell in the lower hand, distinct from the existing overhead version. The half get-up stops before standing, and the floor fly uses the floor to limit its range. Equipment and focus tags describe the movement, not a personalized training prescription.

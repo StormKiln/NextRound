@@ -114,7 +114,7 @@ test('generated interval seconds fit a short work phase and undo preserves the d
   await page.goto('/intervals');
   await page.getByLabel('Work seconds').fill('10');
   await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
-  await page.getByRole('button', { name: 'My Favorites', exact: true }).click();
+  await page.getByRole('button', { name: 'Most used', exact: true }).click();
   await page.getByLabel('Number of exercises').fill('1');
   await page.getByRole('button', { name: 'Generate workout', exact: true }).click();
   const list = page.getByRole('list', { name: 'Ordered exercises' });

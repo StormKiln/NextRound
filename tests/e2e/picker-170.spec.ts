@@ -12,7 +12,7 @@ for (const view of ['type', 'focus'])
     await expect(group).toHaveAttribute('open', '');
     await group.locator('summary').click();
     await expect(group).not.toHaveAttribute('open');
-    await page.getByRole('button', { name: 'My favorites', exact: true }).click();
+    await page.getByRole('button', { name: 'Most used', exact: true }).click();
     await expect(group).not.toHaveAttribute('open');
     await page.getByLabel('Search exercises').fill('kettlebell deadlift');
     await expect(group).toHaveAttribute('open', '');

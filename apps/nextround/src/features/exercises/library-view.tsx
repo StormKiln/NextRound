@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { metadataFor } from '@/data/equipment';
 import { exercises } from '@/data/exercises';
-import { normalizeSearch } from '@/lib/search';
 import { matchesExercise } from '../setup/exercise-suggestions';
 import { ExerciseForm, newPersonal } from './exercise-form';
 import { personalQueryKey, useExerciseLibrary } from './library';
@@ -36,10 +35,11 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
     expected?: PersonalExercise;
   } | null>(null);
   const editorOrigin = useRef<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (editing || !editorOrigin.current) return;
     const frame = requestAnimationFrame(() => {
-      document.getElementById(editorOrigin.current ?? '')?.focus();
+      (document.getElementById(editorOrigin.current ?? '') ?? searchRef.current)?.focus();
       editorOrigin.current = null;
     });
     return () => cancelAnimationFrame(frame);
@@ -48,7 +48,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   const [busy, setBusy] = useState(false);
   const ready = !personal.isPending && !personal.isError;
   const entries = (ready ? (personal.data?.exercises ?? []) : []).filter(
-    (e) => (archived || !e.archived) && normalizeSearch(e.name).includes(normalizeSearch(search)),
+    (e) => (archived || !e.archived) && matchesExercise(e, search),
   );
   const archive = async (entry: PersonalExercise) => {
     if (busy) return;
@@ -90,6 +90,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
         </Button>
       </div>
       <Input
+        ref={searchRef}
         aria-label="Search my exercise library"
         placeholder="Find an exercise…"
         value={search}
@@ -185,10 +186,24 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
           </div>
         )}
         {ready && !bundled && !entries.length && (
-          <p>
-            No personal exercises match. Create one, copy a bundled movement, or show archived
-            exercises.
-          </p>
+          <div role="status">
+            <p>
+              {search.trim()
+                ? 'No personal exercises match your search.'
+                : 'No personal exercises to show. Create one, copy a bundled movement, or show archived exercises.'}
+            </p>
+            {search.trim() && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setSearch('');
+                  searchRef.current?.focus();
+                }}
+              >
+                Clear exercise search
+              </Button>
+            )}
+          </div>
         )}
       </div>
       {onClose && (

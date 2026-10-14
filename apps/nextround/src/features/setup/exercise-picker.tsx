@@ -2,6 +2,7 @@ import type { ExerciseEntry } from '@nextround/core';
 import { countLabel } from '@nextround/core';
 import { Plus } from 'lucide-react';
 import { expandedAreasFor, focusAreas, type PickerView } from '@/data/focus';
+import { FavoriteButton } from '../exercises/favorite-button';
 
 import { matchesExercise, normalizeSearch } from './exercise-suggestions';
 
@@ -19,8 +20,14 @@ export function ExerciseGroups({
   counts,
   note,
   view = 'type',
+  favoriteIds = [],
+  favoritesReady = false,
+  onFavorite,
 }: {
   view?: PickerView;
+  favoriteIds?: readonly string[];
+  favoritesReady?: boolean;
+  onFavorite?: (id: string) => void;
   counts?: Map<string, number>;
   note?: (entry: ExerciseEntry) => string;
   library: ExerciseEntry[];
@@ -50,19 +57,29 @@ export function ExerciseGroups({
           {group} <span>{entries.length}</span>
         </summary>
         {entries.map((entry) => (
-          <button type="button" key={entry.id} onClick={() => onSelect(entry)}>
-            <span>
-              <strong>{entry.name}</strong>
-              <small>{entry.description}</small>
-              {note && <small>{note(entry)}</small>}
-              <small>
-                {counts
-                  ? `Used in ${countLabel(counts.get(entry.id) ?? 0, 'saved workout')}`
-                  : 'Usage unavailable'}
-              </small>
-            </span>
-            <Plus size={20} />
-          </button>
+          <div className="exercise-choice" key={entry.id}>
+            <button type="button" onClick={() => onSelect(entry)}>
+              <span>
+                <strong>{entry.name}</strong>
+                <small>{entry.description}</small>
+                {note && <small>{note(entry)}</small>}
+                <small>
+                  {counts
+                    ? `Used in ${countLabel(counts.get(entry.id) ?? 0, 'saved workout')}`
+                    : 'Usage unavailable'}
+                </small>
+              </span>
+              <Plus size={20} />
+            </button>
+            {onFavorite && (
+              <FavoriteButton
+                entry={entry}
+                selected={favoriteIds.includes(entry.id)}
+                disabled={!favoritesReady}
+                onToggle={onFavorite}
+              />
+            )}
+          </div>
         ))}
       </details>
     );
