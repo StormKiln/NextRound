@@ -81,8 +81,8 @@ export function ExerciseEditor({
   const favoritesReady = favorites.loaded;
   const toggleFavorite = (id: string) => {
     const removing = favorites.ids.includes(id);
-    if (favorites.toggle(id) && removing && favoritesOnly)
-      requestAnimationFrame(() => exerciseSearchRef.current?.focus());
+    // Transfer focus before React removes the row; WebKit otherwise falls back to the dialog.
+    if (favorites.toggle(id) && removing && favoritesOnly) exerciseSearchRef.current?.focus();
   };
   const [preset, setPreset] = useState<SuggestionPreset | null>(null);
   const [view, setView] = useState<PickerView>('type');

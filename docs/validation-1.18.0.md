@@ -1,0 +1,13 @@
+# NextRound 1.18.0 validation
+
+Scope: epic #229; exercise favourites #230, personal search #231, preset terminology #232, 20 exercises #233, filtered rename focus #228, review/integration fixes #235/#236, publication #234.
+
+- 225 unit tests pass. The new catalog test compares all 123 prior entries byte-for-value and validates 143 unique entries, metadata, aliases, supported units and defaults.
+- `make check` passes (release script checks, TypeScript, unit/native tests, Biome, Rust formatting/clippy and frontend build).
+- Native tests pass with and without `direct-update`: 50 passed and 2 intentionally ignored per variant. Native audio/power lifecycle and sandbox media smoke pass separately.
+- Browser regressions cover six-mode generation counts and Undo, starred suggestions with unreadable history, equipment/Ladder exclusions, invalid preferences, failed writes, archive/restore identity, normalized personal search and focus recovery. Full-suite publication results are recorded in #234 and the PR checks.
+- Fresh review found the favourite-only failed-write visibility/focus bug, tracked as #235 and reproduced before fixing. Existing minimum-window tests exposed #236; their visibility assertions were retained. Catalog count and keyboard-menu expectations were updated for the intended new entries and preset.
+- Physical Mac, isolated application identity `com.stormkiln.nextround.validation1180`: a star persisted across quit/relaunch; Favourites only and Cat-cow search worked. Picker layout was inspected at 760×620, with a complete result and fixed footer. The WebKit-specific last-row focus regression was reproduced and fixed by transferring focus before row removal; native Tab/Space activation followed by typing confirmed search receives input.
+- README screenshot is from the shared browser interface at 760×620 with a deliberately starred sample movement. No user workout data is shown.
+
+No production documents are migrated by this change. Exercise stars are versioned local preferences and are separate from usage counts and saved-workout favourites. Published artifact checks, exact Apple build availability and live-update evidence are tracked in #234 after merge. Existing unrelated release acceptance work remains separate.
