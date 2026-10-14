@@ -135,7 +135,8 @@ test('failed star writes preserve the selected state and recover without losing 
       original.call(this, key, value);
     };
   });
-  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).focus();
+  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).press('Space');
   await expect(
     page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true');

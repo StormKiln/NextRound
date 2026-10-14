@@ -38,11 +38,9 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (editing || !editorOrigin.current) return;
-    const frame = requestAnimationFrame(() => {
-      (document.getElementById(editorOrigin.current ?? '') ?? searchRef.current)?.focus();
-      editorOrigin.current = null;
-    });
-    return () => cancelAnimationFrame(frame);
+    // Restore after the replacement DOM commits without waiting for a WebKit animation frame.
+    (document.getElementById(editorOrigin.current) ?? searchRef.current)?.focus();
+    editorOrigin.current = null;
   }, [editing]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
