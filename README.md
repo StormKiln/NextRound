@@ -118,7 +118,7 @@ Local test builds are not public signed/notarized releases. See [contributing](C
 
 ## Further reading
 
-- [1.18.0 release notes](docs/release-notes-1.19.0.md)
+- [1.19.0 release notes](docs/release-notes-1.19.0.md)
 - [1.17.0 release notes](docs/release-notes-1.17.0.md)
 - [History CSV export](docs/history-csv.md)
 - [1.16.0 release notes](docs/release-notes-1.16.0.md)
