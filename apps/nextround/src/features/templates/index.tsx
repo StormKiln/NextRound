@@ -17,6 +17,7 @@ import {
 import './templates.css';
 import { copyName, useTemplateFilters } from './filter-state';
 import { WorkoutPreview } from './preview';
+import { WorkoutExport, WorkoutImport } from './transfer';
 import { workoutSummary } from './workout-details';
 
 const queryKey = ['workout-templates'];
@@ -187,7 +188,11 @@ export function TemplateLibrary({
     restoreFocus();
   }
   const { search, favouritesOnly, workoutType, reset: resetFilters } = useTemplateFilters();
+  const [importing, setImporting] = useState(false);
+  const [exportId, setExportId] = useState<string | null>(null);
+  const [hiddenImport, setHiddenImport] = useState(false);
   const clearFilterFeedback = () => {
+    setHiddenImport(false);
     setHiddenCopy(false);
     setHiddenRename(false);
     setNotice('');
@@ -351,6 +356,30 @@ export function TemplateLibrary({
         </h2>
         <p>Keep your favourites ready for the next round.</p>
       </div>
+      <Button
+        variant="secondary"
+        disabled={busy || query.isPending || query.isError}
+        onClick={(event) => {
+          origin.current = event.currentTarget;
+          clearFilterFeedback();
+          setImporting(true);
+        }}
+      >
+        Import workout
+      </Button>
+      {hiddenImport && (
+        <Button
+          variant="secondary"
+          onClick={() => {
+            resetFilters();
+            clearFilterFeedback();
+            setNotice('Filters cleared. Your imported workout is shown.');
+            focusSearch();
+          }}
+        >
+          Show imported workout
+        </Button>
+      )}
       {!action && notice && <p role="status">{notice}</p>}
       {!action && hiddenRename && (
         <Button
@@ -484,6 +513,18 @@ export function TemplateLibrary({
                   >
                     Preview
                   </Button>
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    aria-label={`Export ${template.name}`}
+                    onClick={(event) => {
+                      origin.current = event.currentTarget;
+                      clearFilterFeedback();
+                      setExportId(template.id);
+                    }}
+                  >
+                    Export
+                  </Button>
                   {(['load', 'duplicate', 'rename', 'delete'] as const).map((type) => (
                     <Button
                       key={type}
@@ -508,6 +549,42 @@ export function TemplateLibrary({
             ))}
           </ul>
         </>
+      )}
+      {importing && (
+        <WorkoutImport
+          onClose={() => {
+            setImporting(false);
+            restoreFocus();
+          }}
+          onImported={(entry) => {
+            const filters = useTemplateFilters.getState();
+            const hidden =
+              filters.favouritesOnly ||
+              !normalizeSearch(entry.name).includes(normalizeSearch(filters.search)) ||
+              (filters.workoutType !== 'all' &&
+                (entry.config.type ?? 'emom') !== filters.workoutType);
+            setImporting(false);
+            setHiddenImport(hidden);
+            setNotice(
+              `Workout imported as “${entry.name}”.${hidden ? ' It is hidden by your current filters.' : ''}`,
+            );
+            restoreFocus();
+          }}
+        />
+      )}
+      {exportId && (
+        <WorkoutExport
+          id={exportId}
+          onClose={() => {
+            setExportId(null);
+            restoreFocus();
+          }}
+          onSaved={() => {
+            setExportId(null);
+            setNotice('Workout file exported.');
+            restoreFocus();
+          }}
+        />
       )}
       {previewId && (
         <WorkoutPreview

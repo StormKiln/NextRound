@@ -29,6 +29,126 @@ export type CatalogMetadata = {
   targetAreas?: FocusArea[];
 };
 export const catalogMetadata: Record<string, CatalogMetadata> = {
+  'supine-pelvic-tilt': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core'],
+    aliases: ['pelvic tilts'],
+  },
+  'standing-chest-stretch': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['chest', 'shoulders'],
+    aliases: ['chest opener'],
+  },
+  'standing-gate-opener': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['legs', 'glutes', 'core'],
+    aliases: ['gate openers', 'hip opener'],
+  },
+  'triangle-side-stretch': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['back', 'legs', 'core'],
+    aliases: ['triangle stretch', 'straddle bend'],
+  },
+  'sumo-rotational-squat': {
+    equipment: [],
+    category: 'Squats',
+    targetAreas: ['legs', 'glutes', 'whole-body'],
+    aliases: ['sumo rotational squats'],
+  },
+  'single-leg-balance': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['legs', 'core'],
+    aliases: ['single leg stand', 'single leg balance hold'],
+  },
+  'bodyweight-single-leg-rdl': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['legs', 'glutes', 'back'],
+    aliases: ['unweighted single leg deadlift', 'bodyweight single leg rdl'],
+  },
+  'side-plank-knees': {
+    equipment: [],
+    category: 'Planks',
+    targetAreas: ['core', 'shoulders'],
+    aliases: ['modified side plank', 'side plank on knees'],
+  },
+  'single-arm-plank': {
+    equipment: [],
+    category: 'Planks',
+    targetAreas: ['core', 'shoulders', 'arms'],
+    aliases: ['one arm plank'],
+  },
+  'prone-w-raise': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['back', 'shoulders'],
+    aliases: ['w raises', 'prone scapular w'],
+  },
+  'dumbbell-two-arm-row': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['back', 'lats', 'arms'],
+    aliases: ['two arm dumbbell rows', 'bilateral dumbbell row'],
+  },
+  'dumbbell-shrug': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['back', 'shoulders'],
+    aliases: ['dumbbell shrugs'],
+  },
+  'dumbbell-side-bend': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['core'],
+    aliases: ['dumbbell side bends'],
+  },
+  'dumbbell-suitcase-squat': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['legs', 'glutes', 'core'],
+    aliases: ['dumbbell suitcase squats'],
+  },
+  'dumbbell-floor-pullover': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['chest', 'lats'],
+    aliases: ['dumbbell floor pullovers'],
+  },
+  'dumbbell-step-up': {
+    equipment: ['dumbbell', 'raised-surface'],
+    category: 'Dumbbell',
+    targetAreas: ['legs', 'glutes'],
+    aliases: ['weighted step ups', 'dumbbell step ups'],
+  },
+  'kettlebell-bottoms-up-press': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['shoulders', 'arms', 'core'],
+    aliases: ['bottom up press', 'bottoms up presses'],
+  },
+  'kettlebell-double-push-press': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['whole-body', 'shoulders', 'legs'],
+    aliases: ['double kettlebell push presses'],
+  },
+  'kettlebell-suitcase-deadlift': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['legs', 'glutes', 'core'],
+    aliases: ['kettlebell suitcase deadlifts'],
+  },
+  'kettlebell-bottoms-up-carry': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['core', 'arms', 'shoulders'],
+    aliases: ['bottom up carry', 'bottoms up carries'],
+  },
   squat: { targetAreas: ['legs', 'glutes'], equipment: [], category: 'Squats', aliases: [] },
   pushup: {
     targetAreas: ['chest', 'arms', 'shoulders'],

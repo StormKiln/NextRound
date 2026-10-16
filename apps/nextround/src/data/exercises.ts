@@ -1038,6 +1038,165 @@ export const exercises: ExerciseEntry[] = [
       'Lie with knees bent and a light bell held securely in both hands. Bring it from a comfortable overhead range above your chest, then curl shoulders up. Lower shoulders and return the bell slowly. One pullover and crunch is one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'supine-pelvic-tilt',
+    name: 'Supine pelvic tilt',
+    description:
+      'Lie on your back with knees bent and feet down. Gently flatten your lower back toward the floor without lifting your hips, then relax to neutral. One tilt and release is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'standing-chest-stretch',
+    name: 'Standing chest stretch',
+    description:
+      'Stand tall with arms by your sides. Gently turn shoulders outward and draw shoulder blades together until you feel a comfortable chest stretch. Breathe normally without arching your lower back.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'standing-gate-opener',
+    name: 'Standing gate opener',
+    description:
+      'Stand on one leg, lift the other knee, move it gently across your body and then out to the side before lowering. Keep the standing hip steady. One full knee sweep is one rep; choose a side per set.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'triangle-side-stretch',
+    name: 'Triangle side stretch',
+    description:
+      'Stand wide with one foot turned out. Reach the opposite arm overhead as you bend gently toward that foot, sliding the lower hand lightly along the leg, away from the knee. Hold a comfortable range; choose a side per set.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'sumo-rotational-squat',
+    name: 'Sumo rotational squat',
+    description:
+      'From a wide squat, rise and pivot on one foot as the other steps around through a half-turn. Set both feet before squatting again; avoid twisting a planted knee. Each squat and turn counts once. Alternate turning directions.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'single-leg-balance',
+    name: 'Single-leg balance',
+    description:
+      'Stand tall, lift one foot a few inches and balance with the supporting knee soft. Keep eyes open and hips level; lower the foot when needed. Hold on the chosen leg, then switch sides between sets.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'bodyweight-single-leg-rdl',
+    name: 'Bodyweight single-leg Romanian deadlift',
+    description:
+      'Balance on one leg with a soft knee. Hinge forward while the free leg reaches back, keeping hips level, then stand tall. Use a comfortable range without rounding your back. One hinge and return is one rep on the chosen leg.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'side-plank-knees',
+    name: 'Knee-supported side plank',
+    description:
+      'Lie on your side with knees bent and the lower elbow under your shoulder. Lift hips to align shoulders, hips and knees, keeping the lower knee down. Hold without rolling forward; choose a side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'single-arm-plank',
+    name: 'Single-arm plank',
+    description:
+      'Start in a high plank with feet wide. Bring one hand to your hip and press the supporting hand into the floor. Keep hips level and breathe; return the hand if your torso rotates. Hold on one side per interval.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'prone-w-raise',
+    name: 'Prone W raise',
+    description:
+      'Lie face down with elbows bent to form a W beside your shoulders. Gently lift arms while drawing shoulder blades together, keeping your neck long, then lower. One paired lift and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-two-arm-row',
+    name: 'Dumbbell two-arm bent-over row',
+    description:
+      'Hold two dumbbells with palms facing inward. Hinge with a braced, flat back, row both elbows toward your ribs, then lower under control. Avoid swinging your torso. Each paired pull and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-shrug',
+    name: 'Dumbbell shrug',
+    description:
+      'Stand holding two dumbbells at your sides. Raise both shoulders smoothly without bending your elbows or rolling your shoulders, pause, then lower slowly. One paired rise and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-side-bend',
+    name: 'Dumbbell side bend',
+    description:
+      'Stand with a light dumbbell at each side. Bend gently sideways through a comfortable range, without rotating or leaning forward, then return upright. One bend and return is one rep; complete a set on each side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-suitcase-squat',
+    name: 'Dumbbell suitcase squat',
+    description:
+      'Hold two dumbbells at your sides. Squat with knees tracking your toes and weights beside your legs, then stand tall. Keep your torso braced and use a comfortable depth. One squat and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-floor-pullover',
+    name: 'Dumbbell floor pullover',
+    description:
+      'Lie with knees bent and one light dumbbell held securely in both hands above your chest. Lower it in a controlled arc behind your head toward the floor, then return above your chest. Keep ribs down. One arc and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-step-up',
+    name: 'Dumbbell step-up',
+    description:
+      'Hold two dumbbells at your sides facing a stable weight-bearing platform. Place one whole foot on it, step up, then step down with control. Keep the knee tracking the toes. Each ascent and descent is one rep; alternate leading legs.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-bottoms-up-press',
+    name: 'Kettlebell bottoms-up press',
+    description:
+      'Balance a light kettlebell upside down by its handle at shoulder height. With a firm grip and braced torso, press overhead and lower slowly. Use a load you can control throughout. One press and lower is one rep on the chosen arm.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-double-push-press',
+    name: 'Kettlebell double push press',
+    description:
+      'Rack two kettlebells at your shoulders. Dip slightly at the knees, then drive through your feet to press both bells overhead. Stand tall and lower both to the rack with control. Each paired press and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-suitcase-deadlift',
+    name: 'Kettlebell suitcase deadlift',
+    description:
+      'Place one bell beside your foot. Hinge and bend your knees to grasp it, then stand without leaning toward the weight. Lower it beside your foot with control. One lift and lower is one rep; choose a hand per set.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-bottoms-up-carry',
+    name: 'Kettlebell bottoms-up carry',
+    description:
+      'Hold a light kettlebell upside down at shoulder height with elbow bent and wrist upright. Walk slowly while keeping the bell balanced and torso steady. Stop before grip or balance fails; choose an arm per interval.',
+    supportedUnits: ['seconds', 'metres'],
+  },
 ];
 export async function listExercises() {
   return exercises;

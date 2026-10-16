@@ -1,4 +1,4 @@
-import type { ExerciseEntry } from '@nextround/core';
+import { type ExerciseEntry, formatTarget } from '@nextround/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
@@ -30,6 +30,20 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   const [search, setSearch] = useState('');
   const [archived, setArchived] = useState(false);
   const [bundled, setBundled] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    text: string;
+    saved?: PersonalExercise;
+    archived?: boolean;
+  } | null>(null);
+  const revealRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!revealRef.current) return;
+    (document.getElementById(`personal-edit-${revealRef.current}`) ?? searchRef.current)?.focus();
+    revealRef.current = null;
+  });
+  const savedHidden =
+    feedback?.saved &&
+    (bundled || (!archived && feedback.saved.archived) || !matchesExercise(feedback.saved, search));
   const [editing, setEditing] = useState<{
     initial: PersonalExercise;
     expected?: PersonalExercise;
@@ -63,6 +77,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
     archiveOrigin.current = document.activeElement === origin ? origin : null;
     setBusy(true);
     setError('');
+    setFeedback(null);
     try {
       const document = await mutatePersonalExercises({
         action: 'save',
@@ -70,6 +85,10 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
         exercise: { ...entry, archived: !entry.archived },
       });
       client.setQueryData(personalQueryKey, document);
+      setFeedback({
+        text: `${entry.archived ? 'Restored' : 'Archived'} “${entry.name}”.${entry.archived ? '' : ' Saved workouts and history keep their existing copies.'}`,
+        archived: !entry.archived,
+      });
       void client.invalidateQueries({ queryKey: personalQueryKey });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -127,6 +146,43 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
           {error}
         </p>
       )}
+      {feedback && (
+        <div role="status" aria-label="Exercise library update" className="personal-feedback">
+          <p>
+            {feedback.text}
+            {savedHidden ? ' This exercise is hidden by your current view or filters.' : ''}
+          </p>
+          {savedHidden && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const entry = feedback.saved;
+                if (!entry) return;
+                setBundled(false);
+                if (!matchesExercise(entry, search)) setSearch('');
+                if (entry.archived) setArchived(true);
+                editorOrigin.current = null;
+                revealRef.current = entry.id;
+                setFeedback(null);
+              }}
+            >
+              Show saved exercise
+            </Button>
+          )}
+          {feedback.archived && !archived && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setArchived(true);
+                setFeedback(null);
+                searchRef.current?.focus();
+              }}
+            >
+              Show archived exercises
+            </Button>
+          )}
+        </div>
+      )}
       <div className="personal-list">
         {bundled
           ? exercises
@@ -159,7 +215,26 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                   <h3>{e.name}</h3>
                   <p>{e.description || 'No description'}</p>
                   <small>
-                    {e.category} · {e.supportedUnits.join(', ')}
+                    {e.category}
+                    <span className="personal-detail">
+                      Supported targets:{' '}
+                      {e.supportedUnits
+                        .map(
+                          (u) =>
+                            ({
+                              reps: 'Reps',
+                              seconds: 'Seconds',
+                              metres: 'Metres',
+                              calories: 'Calories',
+                            })[u],
+                        )
+                        .join(', ')}
+                    </span>
+                    <span className="personal-detail">
+                      {e.defaultTarget
+                        ? `Default target: ${formatTarget(e.defaultTarget)}`
+                        : 'No default target'}
+                    </span>
                   </small>
                 </div>
                 <div className="dialog-actions">
@@ -238,7 +313,10 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
           initial={editing.initial}
           expected={editing.expected}
           onClose={() => setEditing(null)}
-          onSaved={() => setEditing(null)}
+          onSaved={(exercise) => {
+            setFeedback({ text: `Saved “${exercise.name}”.`, saved: exercise });
+            setEditing(null);
+          }}
         />
       ) : onClose ? (
         <Dialog

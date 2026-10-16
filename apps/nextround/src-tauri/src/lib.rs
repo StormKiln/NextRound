@@ -9,6 +9,7 @@ mod update_gate;
 #[cfg(feature = "direct-update")]
 mod updates;
 mod window_behavior;
+mod workout_files;
 use audio::Audio;
 use std::{
     sync::{
@@ -311,6 +312,8 @@ pub fn run() {
             set_close_behavior,
             history::read_workout_history,
             history_export::save_history_csv,
+            workout_files::open_workout_file,
+            workout_files::save_workout_file,
             history::mutate_workout_history,
             exercises::read_personal_exercises,
             exercises::mutate_personal_exercises,
@@ -333,6 +336,8 @@ pub fn run() {
         set_close_behavior,
         history::read_workout_history,
         history_export::save_history_csv,
+        workout_files::open_workout_file,
+        workout_files::save_workout_file,
         history::mutate_workout_history,
         exercises::read_personal_exercises,
         exercises::mutate_personal_exercises,

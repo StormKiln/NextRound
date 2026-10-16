@@ -9,6 +9,7 @@ export type WorkoutTemplate = {
 export type TemplateDocument = { version: 1; templates: WorkoutTemplate[] };
 export type TemplateMutation =
   | { action: 'save'; name: string; config: WorkoutConfig }
+  | { action: 'import'; name: string; config: WorkoutConfig }
   | { action: 'update'; id: string; expected: WorkoutTemplate; name: string; config: WorkoutConfig }
   | { action: 'rename'; id: string; name: string; expectedName: string }
   | { action: 'favourite'; id: string; favourite: boolean }
@@ -161,7 +162,14 @@ export function createBrowserRepository(storage: TemplateStorage) {
     const input = structuredClone(mutation);
     const operation = pending.then(async () => {
       const document = await read();
-      if (input.action === 'save') {
+      if (input.action === 'save' || input.action === 'import') {
+        if (
+          input.action === 'import' &&
+          document.templates.some(
+            (t) => t.name.trim().toLowerCase() === nameValue(input.name).toLowerCase(),
+          )
+        )
+          throw new Error('A workout with this name already exists. Choose another name.');
         if (document.templates.length >= 100)
           throw new Error('You can save up to 100 workouts. Delete one before saving another.');
         document.templates.push({

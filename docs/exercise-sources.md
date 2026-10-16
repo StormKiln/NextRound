@@ -185,3 +185,34 @@ Reviewed October 14, 2026. Twenty additions bring the library from 123 to **143*
 | Kettlebell pull-over crunch | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/380/pull-over-crunch/) |
 
 The ten bodyweight additions need no apparatus; a mat is optional. Six additions need dumbbells and four need a kettlebell. Static mobility holds use seconds; suitcase carry uses seconds/metres and neither enters reps-only Ladder. The low windmill holds the bell in the lower hand, distinct from the existing overhead version. The half get-up stops before standing, and the floor fly uses the floor to limit its range. Equipment and focus tags describe the movement, not a personalized training prescription.
+
+## 1.21.0 additions
+
+Reviewed October 16, 2026. Twenty distinct additions bring the catalog to **163**. `catalog-1200-baseline.json` freezes all 143 prior entries. Cues are original summaries; no third-party images are included. The ten bodyweight movements require no apparatus (mat optional). Six dumbbell entries include a step-up that additionally requires a stable weight-bearing platform. Four additions use kettlebells. Quantities are explicit in descriptions.
+
+| Movement | Technique reference |
+| --- | --- |
+| Supine pelvic tilt | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/7/supine-pelvic-tilts/) |
+| Standing chest stretch | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/209/standing-chest-stretch/) |
+| Standing gate opener | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/201/standing-gate-openers-frankensteins/) |
+| Triangle side stretch | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/225/standing-triangle-straddle-bends/) |
+| Sumo rotational squat | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/129/sumo-rotational-squats/) |
+| Single-leg balance | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/112/single-leg-stand/) |
+| Bodyweight single-leg Romanian deadlift | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/329/single-leg-romanian-deadlift/) |
+| Knee-supported side plank | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/100/side-plank-modified/) |
+| Single-arm plank | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/321/single-arm-plank/) |
+| Prone W raise | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/249/prone-scapular-shoulder-stabilization-series-i-y-t-w-o-formation/) |
+| Dumbbell two-arm bent-over row | [Reference](https://www.muscleandstrength.com/exercises/bent-over-dumbbell-row.html) |
+| Dumbbell shrug | [Reference](https://www.muscleandstrength.com/exercises/dumbbell-shrugs.html) |
+| Dumbbell side bend | [Reference](https://www.muscleandstrength.com/exercises/dumbbell-side-bends.html) |
+| Dumbbell suitcase squat | [Reference](https://www.muscleandstrength.com/exercises/dumbbell-squat.html) |
+| Dumbbell floor pullover | [Reference](https://www.youtube.com/watch?v=k6b7vIjJxy0) |
+| Dumbbell step-up | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/28/step-up/) |
+| Kettlebell bottoms-up press | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/396/bottom-up-press/) |
+| Kettlebell double push press | [Reference](https://www.acefitness.org/resources/everyone/exercise-library/384/double-push-press/) |
+| Kettlebell suitcase deadlift | [Reference](https://www.strongfirst.com/seven-basic-human-movements/) |
+| Kettlebell bottoms-up carry | [Reference](https://www.strongfirst.com/military-press-strength-that-transfers-only-if-you-use-your-lats/) |
+
+Static stretches, balance and plank holds use seconds. The bottoms-up carry accepts seconds/metres. These are excluded from reps-only Ladder. Dynamic unilateral movements count each complete action on the chosen side; paired lifts count the simultaneous pair once. Step-ups alternate leading legs and count each ascent/descent once. A rotational squat counts each squat/turn once. Starting targets are editable suggestions, not pace or performance estimates.
+
+Variants are deliberately distinct: the W arm path differs from Y/T raises; knee-supported and single-arm plank holds differ from existing straight-leg/tapping planks. The suitcase squat carries two weights beside the legs instead of a goblet/front rack. Two-arm rows use a bilateral unsupported hinge. Suitcase deadlifts load one side with both feet down. Bottoms-up movements balance an inverted bell; the double push press uses two bells. No existing exercise or historical snapshot is rewritten.
