@@ -437,3 +437,19 @@ it.each([
     expect((await f.repo.read()).templates[0]).toEqual(original);
   },
 );
+
+it('imports atomically without overwriting names or carrying favourite state', async () => {
+  const f = fixture();
+  await f.repo.mutate({ action: 'save', name: 'Existing', config });
+  const before = f.raw();
+  await expect(f.repo.mutate({ action: 'import', name: ' EXISTING ', config })).rejects.toThrow(
+    'name',
+  );
+  expect(f.raw()).toBe(before);
+  const results = await Promise.allSettled(
+    [1, 2].map(() => f.repo.mutate({ action: 'import', name: 'New', config })),
+  );
+  expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+  expect((await f.repo.read()).templates).toHaveLength(2);
+  expect((await f.repo.read()).templates[1].favourite).toBeUndefined();
+});

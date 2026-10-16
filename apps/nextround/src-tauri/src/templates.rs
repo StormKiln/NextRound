@@ -34,6 +34,10 @@ pub enum Mutation {
         name: String,
         config: Config,
     },
+    Import {
+        name: String,
+        config: Config,
+    },
     Update {
         id: String,
         expected: WorkoutTemplate,
@@ -152,6 +156,31 @@ impl TemplateStore {
                     id: unique_id(),
                     favourite: false,
                     name: name_value(&name)?,
+                    config,
+                });
+            }
+            Mutation::Import { name, config } => {
+                let name = name_value(&name)?;
+                if document
+                    .templates
+                    .iter()
+                    .any(|e| e.name.trim().to_lowercase() == name.to_lowercase())
+                {
+                    return Err(
+                        "A workout with this name already exists. Choose another name.".into(),
+                    );
+                }
+                if document.templates.len() >= 100 {
+                    return Err(
+                        "You can save up to 100 workouts. Delete one before importing another."
+                            .into(),
+                    );
+                }
+                timer::validate(&config)?;
+                document.templates.push(WorkoutTemplate {
+                    id: unique_id(),
+                    favourite: false,
+                    name,
                     config,
                 });
             }
@@ -284,6 +313,34 @@ pub fn mutate_workout_templates(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn import_rejects_duplicate_names_and_preserves_existing_records() {
+        let s = store();
+        s.mutate(Mutation::Save {
+            name: "Original".into(),
+            config: config(),
+        })
+        .unwrap();
+        let before = fs::read(&s.path).unwrap();
+        assert!(s
+            .mutate(Mutation::Import {
+                name: " ORIGINAL ".into(),
+                config: config()
+            })
+            .unwrap_err()
+            .contains("name"));
+        assert_eq!(before, fs::read(&s.path).unwrap());
+        let imported = s
+            .mutate(Mutation::Import {
+                name: "New".into(),
+                config: config(),
+            })
+            .unwrap();
+        assert_eq!(imported.templates.len(), 2);
+        assert!(!imported.templates[1].favourite);
+        assert_ne!(imported.templates[0].id, imported.templates[1].id);
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
     fn config() -> Config {
         serde_json::from_value(serde_json::json!({"type":"countdown","durationSeconds":60,"leadInSeconds":0,"warningSeconds":3,"showChecklist":false,"exercises":[{"id":"a","name":"Squat","target":{"unit":"reps","value":5}}]})).unwrap()
     }

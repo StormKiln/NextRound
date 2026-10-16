@@ -30,7 +30,7 @@ test-native:
 	cargo test --manifest-path $(NATIVE)
 
 test-e2e:
-	$(PNPM) test:e2e
+	$(PNPM) test:e2e $(E2E_ARGS)
 
 build:
 	$(PNPM) build

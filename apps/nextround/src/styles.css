@@ -1708,3 +1708,14 @@ textarea {
   flex-shrink: 0;
   margin-top: 0;
 }
+
+.personal-detail {
+  display: block;
+  margin-top: 4px;
+}
+.personal-feedback {
+  overflow-wrap: anywhere;
+}
+.personal-feedback p {
+  margin: 0 0 8px;
+}
