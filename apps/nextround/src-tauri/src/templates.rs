@@ -525,6 +525,16 @@ impl TemplateStore {
     }
 }
 pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    atomic_write_with(path, bytes, |file, bytes| {
+        file.write_all(bytes)?;
+        file.sync_all()
+    })
+}
+fn atomic_write_with(
+    path: &Path,
+    bytes: &[u8],
+    write_and_sync: impl FnOnce(&mut fs::File, &[u8]) -> std::io::Result<()>,
+) -> Result<(), String> {
     let parent = path.parent().ok_or("Saved workout directory unavailable")?;
     fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     let temporary = parent.join(format!(".workout-templates-{}.tmp", unique_id()));
@@ -534,8 +544,7 @@ pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
         .open(&temporary)
         .map_err(|e| e.to_string())?;
     let result = (|| {
-        file.write_all(bytes)?;
-        file.sync_all()?;
+        write_and_sync(&mut file, bytes)?;
         fs::rename(&temporary, path)
     })();
     if let Err(error) = result {
@@ -988,6 +997,33 @@ mod tests {
             assert_eq!(fs::read_to_string(&s.path).unwrap(), raw);
         }
         fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn partial_write_and_file_sync_failures_preserve_bytes_and_allow_retry() {
+        for partial in [true, false] {
+            let s = store();
+            fs::create_dir_all(s.path.parent().unwrap()).unwrap();
+            fs::write(&s.path, b"previous document").unwrap();
+            let result = atomic_write_with(&s.path, b"replacement document", |file, bytes| {
+                if partial {
+                    file.write_all(&bytes[..4])?;
+                } else {
+                    file.write_all(bytes)?;
+                }
+                Err(std::io::Error::other(if partial {
+                    "partial write failure"
+                } else {
+                    "file sync failure"
+                }))
+            });
+            assert!(result.unwrap_err().contains("previous data is preserved"));
+            assert_eq!(fs::read(&s.path).unwrap(), b"previous document");
+            assert_eq!(fs::read_dir(s.path.parent().unwrap()).unwrap().count(), 1);
+            atomic_write(&s.path, b"successful retry").unwrap();
+            assert_eq!(fs::read(&s.path).unwrap(), b"successful retry");
+            assert_eq!(fs::read_dir(s.path.parent().unwrap()).unwrap().count(), 1);
+            fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
+        }
     }
     #[test]
     fn failed_atomic_rename_preserves_destination_and_removes_temporary_file() {
