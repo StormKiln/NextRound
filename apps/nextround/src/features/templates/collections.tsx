@@ -38,6 +38,7 @@ export function CollectionDialog({
   const nameInput = useRef<HTMLInputElement>(null),
     keepButton = useRef<HTMLButtonElement>(null),
     origin = useRef<HTMLElement | null>(null),
+    originLabel = useRef<string | null>(null),
     gate = useRef(false);
   const [errorCode, setErrorCode] = useState<CollectionErrorCode>('storage');
   const focusName = useCallback(() => {
@@ -49,7 +50,15 @@ export function CollectionDialog({
   function restoreAction() {
     requestAnimationFrame(() => {
       if (origin.current?.isConnected) origin.current.focus();
-      else nameInput.current?.focus();
+      else {
+        const buttons = nameInput.current
+          ?.closest('dialog')
+          ?.querySelectorAll<HTMLButtonElement>('button[aria-label]');
+        const restored = Array.from(buttons ?? []).find(
+          (button) => button.getAttribute('aria-label') === originLabel.current,
+        );
+        (restored ?? nameInput.current)?.focus();
+      }
     });
   }
   useEffect(() => {
@@ -242,6 +251,7 @@ export function CollectionDialog({
                           aria-label={`Rename collection ${c.name}`}
                           onClick={(event) => {
                             origin.current = event.currentTarget;
+                            originLabel.current = event.currentTarget.getAttribute('aria-label');
                             setError('');
                             setEditing(c);
                             setName(c.name);
@@ -256,6 +266,7 @@ export function CollectionDialog({
                           aria-label={`Delete collection ${c.name}`}
                           onClick={(event) => {
                             origin.current = event.currentTarget;
+                            originLabel.current = event.currentTarget.getAttribute('aria-label');
                             setEditing(null);
                             setName('');
                             setError('');

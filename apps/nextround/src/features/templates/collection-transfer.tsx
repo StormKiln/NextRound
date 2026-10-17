@@ -31,6 +31,13 @@ export function CollectionImport({
   const [name, setName] = useState('');
   const [names, setNames] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const errorNode = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (error) {
+      errorNode.current?.focus();
+      errorNode.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [error]);
   const [retained, setRetained] = useState(false);
   const [busy, setBusy] = useState(false);
   const gate = useRef(false),
@@ -147,7 +154,11 @@ export function CollectionImport({
           </label>
         )}
         {busy && <p role="status">Working…</p>}
-        {error && <p role="alert">{error}</p>}
+        {error && (
+          <p ref={errorNode} role="alert" tabIndex={-1}>
+            {error}
+          </p>
+        )}
         {retained && preview && (
           <div role="status">
             <p>

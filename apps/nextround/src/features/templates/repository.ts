@@ -235,7 +235,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
         const added = input.workouts.map((w) => {
           const name = nameValue(w.name);
           if (used.has(normalizeSearch(name)))
-            throw new Error('A workout with this name already exists. Choose another name.');
+            throw new Error(`A workout named “${name}” already exists. Choose another name.`);
           used.add(normalizeSearch(name));
           const config = copyValidatedConfig(w.config);
           for (const exercise of config.exercises ?? []) exercise.id = crypto.randomUUID();
@@ -309,7 +309,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
             (t) => t.name.trim().toLowerCase() === nameValue(input.name).toLowerCase(),
           )
         )
-          throw new Error('A workout with this name already exists. Choose another name.');
+          throw new Error(`A workout named “${name}” already exists. Choose another name.`);
         if (document.templates.length >= 100)
           throw new Error('You can save up to 100 workouts. Delete one before saving another.');
         document.templates.push({

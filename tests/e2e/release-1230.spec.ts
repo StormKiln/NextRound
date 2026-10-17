@@ -193,3 +193,56 @@ test('collection preview scrolls with fixed actions at a narrow size', async ({
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+test('cancelling deletion restores the same action near the bottom of a long list', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 620 });
+  await page.evaluate((key) => {
+    const doc = JSON.parse(localStorage.getItem(key) ?? '{}');
+    doc.collections = Array.from({ length: 30 }, (_, i) => ({
+      id: `c${i}`,
+      name: `Collection ${i}`,
+      workoutIds: [],
+    }));
+    localStorage.setItem(key, JSON.stringify(doc));
+  }, key);
+  await page.getByRole('button', { name: 'Refresh saved workouts', exact: true }).click();
+  await page.getByRole('button', { name: 'Manage collections', exact: true }).click();
+  const action = page.getByRole('button', { name: 'Delete collection Collection 29', exact: true });
+  await action.click();
+  await page.getByRole('button', { name: 'Keep collection', exact: true }).click();
+  await expect(action).toBeFocused();
+  await expect(action).toBeInViewport();
+});
+
+test('reveals a fresh import collision after reviewing a long preview', async ({ page }) => {
+  await page.setViewportSize({ width: 760, height: 620 });
+  await page.getByRole('button', { name: 'Import collection', exact: true }).click();
+  await page.getByLabel('Collection file', { exact: true }).setInputFiles({
+    name: 'many.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(
+      JSON.stringify({
+        format: 'nextround-collection',
+        version: 1,
+        name: 'New routine',
+        workouts: Array.from({ length: 12 }, (_, i) => ({ name: `Session ${i + 1}`, config })),
+      }),
+    ),
+  });
+  await page.getByLabel('Workout 12 name').focus();
+  await page.evaluate(
+    ({ key, config }) => {
+      const doc = JSON.parse(localStorage.getItem(key) ?? '{}');
+      doc.templates.push({ id: 'conflict', name: 'Session 12', config });
+      localStorage.setItem(key, JSON.stringify(doc));
+    },
+    { key, config },
+  );
+  await page.getByRole('button', { name: 'Add collection and workouts', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Session 12');
+  await expect(page.getByRole('alert')).toBeInViewport();
+  await expect(page.getByRole('alert')).toBeFocused();
+  await expect(page.getByLabel('Workout 12 name')).toHaveValue('Session 12');
+});

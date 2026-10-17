@@ -271,9 +271,9 @@ impl TemplateStore {
                         return Err("Enter a workout name from 1 to 120 characters.".into());
                     }
                     if !used.insert(normalized_name(name)) {
-                        return Err(
-                            "A workout with this name already exists. Choose another name.".into(),
-                        );
+                        return Err(format!(
+                            "A workout named “{name}” already exists. Choose another name."
+                        ));
                     }
                     let mut config = workout.config;
                     timer::validate(&config)?;
@@ -412,9 +412,9 @@ impl TemplateStore {
                     .iter()
                     .any(|e| e.name.trim().to_lowercase() == name.to_lowercase())
                 {
-                    return Err(
-                        "A workout with this name already exists. Choose another name.".into(),
-                    );
+                    return Err(format!(
+                        "A workout named “{name}” already exists. Choose another name."
+                    ));
                 }
                 if document.templates.len() >= 100 {
                     return Err(
