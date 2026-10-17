@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/.."
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+# The workflow can package an immutable source tag with reviewed release tooling.
+cd "${NEXTROUND_SOURCE_ROOT:-$script_dir/..}"
 : "${TAURI_SIGNING_PRIVATE_KEY:?Set the NextRound updater signing key}"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}"
 : "${APPLE_SIGNING_IDENTITY:?Set a Developer ID Application signing identity}"
@@ -42,8 +44,8 @@ ditto -c -k --keepParent "$app" release/NextRound-notarization.zip
 python3 scripts/notarize.py release/NextRound-notarization.zip release/app-notarization.json "${notary_args[@]}"
 python3 -c 'import json; assert json.load(open("release/app-notarization.json"))["status"] == "Accepted", "App notarization was not accepted"'
 printf '%s\n' 'Release stage: Staple and verify application'
-python3 scripts/staple.py "$app"
-xcrun stapler validate "$app"
+python3 "$script_dir/staple.py" "$app"
+python3 "$script_dir/staple.py" --validate "$app"
 spctl --assess --type execute --verbose "$app"
 stage=$(mktemp -d "${TMPDIR:-/tmp}/nextround-release.XXXXXX")
 ditto "$app" "$stage/NextRound.app"
@@ -58,8 +60,8 @@ printf '%s\n' 'Release stage: Upload disk image for notarization'
 python3 scripts/notarize.py "$dmg" release/dmg-notarization.json "${notary_args[@]}"
 python3 -c 'import json; assert json.load(open("release/dmg-notarization.json"))["status"] == "Accepted", "DMG notarization was not accepted"'
 printf '%s\n' 'Release stage: Staple and verify disk image'
-python3 scripts/staple.py "$dmg"
-xcrun stapler validate "$dmg"
+python3 "$script_dir/staple.py" "$dmg"
+python3 "$script_dir/staple.py" --validate "$dmg"
 spctl --assess --type open --context context:primary-signature --verbose "$dmg"
 # Package only after stapling the app; sign these final archive bytes.
 printf '%s\n' 'Release stage: Sign and verify updater archive'
