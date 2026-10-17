@@ -290,7 +290,7 @@ it('preserves legacy data and rejects invalid metadata on every mutation', async
   const f = fixture();
   const legacy = { version: 1, templates: [{ id: 'legacy', name: 'Legacy', config }] };
   f.corrupt(JSON.stringify(legacy));
-  expect(await f.repo.read()).toEqual(legacy);
+  expect(await f.repo.read()).toEqual({ ...legacy, version: 2, collections: [] });
   await f.repo.mutate({ action: 'favourite', id: 'legacy', favourite: true });
   await f.repo.mutate({ action: 'delete', id: 'legacy', expected: legacy.templates[0] });
   expect((await f.repo.read()).templates).toEqual([]);

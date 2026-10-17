@@ -5,8 +5,9 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { normalizeSearch } from '@/lib/search';
 import { useTemplateSources } from '@/state/template-source';
+import { CollectionDialog } from './collections';
+import { matchesTemplate } from './matching';
 import {
   copyValidatedConfig,
   mutateTemplates,
@@ -187,11 +188,30 @@ export function TemplateLibrary({
     setAction(null);
     restoreFocus();
   }
-  const { search, favouritesOnly, workoutType, reset: resetFilters } = useTemplateFilters();
+  const {
+    search,
+    favouritesOnly,
+    workoutType,
+    collection,
+    reset: resetFilters,
+  } = useTemplateFilters();
+  const [collectionDialog, setCollectionDialog] = useState<WorkoutTemplate | 'manage' | null>(null);
+  const [membershipNotice, setMembershipNotice] = useState(false);
+  useEffect(() => {
+    if (
+      query.data &&
+      collection !== 'all' &&
+      collection !== 'unfiled' &&
+      !query.data.collections.some((c) => c.id === collection)
+    ) {
+      useTemplateFilters.setState({ collection: 'all' });
+    }
+  }, [query.data, collection]);
   const [importing, setImporting] = useState(false);
   const [exportId, setExportId] = useState<string | null>(null);
   const [hiddenImport, setHiddenImport] = useState(false);
   const clearFilterFeedback = () => {
+    setMembershipNotice(false);
     setHiddenImport(false);
     setHiddenCopy(false);
     setHiddenRename(false);
@@ -232,14 +252,12 @@ export function TemplateLibrary({
   const [error, setError] = useState<string | null>(null);
   const searchId = useId();
   const typeId = useId();
+  const collectionId = useId();
   const nameId = useId();
+  const filters = { search, favouritesOnly, workoutType, collection };
+  const templateDocument = query.data;
   const templates =
-    query.data?.templates.filter(
-      (t) =>
-        normalizeSearch(t.name).includes(normalizeSearch(search)) &&
-        (!favouritesOnly || t.favourite === true) &&
-        (workoutType === 'all' || (t.config.type ?? 'emom') === workoutType),
-    ) ?? [];
+    templateDocument?.templates.filter((t) => matchesTemplate(t, filters, templateDocument)) ?? [];
   async function refresh() {
     if (busy || operationLock.current) return;
     operationLock.current = true;
@@ -322,13 +340,16 @@ export function TemplateLibrary({
               : { action: 'delete', id: action.template.id, expected: action.template },
         );
       if (!mounted.current) return;
-      const hidden =
-        action.type === 'duplicate' &&
-        (favouritesOnly ||
-          !normalizeSearch(name.trim()).includes(normalizeSearch(search)) ||
-          (workoutType !== 'all' && (action.template.config.type ?? 'emom') !== workoutType));
-      const renamedHidden =
-        action.type === 'rename' && !normalizeSearch(name.trim()).includes(normalizeSearch(search));
+      const updatedDocument =
+        client.getQueryData<import('./repository').TemplateDocument>(queryKey);
+      const modified =
+        action.type === 'duplicate'
+          ? updatedDocument?.templates.at(-1)
+          : updatedDocument?.templates.find((t) => t.id === action.template.id);
+      const modifiedHidden =
+        !!modified && !!updatedDocument && !matchesTemplate(modified, filters, updatedDocument);
+      const hidden = action.type === 'duplicate' && modifiedHidden;
+      const renamedHidden = action.type === 'rename' && modifiedHidden;
       setHiddenCopy(hidden);
       setHiddenRename(renamedHidden);
       setNotice(
@@ -367,6 +388,29 @@ export function TemplateLibrary({
       >
         Import workout
       </Button>
+      <Button
+        variant="secondary"
+        disabled={busy || query.isPending || query.isError}
+        onClick={(event) => {
+          origin.current = event.currentTarget;
+          clearFilterFeedback();
+          setCollectionDialog('manage');
+        }}
+      >
+        Manage collections
+      </Button>
+      {membershipNotice && (
+        <Button
+          variant="secondary"
+          onClick={() => {
+            resetFilters();
+            clearFilterFeedback();
+            focusSearch();
+          }}
+        >
+          Show updated workout
+        </Button>
+      )}
       {hiddenImport && (
         <Button
           variant="secondary"
@@ -423,19 +467,41 @@ export function TemplateLibrary({
       ) : (
         <>
           {(!!query.data?.templates.length ||
+            !!query.data?.collections.length ||
             !!search ||
             favouritesOnly ||
-            workoutType !== 'all') && (
+            workoutType !== 'all' ||
+            collection !== 'all') && (
             <fieldset className="template-search" aria-label="Filter saved workouts">
               <label htmlFor={searchId}>Search saved workouts</label>
               <Input
                 id={searchId}
                 ref={searchInput}
                 type="search"
+                placeholder="Workout name or exercise details"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="template-filters">
+                <div className="template-mode">
+                  <label htmlFor={collectionId}>Collection</label>
+                  <select
+                    id={collectionId}
+                    value={collection}
+                    onChange={(event) => {
+                      clearFilterFeedback();
+                      useTemplateFilters.setState({ collection: event.target.value });
+                    }}
+                  >
+                    <option value="all">All workouts</option>
+                    <option value="unfiled">Unfiled</option>
+                    {query.data?.collections.map((c) => (
+                      <option value={c.id} key={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="template-mode">
                   <label htmlFor={typeId}>Workout type</label>
                   <select
@@ -462,7 +528,9 @@ export function TemplateLibrary({
                 </label>
                 <Button
                   variant="secondary"
-                  disabled={!search && !favouritesOnly && workoutType === 'all'}
+                  disabled={
+                    !search && !favouritesOnly && workoutType === 'all' && collection === 'all'
+                  }
                   onClick={() => {
                     resetFilters();
                     clearFilterFeedback();
@@ -477,7 +545,7 @@ export function TemplateLibrary({
           {query.data && templates.length === 0 && (
             <p>
               {query.data.templates.length
-                ? favouritesOnly || workoutType !== 'all'
+                ? favouritesOnly || workoutType !== 'all' || collection !== 'all'
                   ? 'No saved workouts match your filters.'
                   : 'No saved workouts match your search.'
                 : 'Save a workout from any workout setup to see it here.'}
@@ -489,8 +557,26 @@ export function TemplateLibrary({
                 <div className="template-summary">
                   <h3>{template.name}</h3>
                   <p>{workoutSummary(template.config)}</p>
+                  <p>
+                    {query.data?.collections
+                      .filter((c) => c.workoutIds.includes(template.id))
+                      .map((c) => c.name)
+                      .join(' · ') || 'Unfiled'}
+                  </p>
                 </div>
                 <div className="template-actions">
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    aria-label={`Collections for ${template.name}`}
+                    onClick={(event) => {
+                      origin.current = event.currentTarget;
+                      clearFilterFeedback();
+                      setCollectionDialog(template);
+                    }}
+                  >
+                    Collections
+                  </Button>
                   <Button
                     variant="secondary"
                     disabled={busy}
@@ -550,6 +636,29 @@ export function TemplateLibrary({
           </ul>
         </>
       )}
+      {collectionDialog && query.data && (
+        <CollectionDialog
+          document={query.data}
+          template={collectionDialog === 'manage' ? undefined : collectionDialog}
+          mutate={mutation.mutateAsync}
+          onClose={() => {
+            setCollectionDialog(null);
+            restoreFocus();
+          }}
+          onSaved={(message) => {
+            const doc = client.getQueryData<import('./repository').TemplateDocument>(queryKey);
+            const entry =
+              collectionDialog === 'manage'
+                ? undefined
+                : doc?.templates.find((t) => t.id === collectionDialog.id);
+            const hidden = !!doc && !!entry && !matchesTemplate(entry, filters, doc);
+            setNotice(message + (hidden ? ' This workout is hidden by your current filters.' : ''));
+            setMembershipNotice(hidden);
+            setCollectionDialog(null);
+            restoreFocus();
+          }}
+        />
+      )}
       {importing && (
         <WorkoutImport
           onClose={() => {
@@ -557,13 +666,10 @@ export function TemplateLibrary({
             restoreFocus();
           }}
           onImported={(entry) => {
-            const filters = useTemplateFilters.getState();
-            const hidden =
-              filters.favouritesOnly ||
-              !normalizeSearch(entry.name).includes(normalizeSearch(filters.search)) ||
-              (filters.workoutType !== 'all' &&
-                (entry.config.type ?? 'emom') !== filters.workoutType);
             setImporting(false);
+            const filters = useTemplateFilters.getState();
+            const doc = client.getQueryData<import('./repository').TemplateDocument>(queryKey);
+            const hidden = !!doc && !matchesTemplate(entry, filters, doc);
             setHiddenImport(hidden);
             setNotice(
               `Workout imported as “${entry.name}”.${hidden ? ' It is hidden by your current filters.' : ''}`,

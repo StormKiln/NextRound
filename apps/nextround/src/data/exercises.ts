@@ -1197,6 +1197,165 @@ export const exercises: ExerciseEntry[] = [
       'Hold a light kettlebell upside down at shoulder height with elbow bent and wrist upright. Walk slowly while keeping the bell balanced and torso steady. Stop before grip or balance fails; choose an arm per interval.',
     supportedUnits: ['seconds', 'metres'],
   },
+  {
+    id: 'supine-snow-angel',
+    name: 'Supine snow angel',
+    description:
+      'Lie on your back with knees bent and ribs settled. Slide your bent arms slowly toward overhead and back without forcing floor contact. One out-and-back sweep is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'seated-side-straddle-stretch',
+    name: 'Seated side-straddle stretch',
+    description:
+      'Sit tall with legs comfortably apart. Bend gently sideways without twisting or rounding forward. Breathe at mild tension; do not bounce. Time is per side; change sides between sets.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'cycled-split-squat-jump',
+    name: 'Cycled split-squat jump',
+    description:
+      'From a split stance, bend both knees, jump and switch legs in the air. Land softly with control. Each landing counts as one rep total. Use an ordinary split squat to remove the jump.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'single-arm-single-leg-plank',
+    name: 'Single-arm single-leg plank',
+    description:
+      'From a high plank, lift one arm and the opposite leg without turning your hips. Keep breathing. Hold time is per side; switch between sets. Keep both feet down to scale.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'spider-walk',
+    name: 'Spider walk',
+    description:
+      'Crawl forward close to the floor, bringing a knee toward the outside of its elbow as the opposite hand advances. Keep the hips controlled. Each leg advance is one rep total; shorten the step to scale.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'sprinter-pull',
+    name: 'Sprinter pull',
+    description:
+      'Start half-kneeling. Push through the front foot to stand and drive the rear knee forward, coordinating opposite arm action. Return under control. Reps are per side; omit any hop to scale.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'standing-ankle-mobilization',
+    name: 'Standing ankle mobilization',
+    description:
+      'Rest hands against a wall and keep the standing heel down. Lift the other knee and gently sweep it across and out, letting the hips turn. One across-and-back cycle is one rep per side; use a small range.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'standing-calf-stretch',
+    name: 'Standing calf stretch',
+    description:
+      'Face a wall with hands supported and one leg behind. Keep the rear heel down and knee straight as you lean forward gently. Breathe without bouncing. Hold time is per side; switch between sets.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'seated-hamstring-stretch',
+    name: 'Seated hamstring stretch',
+    description:
+      'Sit with one leg extended and the other foot near the inner thigh. Hinge gently toward the straight leg without forcing the reach. Hold at mild tension. Time is per side; change legs between sets.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'seated-butterfly-stretch',
+    name: 'Seated butterfly stretch',
+    description:
+      'Sit tall with the soles of your feet together. Let the knees relax outward and hinge slightly forward from the hips if comfortable. Hold while breathing; do not push the knees down or bounce.',
+    supportedUnits: ['seconds'],
+  },
+
+  {
+    id: 'dumbbell-single-arm-single-leg-rdl',
+    name: 'Dumbbell single-arm single-leg Romanian deadlift',
+    description:
+      'Hold a dumbbell opposite the standing leg. Hinge at the hip as the free leg reaches back, keeping hips square. Stand smoothly. Reps are per side; touch the rear toes down for balance if needed.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-squat-overhead-raise',
+    name: 'Dumbbell squat to overhead raise',
+    description:
+      'Hold one light dumbbell by both ends. Squat with it between the legs, then stand and raise it overhead with long arms. Lower with control. One squat-and-raise is one rep; shorten the range if needed.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-transverse-lunge',
+    name: 'Dumbbell transverse lunge',
+    description:
+      'Hold dumbbells at your sides. Step diagonally back and out, turning into that hip while keeping the planted knee aligned. Push back to standing. Reps are per side; practise without weights first.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-v-raise',
+    name: 'Dumbbell V raise',
+    description:
+      'Stand tall with a light dumbbell in each hand. Raise both arms diagonally forward into a V up to shoulder height, then lower slowly without shrugging. One simultaneous raise and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-wrist-extension',
+    name: 'Dumbbell wrist extension',
+    description:
+      'Kneel at a stable bench with forearms supported, palms down and hands over the edge. Lower then raise the light dumbbells using only the wrists. Keep your grip. Both wrists moving together count as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'dumbbell-wrist-flexion',
+    name: 'Dumbbell wrist flexion',
+    description:
+      'Support forearms on a stable bench with palms up and hands over the edge. Slowly lower then curl light dumbbells using the wrists without releasing your grip. Both wrists together count as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-high-pull',
+    name: 'Kettlebell high pull',
+    description:
+      'Hinge and drive one bell upward, guiding the elbow back as it floats near chest height. Extend the arm before the next hinge. Reps are per side. Practise the single-arm swing first.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-bob-weave',
+    name: 'Kettlebell bob and weave',
+    description:
+      'Hold a light bell at the chest. Bend hips and knees to duck sideways beneath an imaginary bar, then rise on the other side. Each crossing is one rep total. Keep the back long.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-clean-squat-press',
+    name: 'Kettlebell clean, squat and press',
+    description:
+      'Clean one bell to the rack, squat, stand, then press overhead. Return to the rack before lowering. The full sequence is one rep per side. Use a light bell and practise each part separately first.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+
+  {
+    id: 'kettlebell-double-lunge',
+    name: 'Kettlebell forward-and-reverse lunge',
+    description:
+      'Hold one bell at the chest. Lunge forward, return to standing, then lunge backward with the same leg. That pair is one rep per side. Keep the trunk steady; practise unweighted first.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 export async function listExercises() {
   return exercises;

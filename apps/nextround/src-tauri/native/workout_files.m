@@ -3,14 +3,14 @@
 #include <string.h>
 
 // Only user-selected URLs cross this boundary. Access stays scoped to the panel operation.
-int nr_workout_file(int saving, const unsigned char *bytes, size_t length,
+int nr_workout_file(int saving, const char *suggestedName, const unsigned char *bytes, size_t length,
                     unsigned char *output, size_t *outputLength, size_t limit,
                     char *message, size_t capacity) {
     @autoreleasepool {
         NSURL *url = nil;
         if (saving) {
             NSSavePanel *panel = [NSSavePanel savePanel];
-            panel.nameFieldStringValue = @"NextRound-workout.json";
+            panel.nameFieldStringValue = [NSString stringWithUTF8String:suggestedName];
             panel.allowedContentTypes = @[UTTypeJSON];
             panel.canCreateDirectories = YES;
             if ([panel runModal] != NSModalResponseOK) return 0;

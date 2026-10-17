@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { workoutFilename } from './filename';
 import {
   availableName,
   encodeWorkout,
@@ -27,6 +28,7 @@ export function WorkoutImport({
   const [workout, setWorkout] = useState<PortableWorkout | null>(null);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [retained, setRetained] = useState(false);
   const [busy, setBusy] = useState(false);
   const gate = useRef(false),
     mounted = useRef(true);
@@ -55,15 +57,19 @@ export function WorkoutImport({
         ),
       );
       setWorkout(parsed);
+      setRetained(false);
     } catch (e) {
-      if (mounted.current) setError(message(e));
+      if (mounted.current) {
+        setError(message(e));
+        if (workout) setRetained(true);
+      }
     } finally {
       gate.current = false;
       if (mounted.current) setBusy(false);
     }
   }
   async function add() {
-    if (gate.current || !workout) return;
+    if (gate.current || !workout || retained) return;
     gate.current = true;
     setBusy(true);
     setError('');
@@ -127,6 +133,24 @@ export function WorkoutImport({
         )}
         {busy && <p role="status">Working…</p>}
         {error && <p role="alert">{error}</p>}
+        {retained && workout && (
+          <div role="status">
+            <p>
+              The previous workout “{workout.name}” is still shown. The replacement file was not
+              loaded.
+            </p>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => {
+                setRetained(false);
+                setError('');
+              }}
+            >
+              Use previous workout
+            </Button>
+          </div>
+        )}
         {workout && (
           <>
             <label htmlFor="import-workout-name">Workout name</label>
@@ -145,7 +169,7 @@ export function WorkoutImport({
         <Button variant="secondary" disabled={busy} onClick={onClose}>
           Cancel
         </Button>
-        <Button disabled={busy || !workout || !name.trim()} onClick={() => void add()}>
+        <Button disabled={busy || !workout || retained || !name.trim()} onClick={() => void add()}>
           Add to saved workouts
         </Button>
       </div>
@@ -184,12 +208,19 @@ export function WorkoutExport({
       if (!entry) throw new Error('This workout no longer exists. Refresh the library.');
       const raw = encodeWorkout(entry);
       if (isTauri()) {
-        if ((await invoke<boolean>('save_workout_file', { raw })) && mounted.current) onSaved();
+        if (
+          (await invoke<boolean>('save_workout_file', {
+            raw,
+            suggestedName: workoutFilename(entry.name),
+          })) &&
+          mounted.current
+        )
+          onSaved();
       } else {
         const url = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'NextRound-workout.json';
+        link.download = workoutFilename(entry.name);
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         onSaved();
@@ -213,8 +244,8 @@ export function WorkoutExport({
         targets and timing. Custom descriptions may contain personal information.
       </p>
       <p>
-        This portable workout file excludes history, workout notes, preferences and favourites. It
-        is not a full backup or a history CSV report.
+        This portable workout file excludes history, workout notes, preferences, collections and
+        favourites. It is not a full backup or a history CSV report.
       </p>
       {error && <p role="alert">{error}</p>}
       <div className="template-actions">
