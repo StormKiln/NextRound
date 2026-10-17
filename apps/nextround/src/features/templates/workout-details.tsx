@@ -6,6 +6,7 @@ import {
   ladderReps,
   type WorkoutConfig,
 } from '@nextround/core';
+import { budgetTimeLabel } from './time-budget';
 export function workoutSummary(config: WorkoutConfig) {
   return config.type === 'ladder'
     ? `Ladder · ${config.ladder.direction} · ${config.ladder.startReps} starting reps`
@@ -36,6 +37,7 @@ export function WorkoutDetails({ config }: { config: WorkoutConfig }) {
         Lead-in: {config.leadInSeconds}s · Warning: {config.warningSeconds}s
       </p>
       <p>Lead-in is extra; paused time is excluded.</p>
+      <p>{budgetTimeLabel(config)}. Pauses add time.</p>
       {config.type === 'intervals' && <p>No rest after the final work round.</p>}
       {(config.type === undefined || config.type === 'emom') && (
         <p>One movement per minute, cycling through the saved order.</p>
