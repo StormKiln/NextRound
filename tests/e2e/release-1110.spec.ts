@@ -3,12 +3,18 @@ import { expect, test } from '@playwright/test';
 test('generator focuses invalid counts and returns from equipment settings with its draft', async ({
   page,
 }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'nextround.exercise-favorites.v1',
+      JSON.stringify({ version: 1, ids: ['pushup', 'rowing'] }),
+    ),
+  );
   await page.goto('/emom');
   const list = page.getByRole('list', { name: 'Ordered exercises' });
   await expect(list.locator('li')).toHaveCount(3);
   const before = await list.locator('h3').allTextContents();
   await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
-  await page.getByRole('button', { name: 'Mix It Up', exact: true }).click();
+  await page.getByRole('button', { name: 'My favorites', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Create a workout' });
   const count = dialog.getByLabel('Number of exercises');
   for (const value of ['', '0', '1.5', '101']) {
@@ -17,18 +23,18 @@ test('generator focuses invalid counts and returns from equipment settings with 
     await expect(count).toBeFocused();
     await expect(count).toHaveAttribute('aria-invalid', 'true');
   }
-  await count.fill('100');
+  await count.fill('2');
   await dialog.getByRole('button', { name: 'Change equipment settings', exact: true }).click();
   const settings = page.getByRole('dialog', { name: 'Settings', exact: true });
   await settings.getByRole('button', { name: 'Save equipment', exact: true }).click();
   await settings.getByRole('button', { name: 'Close Settings' }).click();
-  await expect(count).toHaveValue('100');
-  await expect(dialog.getByText('Mix It Up', { exact: true })).toBeVisible();
+  await expect(count).toHaveValue('2');
+  await expect(dialog.getByText('My favorites', { exact: true })).toBeVisible();
   await expect(
     dialog.getByRole('button', { name: 'Change equipment settings', exact: true }),
   ).toBeFocused();
   await dialog.getByRole('button', { name: 'Generate workout', exact: true }).click();
-  await expect(dialog.getByRole('alert')).toContainText('eligible exercises');
+  await expect(dialog.getByRole('alert')).toContainText('1 eligible exercise is available');
   await expect(count).toBeFocused();
   await dialog.getByRole('button', { name: 'Change equipment settings', exact: true }).click();
   await settings.getByRole('button', { name: 'Use all equipment', exact: true }).click();
