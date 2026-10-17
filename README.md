@@ -20,6 +20,14 @@ NextRound is an offline workout timer and planner for **Apple Silicon Macs runni
 - **Take a workout with you:** export a saved workout to a JSON file, preview an imported file, and add an independent copy. Timing, movements and targets travel together; history, notes, preferences and favourites stay local. Export a complete named collection to transfer a routine with several workouts.
 - **Review your training:** explicitly save completed results, review the performed workout, compare matching attempts, add searchable notes, or repeat a result from setup. Later exercise/template edits never rewrite historical snapshots.
 
+### Find a workout for your available time
+
+Apply a minute budget alongside your saved-workout filters. The matching duration includes lead-in; capped sessions are clearly labelled, and pauses add time.
+
+![Saved-workout filters with an applied ten-minute time budget](docs/screenshots/time-budget.png)
+
+This 1.24.0 production WebKit screenshot shows the filter panel with sample data. Physical installed-app validation is separate.
+
 ### Generate for a focus area
 
 Choose areas such as Core / abs or Legs in Create a workout. The eligible count reflects your areas, equipment and preset. Keep your chosen exercise count, timing and Undo; insufficient matches require an explicit adjustment. Focus selections last for the open generation flow, including equipment settings, and reset to All areas next time. Matching any selected area does not guarantee every area is represented.
