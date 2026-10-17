@@ -39,8 +39,18 @@ pub struct TemplateDocument {
     pub collections: Vec<WorkoutCollection>,
 }
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CollectionWorkout {
+    name: String,
+    config: Config,
+}
+#[derive(Deserialize)]
 #[serde(tag = "action", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Mutation {
+    Collectionimport {
+        name: String,
+        workouts: Vec<CollectionWorkout>,
+    },
     Collectioncreate {
         name: String,
     },
@@ -123,7 +133,7 @@ fn normalized_name(name: &str) -> String {
 fn collection_name(name: &str) -> Result<String, String> {
     let name = name.trim_matches(js_whitespace);
     if name.is_empty() || name.encode_utf16().count() > 80 {
-        return Err("Enter a collection name from 1 to 80 characters.".into());
+        return Err("NR_COLLECTION_NAME:Enter a collection name from 1 to 80 characters.".into());
     }
     Ok(name.into())
 }
@@ -230,17 +240,74 @@ impl TemplateStore {
         // Re-read before every mutation. Corrupt and future data must never be replaced.
         let mut document = self.read_disk()?;
         match mutation {
+            Mutation::Collectionimport { name, workouts } => {
+                let name = collection_name(&name)?;
+                if document
+                    .collections
+                    .iter()
+                    .any(|c| normalized_name(&c.name) == normalized_name(&name))
+                {
+                    return Err(
+                        "NR_COLLECTION_NAME:A collection with this name already exists.".into(),
+                    );
+                }
+                if workouts.is_empty() || workouts.len() > 100 {
+                    return Err("Import 1–100 workouts.".into());
+                }
+                if document.collections.len() >= 100
+                    || document.templates.len() + workouts.len() > 100
+                {
+                    return Err("The library limit is 100 workouts and 100 collections. Free space before importing.".into());
+                }
+                let mut used: HashSet<_> = document
+                    .templates
+                    .iter()
+                    .map(|t| normalized_name(&t.name))
+                    .collect();
+                let mut ids = vec![];
+                for workout in workouts {
+                    let name = workout.name.trim_matches(js_whitespace);
+                    if name.is_empty() || name.encode_utf16().count() > 120 {
+                        return Err("Enter a workout name from 1 to 120 characters.".into());
+                    }
+                    if !used.insert(normalized_name(name)) {
+                        return Err(
+                            "A workout with this name already exists. Choose another name.".into(),
+                        );
+                    }
+                    let mut config = workout.config;
+                    timer::validate(&config)?;
+                    for exercise in &mut config.exercises {
+                        exercise.id = unique_id();
+                    }
+                    let id = unique_id();
+                    ids.push(id.clone());
+                    document.templates.push(WorkoutTemplate {
+                        id,
+                        name: name.into(),
+                        config,
+                        favourite: false,
+                    });
+                }
+                document.collections.push(WorkoutCollection {
+                    id: unique_id(),
+                    name,
+                    workout_ids: ids,
+                });
+            }
             Mutation::Collectioncreate { name } => {
                 let name = collection_name(&name)?;
                 if document.collections.len() >= 100 {
-                    return Err("You can save up to 100 collections.".into());
+                    return Err("NR_COLLECTION_CAPACITY:You can save up to 100 collections.".into());
                 }
                 if document
                     .collections
                     .iter()
                     .any(|c| normalized_name(&c.name) == normalized_name(&name))
                 {
-                    return Err("A collection with this name already exists.".into());
+                    return Err(
+                        "NR_COLLECTION_NAME:A collection with this name already exists.".into(),
+                    );
                 }
                 document.collections.push(WorkoutCollection {
                     id: unique_id(),
@@ -259,15 +326,20 @@ impl TemplateStore {
                     .iter()
                     .any(|c| c.id != id && normalized_name(&c.name) == normalized_name(&name))
                 {
-                    return Err("A collection with this name already exists.".into());
+                    return Err(
+                        "NR_COLLECTION_NAME:A collection with this name already exists.".into(),
+                    );
                 }
                 let c = document
                     .collections
                     .iter_mut()
                     .find(|c| c.id == id)
-                    .ok_or("This collection no longer exists.")?;
+                    .ok_or("NR_COLLECTION_CONFLICT:This collection no longer exists.")?;
                 if c.name != expected_name {
-                    return Err("This collection changed. Refresh and try again.".into());
+                    return Err(
+                        "NR_COLLECTION_CONFLICT:This collection changed. Refresh and try again."
+                            .into(),
+                    );
                 }
                 c.name = name;
             }
@@ -276,9 +348,12 @@ impl TemplateStore {
                     .collections
                     .iter()
                     .find(|c| c.id == id)
-                    .ok_or("This collection no longer exists.")?;
+                    .ok_or("NR_COLLECTION_CONFLICT:This collection no longer exists.")?;
                 if c.name != expected_name {
-                    return Err("This collection changed. Refresh and try again.".into());
+                    return Err(
+                        "NR_COLLECTION_CONFLICT:This collection changed. Refresh and try again."
+                            .into(),
+                    );
                 }
                 document.collections.retain(|c| c.id != id);
             }
@@ -299,14 +374,14 @@ impl TemplateStore {
                 current.sort();
                 expected_collection_ids.sort();
                 if current != expected_collection_ids {
-                    return Err("Workout collections changed. Refresh and try again.".into());
+                    return Err("NR_COLLECTION_CONFLICT:Workout collections changed. Refresh and try again.".into());
                 }
                 let mut seen = HashSet::new();
                 if collection_ids.iter().any(|cid| {
                     !seen.insert(cid) || !document.collections.iter().any(|c| c.id == *cid)
                 }) {
                     return Err(
-                        "A selected collection no longer exists. Refresh and try again.".into(),
+                        "NR_COLLECTION_CONFLICT:A selected collection no longer exists. Refresh and try again.".into(),
                     );
                 }
                 for c in &mut document.collections {
@@ -492,6 +567,59 @@ pub fn mutate_workout_templates(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn collection_import_is_atomic_and_independent() {
+        let s = store();
+        let command = |name: &str, workouts: serde_json::Value| {
+            serde_json::from_value::<Mutation>(
+                serde_json::json!({"action":"collectionimport","name":name,"workouts":workouts}),
+            )
+            .unwrap()
+        };
+        let workouts = serde_json::json!([{"name":"Morning","config":config()},{"name":"Evening","config":config()}]);
+        let d = s.mutate(command("Training", workouts.clone())).unwrap();
+        assert_eq!(d.templates.len(), 2);
+        assert_eq!(
+            d.collections[0].workout_ids,
+            d.templates.iter().map(|t| t.id.clone()).collect::<Vec<_>>()
+        );
+        assert!(d.templates.iter().all(|t| !t.favourite));
+        let before = fs::read(&s.path).unwrap();
+        assert!(s.mutate(command("Other", workouts)).is_err());
+        assert_eq!(fs::read(&s.path).unwrap(), before);
+        assert!(s.mutate(command("Other", serde_json::json!([{"name":"Unique","config":config()},{"name":"Morning","config":config()}]))).is_err());
+        assert_eq!(fs::read(&s.path).unwrap(), before);
+    }
+    #[test]
+    fn collection_import_checks_latest_capacity_and_preserves_bytes_on_failure() {
+        let s = store();
+        let command = || {
+            serde_json::from_value::<Mutation>(serde_json::json!({"action":"collectionimport","name":"Incoming","workouts":[{"name":"New","config":config()}]})).unwrap()
+        };
+        for i in 0..100 {
+            s.mutate(Mutation::Collectioncreate {
+                name: format!("Collection {i}"),
+            })
+            .unwrap();
+        }
+        let before = fs::read(&s.path).unwrap();
+        assert!(s.mutate(command()).unwrap_err().contains("100"));
+        assert_eq!(fs::read(&s.path).unwrap(), before);
+        let s = store();
+        s.mutate(Mutation::Collectioncreate {
+            name: "Existing".into(),
+        })
+        .unwrap();
+        let before = fs::read(&s.path).unwrap();
+        use std::os::unix::fs::PermissionsExt;
+        let parent = s.path.parent().unwrap();
+        let permissions = fs::metadata(parent).unwrap().permissions();
+        fs::set_permissions(parent, fs::Permissions::from_mode(0o555)).unwrap();
+        let result = s.mutate(command());
+        fs::set_permissions(parent, permissions).unwrap();
+        assert!(result.is_err());
+        assert_eq!(fs::read(&s.path).unwrap(), before);
+    }
     #[test]
     fn collection_names_use_ecmascript_whitespace() {
         assert_eq!(
