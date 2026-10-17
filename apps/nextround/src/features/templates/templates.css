@@ -195,3 +195,22 @@ fieldset.template-search {
   display: grid;
   gap: 0.5rem;
 }
+
+.template-budget {
+  display: grid;
+  gap: 0.75rem;
+}
+.template-budget-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.template-budget-controls input {
+  flex: 1 1 8rem;
+  width: 8rem;
+  min-width: 0;
+}
+.template-budget [role="alert"] {
+  color: var(--destructive, #ffab9a);
+}

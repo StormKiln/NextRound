@@ -6,18 +6,27 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.23.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.23.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 1.24.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.24.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
-- **Build your exercise order:** browse 203 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
+- **Build your exercise order:** browse 223 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
 - **Generate a workout:** choose My favorites for explicitly starred movements, Most used for history-ranked movements, Try something new or Mix It Up, then choose the exercise count. Choose optional focus areas; any selected area can match. Focus, equipment preferences and workout compatibility apply together; review and adjust targets before starting.
 - **Star exercises:** mark bundled or personal movements in the picker and combine Favourites only with search, equipment and focus filters. Exercise stars stay on your Mac, separate from saved-workout favourites and usage history.
 - **Reuse your favourites:** save named workouts for all six modes, update, duplicate directly from Home, mark favourites, and filter by name and workout type.
+- **Fit your available time:** apply a time budget to saved workouts. Duration or a finite time cap plus lead-in must fit; uncapped workouts are excluded while the filter is active. Pauses add time, and a cap is not a predicted finish time. Combine with collection, type, favourite and search filters.
 - **Organise your routines:** create local saved-workout collections, assign a workout to multiple groups, and combine collection, type, favourite and exercise-detail search filters. Removing a collection keeps its workouts.
 - **Take a workout with you:** export a saved workout to a JSON file, preview an imported file, and add an independent copy. Timing, movements and targets travel together; history, notes, preferences and favourites stay local. Export a complete named collection to transfer a routine with several workouts.
 - **Review your training:** explicitly save completed results, review the performed workout, compare matching attempts, add searchable notes, or repeat a result from setup. Later exercise/template edits never rewrite historical snapshots.
+
+### Find a workout for your available time
+
+Apply a minute budget alongside your saved-workout filters. The matching duration includes lead-in; capped sessions are clearly labelled, and pauses add time.
+
+![Saved-workout filters with an applied ten-minute time budget](docs/screenshots/time-budget.png)
+
+This 1.24.0 production WebKit screenshot shows the filter panel with sample data. Physical installed-app validation is separate.
 
 ### Generate for a focus area
 
@@ -147,6 +156,7 @@ Local test builds are not public signed/notarized releases. See [contributing](C
 
 ## Further reading
 
+- [1.24.0 release notes](docs/release-notes-1.24.0.md)
 - [1.23.0 release notes](docs/release-notes-1.23.0.md)
 - [1.22.0 release notes](docs/release-notes-1.22.0.md)
 - [1.21.0 release notes](docs/release-notes-1.21.0.md)

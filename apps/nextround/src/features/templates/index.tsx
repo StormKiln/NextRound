@@ -16,6 +16,8 @@ import {
   type TemplateMutation,
   type WorkoutTemplate,
 } from './repository';
+import { budgetTimeLabel } from './time-budget';
+import { TimeBudgetFilter } from './time-budget-filter';
 import './templates.css';
 import { copyName, useTemplateFilters } from './filter-state';
 import { WorkoutPreview } from './preview';
@@ -194,6 +196,8 @@ export function TemplateLibrary({
     favouritesOnly,
     workoutType,
     collection,
+    budgetMinutes,
+    budgetDraft,
     reset: resetFilters,
   } = useTemplateFilters();
   const [collectionDialog, setCollectionDialog] = useState<WorkoutTemplate | 'manage' | null>(null);
@@ -257,7 +261,7 @@ export function TemplateLibrary({
   const typeId = useId();
   const collectionId = useId();
   const nameId = useId();
-  const filters = { search, favouritesOnly, workoutType, collection };
+  const filters = { search, favouritesOnly, workoutType, collection, budgetMinutes };
   const templateDocument = query.data;
   const templates =
     templateDocument?.templates.filter((t) => matchesTemplate(t, filters, templateDocument)) ?? [];
@@ -508,7 +512,9 @@ export function TemplateLibrary({
             !!search ||
             favouritesOnly ||
             workoutType !== 'all' ||
-            collection !== 'all') && (
+            collection !== 'all' ||
+            budgetMinutes !== null ||
+            !!budgetDraft) && (
             <fieldset className="template-search" aria-label="Filter saved workouts">
               <label htmlFor={searchId}>Search saved workouts</label>
               <Input
@@ -566,7 +572,12 @@ export function TemplateLibrary({
                 <Button
                   variant="secondary"
                   disabled={
-                    !search && !favouritesOnly && workoutType === 'all' && collection === 'all'
+                    !search &&
+                    !favouritesOnly &&
+                    workoutType === 'all' &&
+                    collection === 'all' &&
+                    budgetMinutes === null &&
+                    !budgetDraft
                   }
                   onClick={() => {
                     resetFilters();
@@ -577,12 +588,16 @@ export function TemplateLibrary({
                   Clear filters
                 </Button>
               </div>
+              <TimeBudgetFilter onChange={clearFilterFeedback} />
             </fieldset>
           )}
           {query.data && templates.length === 0 && (
             <p>
               {query.data.templates.length
-                ? favouritesOnly || workoutType !== 'all' || collection !== 'all'
+                ? favouritesOnly ||
+                  workoutType !== 'all' ||
+                  collection !== 'all' ||
+                  budgetMinutes !== null
                   ? 'No saved workouts match your filters.'
                   : 'No saved workouts match your search.'
                 : 'Save a workout from any workout setup to see it here.'}
@@ -594,6 +609,7 @@ export function TemplateLibrary({
                 <div className="template-summary">
                   <h3>{template.name}</h3>
                   <p>{workoutSummary(template.config)}</p>
+                  <p>{budgetTimeLabel(template.config)}</p>
                   <p>
                     {query.data?.collections
                       .filter((c) => c.workoutIds.includes(template.id))

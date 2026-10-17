@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { normalizeSearch } from '@/lib/search';
 import { collectionFailure } from './collection-errors';
+import { validateImportNames } from './collection-name-errors';
 import { workoutFilename } from './filename';
 import { importedConfig, MAX_WORKOUT_BYTES } from './portable';
 import {
@@ -111,7 +111,11 @@ export function CollectionImport({
       if (mounted.current) setBusy(false);
     }
   }
-  const duplicate = new Set(names.map(normalizeSearch)).size !== names.length;
+  const validation = validateImportNames(name, names);
+  const invalid = !!validation.collection || validation.workouts.some(Boolean);
+  const firstInvalid = validation.collection
+    ? 'import-collection-name'
+    : `collection-workout-${validation.workouts.findIndex(Boolean)}`;
   return (
     <Dialog
       title="Import workout collection"
@@ -182,22 +186,30 @@ export function CollectionImport({
             <label htmlFor="import-collection-name">Imported collection name</label>
             <Input
               id="import-collection-name"
+              aria-invalid={!!validation.collection}
+              aria-describedby={validation.collection ? 'import-collection-name-error' : undefined}
               maxLength={80}
               value={name}
               disabled={busy}
               onChange={(e) => setName(e.target.value)}
             />
+            {validation.collection && (
+              <p id="import-collection-name-error">{validation.collection}</p>
+            )}
             <p>
               {preview.workouts.length} workouts will be added. Suggested copy names avoid existing
               names; review or edit them before adding. Nothing will be overwritten.
             </p>
-            {duplicate && <p role="alert">Each imported workout needs a distinct name.</p>}
             {preview.workouts.map((w, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: Imported preview order is immutable; editable names are separate state.
               <section className="template-review" key={i}>
                 <label htmlFor={`collection-workout-${i}`}>Workout {i + 1} name</label>
                 <Input
                   id={`collection-workout-${i}`}
+                  aria-invalid={!!validation.workouts[i]}
+                  aria-describedby={
+                    validation.workouts[i] ? `collection-workout-error-${i}` : undefined
+                  }
                   maxLength={120}
                   value={names[i]}
                   disabled={busy}
@@ -205,6 +217,9 @@ export function CollectionImport({
                     setNames((current) => current.map((n, j) => (i === j ? e.target.value : n)))
                   }
                 />
+                {validation.workouts[i] && (
+                  <p id={`collection-workout-error-${i}`}>{validation.workouts[i]}</p>
+                )}
                 <WorkoutDetails config={w.config} />
               </section>
             ))}
@@ -212,20 +227,23 @@ export function CollectionImport({
         )}
       </div>
       <div className="template-actions">
+        {preview && invalid && (
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => {
+              const field = document.getElementById(firstInvalid);
+              field?.focus();
+              field?.scrollIntoView({ block: 'center' });
+            }}
+          >
+            Review invalid names
+          </Button>
+        )}
         <Button variant="secondary" disabled={busy} onClick={onClose}>
           Cancel
         </Button>
-        <Button
-          disabled={
-            busy ||
-            !preview ||
-            retained ||
-            !name.trim() ||
-            names.some((n) => !n.trim()) ||
-            duplicate
-          }
-          onClick={() => void add()}
-        >
+        <Button disabled={busy || !preview || retained || invalid} onClick={() => void add()}>
           Add collection and workouts
         </Button>
       </div>
@@ -247,19 +265,36 @@ export function CollectionExport({
   const gate = useRef(false),
     mounted = useRef(true);
   const [preview, setPreview] = useState<PortableCollection | null>(null);
+  const errorNode = useRef<HTMLParagraphElement>(null);
+  const [readAttempt, setReadAttempt] = useState(0);
   useEffect(() => {
+    if (error) {
+      errorNode.current?.focus();
+      errorNode.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [error]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: readAttempt explicitly triggers a retry of the same collection.
+  useEffect(() => {
+    let active = true;
     mounted.current = true;
+    setError('');
+    setPreview(null);
+    setBusy(true);
     void readTemplates()
       .then((doc) => {
-        if (mounted.current) setPreview(collectionFromDocument(doc, id));
+        if (active) setPreview(collectionFromDocument(doc, id));
       })
       .catch((e) => {
-        if (mounted.current) setError(errorMessage(e));
+        if (active) setError(errorMessage(e));
+      })
+      .finally(() => {
+        if (active) setBusy(false);
       });
     return () => {
+      active = false;
       mounted.current = false;
     };
-  }, [id]);
+  }, [id, readAttempt]);
   async function save() {
     if (gate.current) return;
     gate.current = true;
@@ -322,9 +357,18 @@ export function CollectionExport({
             </ol>
           </>
         )}
-        {error && <p role="alert">{error}</p>}
+        {error && (
+          <p ref={errorNode} role="alert" tabIndex={-1}>
+            {error}
+          </p>
+        )}
       </div>
       <div className="template-actions">
+        {error && !preview && (
+          <Button variant="secondary" disabled={busy} onClick={() => setReadAttempt((n) => n + 1)}>
+            Retry collection
+          </Button>
+        )}
         <Button variant="secondary" disabled={busy} onClick={onClose}>
           Cancel
         </Button>

@@ -2,6 +2,9 @@ import { create } from 'zustand';
 
 const defaults = () => ({
   search: '',
+  budgetMinutes: null as number | null,
+  budgetDraft: '',
+  budgetError: '',
   workoutType: 'all',
   favouritesOnly: false,
   collection: 'all',
