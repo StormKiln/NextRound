@@ -87,7 +87,9 @@ test('exports a meaningful filename with a collection-free portable payload', as
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('Morning.json');
 });
-test('many collections scroll independently of their fixed modal actions', async ({ page }, testInfo) => {
+test('many collections scroll independently of their fixed modal actions', async ({
+  page,
+}, testInfo) => {
   await page.evaluate(
     ({ key, config }) =>
       localStorage.setItem(
