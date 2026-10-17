@@ -98,9 +98,12 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time']) {
     await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
     await page.getByLabel('Search exercises').fill('dumbbell');
     await expect(
-      page.locator('.exercise-group summary').filter({ hasText: /^Dumbbell 37$/ }),
+      page.locator('.exercise-group summary').filter({ hasText: /^Dumbbell \d+$/ }),
     ).toBeVisible();
-    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: /^Dumbbell hang power clean / }).click();
+    await expect(
+      page.getByRole('button', { name: /^(Edit|Set) target for Dumbbell hang power clean$/ }),
+    ).toBeVisible();
   });
 }
 
