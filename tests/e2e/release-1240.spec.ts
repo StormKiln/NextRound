@@ -154,3 +154,24 @@ test('retries an initial export read failure without reopening the dialog', asyn
   await page.getByRole('button', { name: 'Save collection file', exact: true }).click();
   expect((await download).suggestedFilename()).toMatch(/json$/);
 });
+
+test('time filters survive navigation, reset on restart and label capped previews honestly', async ({
+  page,
+}) => {
+  await page.getByLabel('Available minutes', { exact: true }).fill('2');
+  await page.getByRole('button', { name: 'Apply time', exact: true }).click();
+  await page.getByRole('button', { name: 'Workout history', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.getByLabel('Available minutes', { exact: true })).toHaveValue('2');
+  await expect(page.getByRole('heading', { name: 'Open session', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Preview Short session', exact: true }).click();
+  await expect(
+    page
+      .getByRole('dialog')
+      .getByText('Duration + lead-in: 02:00. Pauses add time.', { exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.reload();
+  await expect(page.getByLabel('Available minutes', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('heading', { name: 'Open session', exact: true })).toBeVisible();
+});
