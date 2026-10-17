@@ -247,6 +247,8 @@ test('cancelled native replacement keeps the reviewed import and edited name', a
       value: {
         transformCallback: () => 1,
         invoke: async (cmd: string) => {
+          if (cmd === 'read_training')
+            return { version: 1, sessions: [], results: [], actuals: {}, recovery: null };
           if (cmd === 'distribution_channel') return 'app-store';
           if (cmd === 'read_workout_templates') return { version: 1, templates: [] };
           if (cmd === 'get_close_behavior') return 'minimize';

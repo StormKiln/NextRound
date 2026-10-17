@@ -11,7 +11,7 @@ function fixture() {
   let raw = JSON.stringify({ version: 1, templates: [{ id: 'w', name: 'Morning', config }] });
   let fail = false;
   const storage = {
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-templates.v1' ? raw : null),
     setItem: (_: string, v: string) => {
       if (fail) throw Error('Disk full');
       raw = v;

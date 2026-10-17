@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import type { PickerView } from '@/data/focus';
+import { readTraining, trainingKey } from '@/features/sessions/repository';
 import { readHistory } from '../history/repository';
 import { ExerciseGroups } from './exercise-picker';
 import {
@@ -59,10 +60,14 @@ export function ExerciseRecommendations({
   selected: ExerciseEntry[];
   onSelect: (entry: ExerciseEntry) => void;
 }) {
+  const training = useQuery({ queryKey: trainingKey, queryFn: readTraining, retry: false });
   const query = useQuery({ queryKey: ['workout-history'], queryFn: readHistory, retry: false });
-  const usage = query.data ? deriveUsage(query.data) : undefined;
+  const usage = query.data ? deriveUsage(query.data, training.data?.results) : undefined;
   // Never present stale successful data as current statistics after a failed refresh.
-  const counts = !query.isError && !query.isPending ? usage?.counts : undefined;
+  const counts =
+    !query.isError && !query.isPending && !training.isError && !training.isPending
+      ? usage?.counts
+      : undefined;
   const selectedIds = new Set(selected.map((entry) => entry.catalogId).filter(Boolean));
   const candidates = library.filter(
     (entry) => !selectedIds.has(entry.id) && matchesExercise(entry, search),

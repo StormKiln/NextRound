@@ -11,6 +11,7 @@ import {
 import { create } from 'zustand';
 import { exercises } from '@/data/exercises';
 import { copyResult, mutateHistory, type WorkoutResult } from '@/features/history/repository';
+import { useTrainingOwnership } from '@/features/sessions/ownership';
 import { defaultEmomTarget } from '@/features/setup/emom-defaults';
 import * as adapter from '@/native/adapter';
 import { useValidationAttempts } from './setup-validation';
@@ -450,6 +451,8 @@ export const useWorkout = create<State>((set, get) => ({
     }
   },
   start: async (repeat, mode = 'emom') => {
+    if (useTrainingOwnership.getState().owned || useTrainingOwnership.getState().editing)
+      return false;
     if (get().busy || get().pendingResult) return false;
     const previous = get().snapshot;
     const config =
@@ -501,7 +504,9 @@ export const useWorkout = create<State>((set, get) => ({
       set({
         snapshot,
         controlError: null,
-        ...(snapshot.phase === 'completed' && get().resultStatus === 'none'
+        ...(snapshot.phase === 'completed' &&
+        get().resultStatus === 'none' &&
+        !useTrainingOwnership.getState().owned
           ? { pendingResult: resultFromSnapshot(snapshot, get()), resultStatus: 'pending' as const }
           : {}),
       });
@@ -530,12 +535,13 @@ export const useWorkout = create<State>((set, get) => ({
     }
   },
   poll: async () => {
+    if (useTrainingOwnership.getState().owned) return;
     if (get().busy || polling) return;
     polling = true;
     const ticket = generation;
     try {
       const snapshot = await adapter.readWorkout();
-      if (ticket === generation && snapshot) {
+      if (ticket === generation && snapshot && !useTrainingOwnership.getState().owned) {
         set({ readError: null });
         const state = get();
         if (snapshot.phase === 'completed' && state.resultStatus === 'none') {

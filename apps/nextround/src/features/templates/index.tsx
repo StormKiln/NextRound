@@ -5,6 +5,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SessionLibrary } from '@/features/sessions/library';
+import { readTraining, trainingKey } from '@/features/sessions/repository';
 import { useTemplateSources } from '@/state/template-source';
 import { CollectionExport, CollectionImport } from './collection-transfer';
 import { CollectionDialog } from './collections';
@@ -162,6 +164,7 @@ export function TemplateLibrary({
 }: {
   onLoad: (config: WorkoutConfig, source: WorkoutTemplate) => void;
 }) {
+  const training = useQuery({ queryKey: trainingKey, queryFn: readTraining, retry: false });
   const client = useQueryClient();
   const query = useQuery({ queryKey, queryFn: readTemplates, retry: false });
   const heading = useRef<HTMLHeadingElement>(null);
@@ -198,6 +201,7 @@ export function TemplateLibrary({
     collection,
     budgetMinutes,
     budgetDraft,
+    budgetError,
     reset: resetFilters,
   } = useTemplateFilters();
   const [collectionDialog, setCollectionDialog] = useState<WorkoutTemplate | 'manage' | null>(null);
@@ -425,7 +429,8 @@ export function TemplateLibrary({
               busy ||
               query.isPending ||
               query.isError ||
-              !query.data?.collections.find((c) => c.id === collection)?.workoutIds.length
+              (!query.data?.collections.find((c) => c.id === collection)?.workoutIds.length &&
+                !training.data?.sessions.some((s) => s.collections?.includes(collection)))
             }
             onClick={(event) => {
               origin.current = event.currentTarget;
@@ -435,9 +440,10 @@ export function TemplateLibrary({
           >
             Export collection
           </Button>
-          {!query.data?.collections.find((c) => c.id === collection)?.workoutIds.length && (
-            <p>Add a saved workout to this collection before exporting.</p>
-          )}
+          {!query.data?.collections.find((c) => c.id === collection)?.workoutIds.length &&
+            !training.data?.sessions.some((s) => s.collections?.includes(collection)) && (
+              <p>Add a saved workout to this collection before exporting.</p>
+            )}
         </>
       )}
       {membershipNotice && (
@@ -507,7 +513,8 @@ export function TemplateLibrary({
         </div>
       ) : (
         <>
-          {(!!query.data?.templates.length ||
+          {(!!training.data?.sessions.length ||
+            !!query.data?.templates.length ||
             !!query.data?.collections.length ||
             !!search ||
             favouritesOnly ||
@@ -577,7 +584,8 @@ export function TemplateLibrary({
                     workoutType === 'all' &&
                     collection === 'all' &&
                     budgetMinutes === null &&
-                    !budgetDraft
+                    !budgetDraft &&
+                    !budgetError
                   }
                   onClick={() => {
                     resetFilters();
@@ -603,6 +611,7 @@ export function TemplateLibrary({
                 : 'Save a workout from any workout setup to see it here.'}
             </p>
           )}
+          <SessionLibrary />
           <ul className="template-list">
             {templates.map((template) => (
               <li key={template.id}>

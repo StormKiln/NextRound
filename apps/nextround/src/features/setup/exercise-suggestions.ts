@@ -1,5 +1,6 @@
 import type { ExerciseEntry } from '@nextround/core';
 import { metadataFor } from '@/data/equipment';
+import type { TrainingResult } from '@/features/sessions/model';
 import type { HistoryDocument } from '../history/repository';
 export type SuggestionPreset = 'frequent' | 'favorites' | 'new' | 'mix';
 
@@ -20,7 +21,7 @@ export const matchesExercise = (entry: ExerciseEntry, search: string) =>
   searchAlias(entry.name).includes(searchAlias(search)) ||
   (metadataFor(entry)?.aliases.some((alias) => searchAlias(alias).includes(searchAlias(search))) ??
     false);
-export function deriveUsage(document: HistoryDocument) {
+export function deriveUsage(document: HistoryDocument, training: TrainingResult[] = []) {
   const counts = new Map<string, number>();
   let unattributedEntries = 0;
   for (const result of document.results) {
@@ -28,6 +29,18 @@ export function deriveUsage(document: HistoryDocument) {
     for (const entry of result.config.exercises ?? []) {
       if (entry.catalogId) ids.add(entry.catalogId);
       else unattributedEntries++;
+    }
+    for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  for (const result of training) {
+    const ids = new Set<string>();
+    for (const block of result.session.blocks) {
+      const outcome = result.blocks.find((b) => b.blockId === block.id);
+      if (!outcome || outcome.status === 'skipped' || outcome.elapsedMs === 0) continue;
+      for (const entry of block.config.exercises ?? []) {
+        if (entry.catalogId) ids.add(entry.catalogId);
+        else unattributedEntries++;
+      }
     }
     for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1);
   }

@@ -14,6 +14,7 @@ import completeUrl from '../../sounds/complete.wav';
 import restUrl from '../../sounds/rest.wav';
 import tockUrl from '../../sounds/tock.wav';
 
+let trainingContext = { active: false, awake: false, finalBlock: false, silent: false };
 let browserSession: SessionSnapshot | null = null;
 let elapsed = 0;
 let anchor = 0;
@@ -25,6 +26,8 @@ function stopSound() {
   playback = null;
 }
 function play(cue: WorkoutCue) {
+  if (trainingContext.active && trainingContext.silent) return;
+  if (trainingContext.active && !trainingContext.finalBlock && cue === 'complete') cue = 'beep';
   stopSound();
   playback = new Audio({ tock: tockUrl, beep: beepUrl, rest: restUrl, complete: completeUrl }[cue]);
   void playback.play().catch(() => {
@@ -156,4 +159,50 @@ export async function fullscreen(enabled: boolean) {
 
 export async function resolveResult() {
   if (native) await invoke('resolve_workout_result');
+}
+
+let trainingGuardQueue: Promise<unknown> = Promise.resolve();
+export function setTrainingGuard(
+  active: boolean,
+  awake = false,
+  finalBlock = false,
+  silent = false,
+) {
+  const next = { active, awake, finalBlock, silent };
+  const operation = trainingGuardQueue.then(async () => {
+    if (JSON.stringify(next) === JSON.stringify(trainingContext)) return;
+    if (native) await invoke('set_training_guard', next);
+    trainingContext = next;
+  });
+  trainingGuardQueue = operation.catch(() => {});
+  return operation;
+}
+export async function restoreWorkout(
+  config: WorkoutConfig,
+  position: number,
+  completedMovements = 0,
+): Promise<SessionSnapshot> {
+  if (native) return invoke('restore_workout', { config, elapsed: position, completedMovements });
+  if (browserSession && ['running', 'leadIn'].includes(browserSession.phase))
+    throw new Error('Resolve the current workout before recovery.');
+  if (
+    Object.keys(validateConfig(config)).length ||
+    !Number.isSafeInteger(position) ||
+    position < 0 ||
+    position > 604800000
+  )
+    throw new Error('Invalid recovery position.');
+  clearInterval(browserLoop);
+  stopSound();
+  elapsed = position;
+  anchor = performance.now();
+  lastSecond = Math.floor(position / 1000);
+  browserSession = {
+    ...snapshotAt(structuredClone(config), position),
+    paused: true,
+    notice: 'Recovered paused. Resume when ready; time away was not counted.',
+    ...(config.type === 'ladder' ? { ladderCompletedMovements: completedMovements } : {}),
+  };
+  browserLoop = setInterval(tickBrowser, 50);
+  return { ...browserSession };
 }

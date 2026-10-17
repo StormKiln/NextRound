@@ -1,6 +1,8 @@
 import type { WorkoutResult } from './repository';
 
-export function summarizeHistory(results: readonly WorkoutResult[]) {
+export function summarizeHistory(
+  results: readonly Pick<WorkoutResult, 'completedAt' | 'elapsedMs'>[],
+) {
   const days = new Set<string>();
   let elapsedMs = 0n;
   for (const result of results) {

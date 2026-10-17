@@ -13,7 +13,7 @@ pub enum Mutation {
 }
 pub struct ExerciseStore {
     path: PathBuf,
-    gate: Mutex<()>,
+    pub(crate) gate: Mutex<()>,
 }
 fn keys(v: &Value, allowed: &[&str]) -> Result<(), String> {
     let o = v.as_object().ok_or(INVALID)?;
@@ -152,7 +152,7 @@ impl ExerciseStore {
             gate: Mutex::new(()),
         }
     }
-    fn read_disk(&self) -> Result<Value, String> {
+    pub(crate) fn read_disk(&self) -> Result<Value, String> {
         let raw = match fs::read(&self.path) {
             Ok(raw) => raw,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
@@ -166,10 +166,12 @@ impl ExerciseStore {
     }
     pub fn read(&self) -> Result<Value, String> {
         let _guard = self.gate.lock().map_err(|_| INVALID)?;
+        crate::backup::ensure_store_ready(&self.path)?;
         self.read_disk()
     }
     pub fn mutate(&self, mutation: Mutation) -> Result<Value, String> {
         let _guard = self.gate.lock().map_err(|_| INVALID)?;
+        crate::backup::ensure_store_ready(&self.path)?;
         let mut document = self.read_disk()?;
         let Mutation::Save { exercise, expected } = mutation;
         validate_document(&json!({"version":1,"exercises":[exercise]}))?;

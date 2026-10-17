@@ -8,6 +8,7 @@ import {
   type WorkoutConfig,
 } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
+import { assertStorageReady } from '../backup/gate';
 import { copyValidatedConfig, type TemplateStorage } from '../templates/repository';
 import { normalizeNote } from './note-text';
 export type WorkoutResult = {
@@ -146,6 +147,7 @@ function comparisonSnapshot(result: WorkoutResult): string {
 export function createHistoryRepository(storage: TemplateStorage) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<HistoryDocument> {
+    assertStorageReady(storage);
     const raw = storage.getItem(HISTORY_STORAGE_KEY);
     if (raw === null) return { version: 1, results: [] };
     let value: unknown;
@@ -192,6 +194,7 @@ export function createHistoryRepository(storage: TemplateStorage) {
           document.results.splice(index, 1);
         }
       }
+      assertStorageReady(storage);
       storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(document));
       return structuredClone(document);
     });
@@ -209,6 +212,21 @@ export async function readHistory(): Promise<HistoryDocument> {
   return isTauri() ? parseHistoryDocument(await invoke('read_workout_history')) : browser().read();
 }
 export async function mutateHistory(mutation: HistoryMutation): Promise<HistoryDocument> {
+  if (mutation.action === 'delete') {
+    const { readTraining } = await import('../sessions/repository');
+    const { commitHistory } = await import('../backup/repository');
+    const history = await readHistory();
+    const training = await readTraining();
+    const temporary = createHistoryRepository({
+      getItem: (key) => (key === HISTORY_STORAGE_KEY ? JSON.stringify(history) : null),
+      setItem: () => undefined,
+    });
+    const nextHistory = await temporary.mutate(mutation);
+    const nextTraining = structuredClone(training);
+    delete nextTraining.actuals[mutation.id];
+    await commitHistory({ history, training }, { history: nextHistory, training: nextTraining });
+    return nextHistory;
+  }
   return isTauri()
     ? parseHistoryDocument(await invoke('mutate_workout_history', { mutation }))
     : browser().mutate(mutation);

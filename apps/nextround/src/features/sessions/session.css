@@ -1,0 +1,245 @@
+.session-editor,
+.session-library,
+.session-history {
+  max-width: 1200px;
+  margin: auto;
+}
+.session-editor {
+  padding-bottom: 180px;
+}
+.session-editor > label {
+  max-width: 540px;
+  margin: 24px 0;
+}
+.session-blocks {
+  list-style: none;
+  display: grid;
+  gap: 20px;
+  padding: 0;
+  margin: 24px 0;
+}
+.session-blocks > li {
+  background: #1e1e1e;
+  border: 1px solid #45403a;
+  border-left: 4px solid #ff994f;
+  padding: 24px;
+  border-radius: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.block-heading {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.block-number {
+  font-size: 24px;
+  font-weight: 750;
+  color: #ff994f;
+}
+.session-blocks p {
+  margin: 10px 0;
+}
+.block-transition {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid #45403a;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+.block-transition label {
+  flex: 1;
+  min-width: 200px;
+}
+.session-editor select,
+.session-library select,
+.actual-editor select {
+  display: block;
+  width: 100%;
+  background: #242424;
+  border: 1px solid #625a50;
+  border-radius: 8px;
+  padding: 12px;
+  color: inherit;
+  min-height: 44px;
+}
+.session-add {
+  display: grid;
+  gap: 18px;
+  padding: 24px 0;
+}
+.session-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #191919;
+  border-top: 1px solid #625a50;
+  padding: 16px 32px;
+  z-index: 12;
+  display: grid;
+  gap: 10px;
+}
+.session-footer .dialog-actions {
+  margin: 0;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.block-capture {
+  position: sticky;
+  top: 0;
+  padding: 16px 32px;
+  background: #27221d;
+  border-bottom: 1px solid #ff994f;
+  z-index: 12;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.block-capture .dialog-actions {
+  margin: 0;
+  margin-left: auto;
+  gap: 12px;
+}
+.editing-session-block .setup .start-bar,
+.editing-session-block .setup .setup-actions {
+  display: none;
+}
+.training-run .runner-controls {
+  display: none;
+}
+.training-run .runner {
+  min-height: 0;
+  padding-bottom: 140px;
+}
+.training-banner {
+  padding: 20px 32px;
+  background: #24201b;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.training-banner h1 {
+  font-size: 24px;
+}
+.training-wait {
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px;
+}
+.training-wait .timer-digits {
+  font-size: 72px;
+}
+.session-results {
+  display: grid;
+  gap: 20px;
+  padding-bottom: 170px;
+}
+.session-result-block {
+  padding: 24px;
+  background: #242424;
+  border-radius: 12px;
+  display: grid;
+  gap: 16px;
+}
+.session-library {
+  display: grid;
+  gap: 20px;
+  padding-top: 30px;
+}
+.session-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
+}
+.session-card {
+  padding: 24px;
+  background: #242424;
+  border: 1px solid #45403a;
+  border-radius: 14px;
+  display: grid;
+  gap: 16px;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.session-card .dialog-actions {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+}
+.training-home-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 24px 0;
+}
+.actual-editor {
+  display: grid;
+  gap: 20px;
+}
+.actual-row {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #625a50;
+  border-radius: 10px;
+}
+.actual-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 16px;
+}
+.actual-editor .dialog-actions {
+  position: sticky;
+  bottom: 0;
+  background: #242424;
+  padding: 12px 0;
+  gap: 12px;
+}
+.session-dialog {
+  width: min(900px, calc(100vw - 48px));
+}
+.session-dialog .dialog-body {
+  scrollbar-gutter: stable both-edges;
+}
+@media (max-width: 800px) {
+  .session-blocks > li {
+    padding: 18px;
+  }
+  .session-footer {
+    padding: 12px 24px;
+  }
+  .block-capture {
+    padding: 12px 24px;
+  }
+  .block-capture p {
+    display: none;
+  }
+  .session-editor {
+    padding-bottom: 210px;
+  }
+}
+.editing-session-block .setup .start-button {
+  display: none;
+}
+
+.file-picker {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.file-picker input {
+  width: 100%;
+  min-width: 0;
+}

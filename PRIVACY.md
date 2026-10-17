@@ -1,6 +1,6 @@
 # NextRound Privacy Policy
 
-Effective date: October 10, 2026
+Effective date: October 17, 2026
 
 This policy describes the macOS NextRound app distributed through the Mac App Store, TestFlight, and the public [StormKiln/NextRound repository](https://github.com/StormKiln/NextRound). NextRound is maintained by StormKiln.
 
@@ -8,7 +8,7 @@ This policy describes the macOS NextRound app distributed through the Mac App St
 
 NextRound works without an account. Exercise selections, custom exercise descriptions, targets, timer settings, and completion checkmarks are used on your device to run your workout. We do not upload this workout information to our servers, share it with advertising or analytics services, or synchronize it between devices.
 
-When you choose **Save workout**, the app stores the template's name, exercises, order, descriptions, targets, and timing configuration locally on your Mac. App preferences, such as available equipment, close-button behavior and update settings, are also stored locally. When you choose **Save result** after a completed workout, the app stores its completion date, active duration, workout configuration, exercise names/descriptions/targets, any completion checkmarks, and manually recorded AMRAP movement counts and partial progress locally. Optional notes attached to saved results are stored locally and can be edited or cleared from the result detail. Notes are included in local history search and are not uploaded. These records remain independent of later changes to exercise definitions or templates. Unsaved drafts, discarded results and active-session progress do not survive quitting; interrupted sessions are not automatically saved.
+When you choose **Save workout**, the app stores the template's name, exercises, order, descriptions, targets, and timing configuration locally on your Mac. App preferences, such as available equipment, close-button behavior and update settings, are also stored locally. When you choose **Save result** after a completed workout, the app stores its completion date, active duration, workout configuration, exercise names/descriptions/targets, any completion checkmarks, and manually recorded AMRAP movement counts and partial progress locally. Optional notes attached to saved results are stored locally and can be edited or cleared from the result detail. Notes are included in local history search and are not uploaded. These records remain independent of later changes to exercise definitions or templates. Multi-part training sessions also store independent block prescriptions, complete/partial/skipped outcomes, and optional manually entered repetitions, time, distance, calories and load. While a multi-part session is active or awaiting a result decision, a local recovery checkpoint retains its position and entered progress. After an interruption, you can recover paused, review partial work or discard it; time away is not counted. A checkpoint is removed after saving or discarding. Standalone active-workout progress and unsaved setup drafts are not durable recovery records.
 
 NextRound does not access HealthKit, read health records, connect to fitness equipment, or automatically measure your activity. Repetition, distance, and calorie targets are values you enter or select, not measurements collected from a device.
 
@@ -16,7 +16,11 @@ Personal exercises are stored locally when you explicitly save them to your libr
 
 ## Exercise usage and suggestions
 
-The exercise picker derives usage counts and exercise suggestions locally from retained saved results. A linked bundled or personal exercise counts once per saved workout, regardless of repeated rounds or entries. Deleting a result removes its contribution. Custom or older entries without catalog identity are not attributed by name. Equipment preferences also filter eligible exercise choices locally and do not alter saved workout records. These suggestions do not send workout data to any external service and do not use an AI service.
+The exercise picker derives usage counts and exercise suggestions locally from retained saved results. A linked bundled or personal exercise counts once per saved workout or parent training session, regardless of repeated rounds, blocks or entries; untouched and skipped blocks do not contribute. Deleting a result removes its contribution. Custom or older entries without catalog identity are not attributed by name. Equipment preferences also filter eligible exercise choices locally and do not alter saved workout records. These suggestions do not send workout data to any external service and do not use an AI service.
+
+## Files you export
+
+You can export workout/session prescriptions and collections as local JSON files. These sharing files exclude history, notes, performance records and preferences. A full backup includes those private records and preferences; backup files are not encrypted. CSV exports contain the selected result data, with private notes only when requested. NextRound writes files where you choose and does not upload them. A cloud-synced destination may upload files under that service’s settings. Restore replaces local data after confirmation and retains a local rollback copy of the previous dataset. Exported files and rollback copies remain until you remove them; deleting an in-app record does not erase existing copies.
 
 ## No advertising or developer-operated analytics
 

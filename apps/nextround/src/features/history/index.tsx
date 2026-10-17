@@ -12,6 +12,12 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LadderResult } from '@/features/ladder/progress';
+import {
+  filterTrainingResults,
+  SessionHistory,
+  StandaloneActuals,
+} from '@/features/sessions/history';
+import { readTraining, trainingKey } from '@/features/sessions/repository';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
 import { mutateHistoryIntoCache, readHistoryIntoCache } from './cache';
@@ -46,6 +52,7 @@ const modeName = (result: WorkoutResult) =>
             ? 'Intervals'
             : 'EMOM';
 export function History() {
+  const training = useQuery({ queryKey: trainingKey, queryFn: readTraining, retry: false });
   const query = useQuery({ queryKey: historyKey, queryFn: readHistory, retry: false });
   const client = useQueryClient();
   const mutation = useMutation({
@@ -78,8 +85,20 @@ export function History() {
   const now = useCalendarNow();
   const allResults = query.data?.results ?? [];
   const results = filterHistory(allResults, mode, search, dateBounds(date, now));
-  const summary = summarizeHistory(results);
-  const stale = query.isError;
+  const sessionResults = filterTrainingResults(
+    training.data?.results ?? [],
+    mode,
+    search,
+    dateBounds(date, now),
+  );
+  const summary = summarizeHistory([
+    ...results,
+    ...sessionResults.map((r) => ({
+      completedAt: r.completedAt,
+      elapsedMs: r.blocks.reduce((n, b) => n + b.elapsedMs, 0),
+    })),
+  ]);
+  const stale = query.isError || training.isError;
   const filtered = mode !== 'all' || search.trim() !== '' || date.preset !== 'all';
   const canReset = filtered || draftPreset !== 'all' || !!start || !!end;
   const compareButton = useRef<HTMLButtonElement>(null);
@@ -365,6 +384,7 @@ export function History() {
           initialFocus={returnToDetail ? compareButton : undefined}
         >
           <div ref={detailBody} className="history-detail-body">
+            <StandaloneActuals id={detail.id} config={detail.config} />
             <section aria-label="Saved workout note">
               <h3>Workout note</h3>
               <p className="history-note">{detail.note || 'No note yet.'}</p>
@@ -527,6 +547,7 @@ export function History() {
           onSaved={() => setNotice('Workout note saved.')}
         />
       )}
+      <SessionHistory />
     </main>
   );
 }

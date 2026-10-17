@@ -48,7 +48,7 @@ it('imports a whole collection atomically with independent identities and fresh 
   let raw: string | null = null;
   let fail = false;
   const repo = createBrowserRepository({
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-templates.v1' ? raw : null),
     setItem: (_, value) => {
       if (fail) throw Error('Disk full');
       raw = value;
@@ -93,7 +93,7 @@ it('rejects destination capacity overflow without a partial collection', async (
     collections: [],
   });
   const repo = createBrowserRepository({
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-templates.v1' ? raw : null),
     setItem: (_, v) => {
       raw = v;
     },
@@ -137,7 +137,7 @@ it('round trips all six modes and rejects byte overflow and invalid nested data'
 it('rechecks latest collection capacity and destination names before committing', async () => {
   let raw = JSON.stringify({ version: 2, templates: [], collections: [] });
   const repo = createBrowserRepository({
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-templates.v1' ? raw : null),
     setItem: (_, v) => {
       raw = v;
     },
@@ -155,4 +155,28 @@ it('rechecks latest collection capacity and destination names before committing'
   const before = raw;
   await expect(repo.mutate({ action: 'collectionimport', ...collection })).rejects.toThrow(/100/);
   expect(raw).toBe(before);
+});
+
+it('round trips a collection containing only sessions and keeps version 1 for old collections', () => {
+  const session = {
+    id: 's',
+    name: 'Routine',
+    blocks: [
+      {
+        id: 'b',
+        name: 'Warm-up',
+        config: {
+          type: 'countdown' as const,
+          durationSeconds: 10,
+          leadInSeconds: 0,
+          warningSeconds: 3,
+        },
+        restSeconds: 0,
+        advance: 'automatic' as const,
+      },
+    ],
+  };
+  const encoded = encodeCollection({ name: 'Routines', workouts: [], sessions: [session] });
+  expect(JSON.parse(encoded).version).toBe(2);
+  expect(parseCollection(encoded).sessions?.[0].name).toBe('Routine');
 });

@@ -108,7 +108,7 @@ pub enum Mutation {
 }
 pub struct TemplateStore {
     path: PathBuf,
-    gate: Mutex<()>,
+    pub(crate) gate: Mutex<()>,
 }
 fn name_value(name: &str) -> Result<String, String> {
     let name = name.trim();
@@ -166,7 +166,7 @@ impl TemplateStore {
             gate: Mutex::new(()),
         }
     }
-    fn read_disk(&self) -> Result<TemplateDocument, String> {
+    pub(crate) fn read_disk(&self) -> Result<TemplateDocument, String> {
         let raw = match fs::read(&self.path) {
             Ok(raw) => raw,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -233,11 +233,13 @@ impl TemplateStore {
     }
     pub fn read(&self) -> Result<TemplateDocument, String> {
         let _guard = self.gate.lock().map_err(|_| "Saved workouts unavailable")?;
+        crate::backup::ensure_store_ready(&self.path)?;
         self.read_disk()
     }
     pub fn mutate(&self, mutation: Mutation) -> Result<TemplateDocument, String> {
         let _guard = self.gate.lock().map_err(|_| "Saved workouts unavailable")?;
         // Re-read before every mutation. Corrupt and future data must never be replaced.
+        crate::backup::ensure_store_ready(&self.path)?;
         let mut document = self.read_disk()?;
         match mutation {
             Mutation::Collectionimport { name, workouts } => {

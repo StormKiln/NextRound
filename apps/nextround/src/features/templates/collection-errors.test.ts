@@ -5,7 +5,7 @@ import { createBrowserRepository } from './repository';
 it('reports stable codes for collection name and stale-data failures', async () => {
   let raw: string | null = null;
   const repo = createBrowserRepository({
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-templates.v1' ? raw : null),
     setItem: (_, v) => {
       raw = v;
     },

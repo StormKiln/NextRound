@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
+import { StandaloneActuals } from '@/features/sessions/history';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
 import { mutateHistoryIntoCache } from './cache';
@@ -35,6 +36,12 @@ export function ResultActions() {
       {resultStatus === 'saved' && (
         <>
           <p role="status">Result saved to history.</p>
+          {useWorkout.getState().sessionId && useWorkout.getState().snapshot && (
+            <StandaloneActuals
+              id={useWorkout.getState().sessionId!}
+              config={useWorkout.getState().snapshot!.config}
+            />
+          )}
           <Button
             variant="secondary"
             onClick={async () => {

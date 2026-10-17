@@ -1,10 +1,12 @@
 mod exercises;
 use tauri_plugin_opener::OpenerExt;
 mod audio;
+mod backup;
 mod history;
 mod history_export;
 mod templates;
 pub mod timer;
+mod training;
 mod update_gate;
 #[cfg(feature = "direct-update")]
 mod updates;
@@ -26,6 +28,10 @@ use timer::{Config, Session, Snapshot};
 
 struct Runtime {
     note_editing: bool,
+    training_active: bool,
+    training_awake: bool,
+    training_final: bool,
+    training_silent: bool,
     session: Option<Session>,
     update_gate: update_gate::UpdateGate,
     audio: Audio,
@@ -52,12 +58,20 @@ impl Runtime {
             if session.paused || session.cancelled {
                 self.audio.stop();
             }
-            if let Some(cue) = cue {
+            if let Some(cue) = timer::training_cue(
+                cue,
+                self.training_active,
+                self.training_final,
+                self.training_silent,
+            ) {
                 if let Err(error) = self.audio.play(cue) {
                     session.notice = Some(error);
                 }
             }
-            if let Err(error) = self.audio.keep_awake(session.active() && !session.paused) {
+            if let Err(error) = self
+                .audio
+                .keep_awake(self.training_awake || (session.active() && !session.paused))
+            {
                 session.notice = Some(error);
             }
         }
@@ -66,8 +80,13 @@ impl Runtime {
 type Shared = Arc<Mutex<Runtime>>;
 
 #[tauri::command]
-fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, String> {
+fn start_workout(
+    app: tauri::AppHandle,
+    config: Config,
+    state: State<'_, Shared>,
+) -> Result<Snapshot, String> {
     let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    backup::ensure_app_ready(&app)?;
     rt.update();
     if rt.update_gate.busy {
         return Err("An update is being installed. Wait for NextRound to restart.".into());
@@ -85,7 +104,12 @@ fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, S
         );
     }
     let mut session = Session::new(config)?;
-    if let Some(cue) = timer::cue_at(&session.config, 0) {
+    if let Some(cue) = timer::training_cue(
+        timer::cue_at(&session.config, 0),
+        rt.training_active,
+        rt.training_final,
+        rt.training_silent,
+    ) {
         if let Err(error) = rt.audio.play(cue) {
             session.notice = Some(error);
         }
@@ -99,6 +123,53 @@ fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, S
     rt.wall = SystemTime::now();
     rt.remainder = Duration::ZERO;
     Ok(result)
+}
+#[tauri::command]
+fn set_training_guard(
+    active: bool,
+    awake: bool,
+    final_block: bool,
+    silent: bool,
+    state: State<'_, Shared>,
+) -> Result<(), String> {
+    let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    if active && rt.update_gate.busy {
+        return Err("Wait for the update to finish.".into());
+    }
+    rt.training_active = active;
+    rt.training_awake = active && awake;
+    rt.training_final = final_block;
+    rt.training_silent = silent;
+    rt.audio.keep_awake(active && awake)?;
+    Ok(())
+}
+#[tauri::command]
+fn restore_workout(
+    app: tauri::AppHandle,
+    config: Config,
+    elapsed: u64,
+    completed_movements: u32,
+    state: State<'_, Shared>,
+) -> Result<Snapshot, String> {
+    let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    backup::ensure_app_ready(&app)?;
+    if rt.update_gate.busy
+        || rt
+            .session
+            .as_ref()
+            .is_some_and(|s| s.active() || s.needs_result_decision())
+    {
+        return Err("Resolve the current workout before recovery.".into());
+    }
+    let session = Session::restore(config, elapsed, completed_movements)?;
+    let snapshot = session.snapshot();
+    rt.audio.stop();
+    rt.audio.keep_awake(false)?;
+    rt.session = Some(session);
+    rt.last = Instant::now();
+    rt.wall = SystemTime::now();
+    rt.remainder = Duration::ZERO;
+    Ok(snapshot)
 }
 #[tauri::command]
 fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot, String> {
@@ -120,11 +191,16 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
     }
     let result = session.snapshot();
     rt.audio.stop();
-    if let Some(cue) = if action == "finish" {
-        Some("complete")
-    } else {
-        movement_cue
-    } {
+    if let Some(cue) = timer::training_cue(
+        if action == "finish" {
+            Some("complete")
+        } else {
+            movement_cue
+        },
+        rt.training_active,
+        rt.training_final,
+        rt.training_silent,
+    ) {
         if let Err(error) = rt.audio.play(cue) {
             if let Some(session) = rt.session.as_mut() {
                 session.notice = Some(error);
@@ -173,7 +249,8 @@ fn set_history_note_editing(editing: bool, state: State<'_, Shared>) -> Result<(
 fn quit_app(app: tauri::AppHandle, state: State<'_, Shared>) -> Result<(), String> {
     {
         let rt = state.lock().map_err(|_| "Timer unavailable")?;
-        if rt.note_editing
+        if rt.training_active
+            || rt.note_editing
             || rt
                 .session
                 .as_ref()
@@ -226,9 +303,13 @@ fn get_close_behavior(
 }
 #[tauri::command]
 fn set_close_behavior(
+    app: tauri::AppHandle,
     state: State<WindowSettings>,
     behavior: window_behavior::CloseBehavior,
 ) -> Result<(), String> {
+    let shared = app.state::<Shared>();
+    let _runtime = shared.lock().map_err(|_| "Timer unavailable")?;
+    backup::ensure_app_ready(&app)?;
     state
         .preferences
         .lock()
@@ -300,6 +381,20 @@ pub fn run() {
     let builder = builder
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
+            set_training_guard,
+            restore_workout,
+            backup::write_library_batch,
+            backup::write_history_batch,
+            backup::backup_snapshot,
+            backup::restore_backup,
+            backup::has_pending_restore,
+            backup::pending_restore_preferences,
+            backup::acknowledge_restore,
+            backup::read_backup_rollback,
+            workout_files::open_backup_file,
+            workout_files::save_backup_file,
+            training::read_training,
+            training::write_training,
             start_workout,
             control_workout,
             read_workout,
@@ -324,6 +419,20 @@ pub fn run() {
         ]);
     #[cfg(not(feature = "direct-update"))]
     let builder = builder.invoke_handler(tauri::generate_handler![
+        set_training_guard,
+        restore_workout,
+        backup::write_library_batch,
+        backup::write_history_batch,
+        backup::backup_snapshot,
+        backup::restore_backup,
+        backup::has_pending_restore,
+        backup::pending_restore_preferences,
+        backup::acknowledge_restore,
+        backup::read_backup_rollback,
+        workout_files::open_backup_file,
+        workout_files::save_backup_file,
+        training::read_training,
+        training::write_training,
         start_workout,
         control_workout,
         read_workout,
@@ -361,7 +470,8 @@ pub fn run() {
                         let rt = state.lock().unwrap_or_else(|e| e.into_inner());
                         (
                             rt.update_gate.busy,
-                            rt.note_editing
+                            rt.training_active
+                                || rt.note_editing
                                 || rt
                                     .session
                                     .as_ref()
@@ -378,6 +488,12 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            backup::Transaction::new(app.path().app_data_dir()?, app.path().app_config_dir()?)
+                .recover()
+                .map_err(std::io::Error::other)?;
+            app.manage(training::TrainingStore::new(
+                app.path().app_data_dir()?.join("training-v1.json"),
+            ));
             app.manage(history::HistoryStore::new(
                 app.path().app_data_dir()?.join("workout-history.json"),
             ));
@@ -432,6 +548,10 @@ pub fn run() {
             let audio = Audio::new().map_err(std::io::Error::other)?;
             let runtime = Arc::new(Mutex::new(Runtime {
                 note_editing: false,
+                training_active: false,
+                training_awake: false,
+                training_final: false,
+                training_silent: false,
                 session: None,
                 update_gate: update_gate::UpdateGate::default(),
                 audio,
@@ -465,7 +585,8 @@ pub fn run() {
                         api.prevent_exit();
                         return;
                     }
-                    if rt.note_editing
+                    if rt.training_active
+                        || rt.note_editing
                         || rt
                             .session
                             .as_ref()
