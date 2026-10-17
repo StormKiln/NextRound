@@ -106,16 +106,20 @@ test('generator validates counts, cancels cleanly and supports keyboard preset s
 test('generator explains insufficient eligible exercises without replacing the draft', async ({
   page,
 }) => {
-  await page.addInitScript(() =>
-    localStorage.setItem('nextround.equipment.v1', JSON.stringify({ version: 1, selection: [] })),
-  );
+  await page.addInitScript(() => {
+    localStorage.setItem('nextround.equipment.v1', JSON.stringify({ version: 1, selection: [] }));
+    localStorage.setItem(
+      'nextround.exercise-favorites.v1',
+      JSON.stringify({ version: 1, ids: ['pushup'] }),
+    );
+  });
   await page.goto('/emom');
   await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
-  await page.getByRole('button', { name: 'Most used', exact: true }).click();
+  await page.getByRole('button', { name: 'My favorites', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Create a workout' });
-  await dialog.getByLabel('Number of exercises').fill('100');
+  await dialog.getByLabel('Number of exercises').fill('2');
   await dialog.getByRole('button', { name: 'Generate workout', exact: true }).click();
-  await expect(dialog.getByRole('alert')).toContainText('eligible exercises are available');
+  await expect(dialog.getByRole('alert')).toContainText('1 eligible exercise is available');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Ordered exercises' }).locator('li')).toHaveCount(3);
 });

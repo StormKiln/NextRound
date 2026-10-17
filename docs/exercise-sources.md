@@ -244,3 +244,24 @@ Twenty distinct movements; the prior 163 records are unchanged. Descriptions are
 | Kettlebell bob and weave | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 8 reps | strength / moderate |
 | Kettlebell clean, squat and press | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 3 reps | strength / high |
 | Kettlebell forward-and-reverse lunge | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 4 reps | strength / moderate |
+
+## 1.23.0 — twenty low-impact additions
+
+The catalog grows from 183 to 203. All prior exercise records remain unchanged. The new entries emphasize controlled bodyweight movement, trunk mobility and balance, rather than jumping or added load. A stable chair/fixed support is explicitly required and tagged as **Stable raised surface** for the seated and supported entries; it must suit the specific movement. Dynamic repetitions describe what counts as one rep and unilateral intervals state which side to use. Defaults are editable suggestions, not a prescription.
+
+Technique references checked 17 October 2026; all app cues are original summaries. Clinical source pages are used for movement mechanics only: NextRound does not reproduce their treatment programmes or claim rehabilitation benefits.
+
+| New movements | Primary technique reference |
+| --- | --- |
+| Seated knee extension; supine heel slide; bent-knee fallout; supported standing hip extension; supported standing hip abduction | [Worcestershire NHS lower-limb exercises](https://www.worcsacute.nhs.uk/leaflets/lower-limb-strengthening-exercises/) |
+| Standing shoulder roll | [NHS warm-up movements](https://www.nhs.uk/live-well/exercise/how-to-warm-up-before-exercising/) |
+| Seated march; seated trunk rotation | [NHS sitting exercises](https://www.nhs.uk/live-well/exercise/sitting-exercises/) |
+| Seated toe raise | [North Tees and Hartlepool NHS chair exercises](https://www.nth.nhs.uk/resources/chair-exercises/) |
+| Supported tandem walk; supported heel walk; supported toe walk | [Worcestershire NHS strength and balance exercises](https://www.worcsacute.nhs.uk/leaflets/strength-and-balance-exercise-programme/) |
+| Sideways walk | [NHS balance exercises](https://www.nhs.uk/live-well/exercise/balance-exercises/) |
+| Side-lying open book | [SOS Physiotherapy: open-book rotation](https://sosphysiotherapy.ca/weeklyexercises/upper-back-stretch-thoracic-rotation-the-open-book-by-courtney-voisin/) |
+| Thread the needle | [South Tees NHS kneeling exercises](https://www.southtees.nhs.uk/services/back-pain/backtracks/kneeling-exercises/) |
+| Quadruped rock-back | [P]rehab's [quadruped rock-back demonstration](https://theprehabguys.com/vimeo-video/quadruped-rock-back/) |
+| Supine figure-four stretch; side-lying quadriceps stretch | [NHS post-exercise stretches](https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/) |
+| Cross-body shoulder stretch | [AAOS crossover arm stretch](https://orthoinfo.aaos.org/globalassets/pdfs/2024-rotator-cuff-and-shoulder-conditioning-program.pdf) |
+| Overhead triceps stretch | [ACE overhead triceps stretch](https://www.acefitness.org/resources/everyone/exercise-library/174/overhead-triceps-stretch/) |

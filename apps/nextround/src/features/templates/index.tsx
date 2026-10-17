@@ -6,6 +6,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTemplateSources } from '@/state/template-source';
+import { CollectionExport, CollectionImport } from './collection-transfer';
 import { CollectionDialog } from './collections';
 import { matchesTemplate } from './matching';
 import {
@@ -208,6 +209,8 @@ export function TemplateLibrary({
     }
   }, [query.data, collection]);
   const [importing, setImporting] = useState(false);
+  const [importingCollection, setImportingCollection] = useState(false);
+  const [exportCollectionId, setExportCollectionId] = useState<string | null>(null);
   const [exportId, setExportId] = useState<string | null>(null);
   const [hiddenImport, setHiddenImport] = useState(false);
   const clearFilterFeedback = () => {
@@ -399,6 +402,40 @@ export function TemplateLibrary({
       >
         Manage collections
       </Button>
+      <Button
+        variant="secondary"
+        disabled={busy || query.isPending || query.isError}
+        onClick={(event) => {
+          origin.current = event.currentTarget;
+          clearFilterFeedback();
+          setImportingCollection(true);
+        }}
+      >
+        Import collection
+      </Button>
+      {collection !== 'all' && collection !== 'unfiled' && (
+        <>
+          <Button
+            variant="secondary"
+            disabled={
+              busy ||
+              query.isPending ||
+              query.isError ||
+              !query.data?.collections.find((c) => c.id === collection)?.workoutIds.length
+            }
+            onClick={(event) => {
+              origin.current = event.currentTarget;
+              clearFilterFeedback();
+              setExportCollectionId(collection);
+            }}
+          >
+            Export collection
+          </Button>
+          {!query.data?.collections.find((c) => c.id === collection)?.workoutIds.length && (
+            <p>Add a saved workout to this collection before exporting.</p>
+          )}
+        </>
+      )}
       {membershipNotice && (
         <Button
           variant="secondary"
@@ -638,6 +675,12 @@ export function TemplateLibrary({
       )}
       {collectionDialog && query.data && (
         <CollectionDialog
+          reload={async () => {
+            const result = await query.refetch();
+            if (result.error) throw result.error;
+            if (!result.data) throw new Error('Saved workouts unavailable.');
+            return result.data;
+          }}
           document={query.data}
           template={collectionDialog === 'manage' ? undefined : collectionDialog}
           mutate={mutation.mutateAsync}
@@ -655,6 +698,35 @@ export function TemplateLibrary({
             setNotice(message + (hidden ? ' This workout is hidden by your current filters.' : ''));
             setMembershipNotice(hidden);
             setCollectionDialog(null);
+            restoreFocus();
+          }}
+        />
+      )}
+      {importingCollection && (
+        <CollectionImport
+          onClose={() => {
+            setImportingCollection(false);
+            restoreFocus();
+          }}
+          onImported={(name) => {
+            setImportingCollection(false);
+            setNotice(
+              `Collection “${name}” imported with independent workouts. Choose it in the Collection filter to view it; other filters still apply.`,
+            );
+            restoreFocus();
+          }}
+        />
+      )}
+      {exportCollectionId && (
+        <CollectionExport
+          id={exportCollectionId}
+          onClose={() => {
+            setExportCollectionId(null);
+            restoreFocus();
+          }}
+          onSaved={() => {
+            setExportCollectionId(null);
+            setNotice('Collection file exported.');
             restoreFocus();
           }}
         />

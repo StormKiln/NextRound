@@ -190,3 +190,8 @@ fieldset.template-search {
 .template-filters > label {
   max-width: 100%;
 }
+
+.collection-file-field {
+  display: grid;
+  gap: 0.5rem;
+}

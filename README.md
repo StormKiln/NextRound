@@ -6,26 +6,34 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.22.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.22.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 1.23.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.23.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
-- **Build your exercise order:** browse 183 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
+- **Build your exercise order:** browse 203 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
 - **Generate a workout:** choose My favorites for explicitly starred movements, Most used for history-ranked movements, Try something new or Mix It Up, then choose the exercise count. Choose optional focus areas; any selected area can match. Focus, equipment preferences and workout compatibility apply together; review and adjust targets before starting.
 - **Star exercises:** mark bundled or personal movements in the picker and combine Favourites only with search, equipment and focus filters. Exercise stars stay on your Mac, separate from saved-workout favourites and usage history.
 - **Reuse your favourites:** save named workouts for all six modes, update, duplicate directly from Home, mark favourites, and filter by name and workout type.
 - **Organise your routines:** create local saved-workout collections, assign a workout to multiple groups, and combine collection, type, favourite and exercise-detail search filters. Removing a collection keeps its workouts.
-- **Take a workout with you:** export a saved workout to a JSON file, preview an imported file, and add an independent copy. Timing, movements and targets travel together; history, notes, preferences, collections and favourites stay local.
+- **Take a workout with you:** export a saved workout to a JSON file, preview an imported file, and add an independent copy. Timing, movements and targets travel together; history, notes, preferences and favourites stay local. Export a complete named collection to transfer a routine with several workouts.
 - **Review your training:** explicitly save completed results, review the performed workout, compare matching attempts, add searchable notes, or repeat a result from setup. Later exercise/template edits never rewrite historical snapshots.
 
 ### Generate for a focus area
 
 Choose areas such as Core / abs or Legs in Create a workout. The eligible count reflects your areas, equipment and preset. Keep your chosen exercise count, timing and Undo; insufficient matches require an explicit adjustment. Focus selections last for the open generation flow, including equipment settings, and reset to All areas next time. Matching any selected area does not guarantee every area is represented.
 
+### Share a workout collection
+
+Export a complete routine and preview independent copies of every workout before adding them. Edit names to resolve collisions; imports either add the entire collection or leave the library unchanged.
+
+![Collection import with editable names and fixed actions](docs/screenshots/collection-sharing.png)
+
+This 1.23.0 WebKit production-build screenshot shows sample data at 760×620. Physical Mac validation is separate.
+
 ### Organise saved workouts
 
-Create collections such as Quick sessions or Kettlebell days. Choose **Collections** on a saved workout to assign it to one or more groups, or use **Unfiled** to find workouts without a collection. Imports and new saves start unfiled; duplicates keep their source memberships. [Collection details](docs/workout-collections.md).
+Create collections such as Quick sessions or Kettlebell days. Choose **Collections** on a saved workout to assign it to one or more groups, or use **Unfiled** to find workouts without a collection. Single-workout imports and new saves start unfiled; duplicates keep their source memberships. [Collection details](docs/workout-collections.md).
 
 ![Collection membership with fixed actions at the minimum window size](docs/screenshots/workout-collections.png)
 
@@ -139,6 +147,7 @@ Local test builds are not public signed/notarized releases. See [contributing](C
 
 ## Further reading
 
+- [1.23.0 release notes](docs/release-notes-1.23.0.md)
 - [1.22.0 release notes](docs/release-notes-1.22.0.md)
 - [1.21.0 release notes](docs/release-notes-1.21.0.md)
 

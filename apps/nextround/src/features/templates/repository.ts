@@ -1,6 +1,7 @@
 import { validateConfig, type WorkoutConfig } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { normalizeSearch } from '@/lib/search';
+import { collectionError } from './collection-errors';
 export type WorkoutTemplate = {
   id: string;
   name: string;
@@ -14,6 +15,11 @@ export type TemplateDocument = {
   collections: WorkoutCollection[];
 };
 export type TemplateMutation =
+  | {
+      action: 'collectionimport';
+      name: string;
+      workouts: { name: string; config: WorkoutConfig }[];
+    }
   | { action: 'collectioncreate'; name: string }
   | { action: 'collectionrename'; id: string; name: string; expectedName: string }
   | { action: 'collectiondelete'; id: string; expectedName: string }
@@ -173,7 +179,7 @@ export function parseTemplateDocument(value: unknown): TemplateDocument {
 }
 export function collectionName(value: unknown): string {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > 80)
-    throw new Error('Enter a collection name from 1 to 80 characters.');
+    throw collectionError('name', 'Enter a collection name from 1 to 80 characters.');
   return value.trim();
 }
 export function memberships(document: TemplateDocument, id: string): string[] {
@@ -212,7 +218,36 @@ export function createBrowserRepository(storage: TemplateStorage) {
     const input = structuredClone(mutation);
     const operation = pending.then(async () => {
       const document = await read();
-      if (
+      if (input.action === 'collectionimport') {
+        const name = collectionName(input.name);
+        if (document.collections.some((c) => normalizeSearch(c.name) === normalizeSearch(name)))
+          throw collectionError('name', 'A collection with this name already exists.');
+        if (!input.workouts.length || input.workouts.length > 100)
+          throw new Error('Import 1–100 workouts.');
+        if (
+          document.collections.length >= 100 ||
+          document.templates.length + input.workouts.length > 100
+        )
+          throw new Error(
+            'The library limit is 100 workouts and 100 collections. Free space before importing.',
+          );
+        const used = new Set(document.templates.map((t) => normalizeSearch(t.name)));
+        const added = input.workouts.map((w) => {
+          const name = nameValue(w.name);
+          if (used.has(normalizeSearch(name)))
+            throw new Error(`A workout named “${name}” already exists. Choose another name.`);
+          used.add(normalizeSearch(name));
+          const config = copyValidatedConfig(w.config);
+          for (const exercise of config.exercises ?? []) exercise.id = crypto.randomUUID();
+          return { id: crypto.randomUUID(), name, config };
+        });
+        document.templates.push(...added);
+        document.collections.push({
+          id: crypto.randomUUID(),
+          name,
+          workoutIds: added.map((t) => t.id),
+        });
+      } else if (
         input.action === 'collectioncreate' ||
         input.action === 'collectionrename' ||
         input.action === 'collectiondelete'
@@ -225,7 +260,10 @@ export function createBrowserRepository(storage: TemplateStorage) {
           input.action !== 'collectioncreate' &&
           (!existing || existing.name !== input.expectedName)
         )
-          throw new Error('This collection changed or was removed. Refresh and try again.');
+          throw collectionError(
+            'conflict',
+            'This collection changed or was removed. Refresh and try again.',
+          );
         if (input.action === 'collectiondelete')
           document.collections = document.collections.filter((c) => c !== existing);
         else {
@@ -235,11 +273,11 @@ export function createBrowserRepository(storage: TemplateStorage) {
               (c) => c !== existing && normalizeSearch(c.name) === normalizeSearch(name),
             )
           )
-            throw new Error('A collection with this name already exists.');
+            throw collectionError('name', 'A collection with this name already exists.');
           if (existing) existing.name = name;
           else {
             if (document.collections.length >= 100)
-              throw new Error('You can save up to 100 collections.');
+              throw collectionError('capacity', 'You can save up to 100 collections.');
             document.collections.push({ id: crypto.randomUUID(), name, workoutIds: [] });
           }
         }
@@ -250,12 +288,15 @@ export function createBrowserRepository(storage: TemplateStorage) {
           canonical(memberships(document, input.id)) !==
           canonical([...input.expectedCollectionIds].sort())
         )
-          throw new Error('Workout collections changed. Refresh and try again.');
+          throw collectionError('conflict', 'Workout collections changed. Refresh and try again.');
         if (
           new Set(input.collectionIds).size !== input.collectionIds.length ||
           input.collectionIds.some((id) => !document.collections.some((c) => c.id === id))
         )
-          throw new Error('A selected collection no longer exists. Refresh and try again.');
+          throw collectionError(
+            'conflict',
+            'A selected collection no longer exists. Refresh and try again.',
+          );
         for (const c of document.collections)
           c.workoutIds = [
             ...c.workoutIds.filter((id) => id !== input.id),
@@ -268,7 +309,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
             (t) => t.name.trim().toLowerCase() === nameValue(input.name).toLowerCase(),
           )
         )
-          throw new Error('A workout with this name already exists. Choose another name.');
+          throw new Error(`A workout named “${name}” already exists. Choose another name.`);
         if (document.templates.length >= 100)
           throw new Error('You can save up to 100 workouts. Delete one before saving another.');
         document.templates.push({
