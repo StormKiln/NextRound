@@ -82,7 +82,18 @@ jobs:
           CI: 'true'
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
-        run: make release-package
+          PACKAGING_TOOLING_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Keep app source at the immutable tag. For manual recovery, use the
+          # reviewed packaging tools from the workflow's main-branch revision.
+          tooling_dir="$RUNNER_TEMP/nextround-packaging"
+          mkdir -p "$tooling_dir"
+          for file in package-release.sh staple.py; do
+            git show "$PACKAGING_TOOLING_COMMIT:scripts/$file" > "$tooling_dir/$file"
+          done
+          echo "Packaging tooling commit: $PACKAGING_TOOLING_COMMIT"
+          NEXTROUND_SOURCE_ROOT="$PWD" bash "$tooling_dir/package-release.sh"
       - name: Retain verified release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
