@@ -87,7 +87,9 @@ test('exports a meaningful filename with a collection-free portable payload', as
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('Morning.json');
 });
-test('many collections scroll independently of their fixed modal actions', async ({ page }) => {
+test('many collections scroll independently of their fixed modal actions', async ({
+  page,
+}, testInfo) => {
   await page.evaluate(
     ({ key, config }) =>
       localStorage.setItem(
@@ -115,7 +117,7 @@ test('many collections scroll independently of their fixed modal actions', async
   await dialog.locator('.template-preview-body').evaluate((el) => {
     el.scrollTop = 0;
   });
-  await dialog.screenshot({ path: 'docs/screenshots/workout-collections.png' });
+  await dialog.screenshot({ path: testInfo.outputPath('workout-collections.png') });
   await save.click();
   await expect(page.getByRole('status')).toContainText('Collections saved');
 });

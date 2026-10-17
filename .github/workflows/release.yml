@@ -4,12 +4,17 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing immutable tag to publish; blank rehearses main'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -21,18 +26,31 @@ jobs:
     outputs:
       tag: ${{ steps.metadata.outputs.tag }}
       version: ${{ steps.metadata.outputs.version }}
+      commit: ${{ steps.source.outputs.commit }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.release_tag || github.ref }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Verify immutable source
+        id: source
+        env:
+          REQUESTED_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "$REQUESTED_TAG" ]; then
+            [[ "$REQUESTED_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            test "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/$REQUESTED_TAG^{commit}")"
+          fi
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
       - name: Validate release version and main ancestry
         id: metadata
         env:
-          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.release_tag }}
         run: make release-metadata
       - name: Set up Rust
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
@@ -44,6 +62,12 @@ jobs:
         run: npm exec --offline --yes --package=pnpm@12.8.1 -- pnpm exec playwright install chromium
       - name: Validate workout interactions
         run: make test-e2e
+      - name: Restore generated documentation from affected legacy tag
+        if: inputs.release_tag == 'v1.22.0'
+        run: |
+          # v1.22.0's test wrote a README image. Restore only that known output;
+          # package-release still rejects every other checkout modification.
+          git restore -- docs/screenshots/workout-collections.png
       - name: Import signing identity and notarization profile
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -88,7 +112,7 @@ jobs:
           rm -f "$RUNNER_TEMP/nextround-certificate.p12"
 
   publish:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || (github.ref == 'refs/heads/main' && inputs.release_tag != '')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -97,14 +121,17 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.build.outputs.commit }}
           persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: macos-release
           path: release
       - name: Verify artifacts match this commit
+        env:
+          SOURCE_COMMIT: ${{ needs.build.outputs.commit }}
         run: |
-          test "$(cat release/commit.txt)" = "$GITHUB_SHA"
+          test "$(cat release/commit.txt)" = "$SOURCE_COMMIT"
           cd release
           sha256sum --check SHA256SUMS
       - name: Publish complete release
