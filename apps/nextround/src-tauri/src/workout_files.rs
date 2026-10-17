@@ -10,6 +10,7 @@ impl Drop for Guard {
 extern "C" {
     fn nr_workout_file(
         saving: i32,
+        suggested_name: *const std::ffi::c_char,
         bytes: *const u8,
         length: usize,
         output: *mut u8,
@@ -27,10 +28,22 @@ fn bounded_json(raw: &str) -> Result<(), String> {
         .map_err(|_| "Invalid workout JSON.".to_string())?;
     Ok(())
 }
-async fn panel(app: tauri::AppHandle, raw: Option<String>) -> Result<Option<String>, String> {
+async fn panel(
+    app: tauri::AppHandle,
+    raw: Option<String>,
+    suggested_name: String,
+) -> Result<Option<String>, String> {
     if let Some(data) = &raw {
         bounded_json(data)?;
     }
+    if suggested_name.len() > 185
+        || !suggested_name.ends_with(".json")
+        || suggested_name.contains(['/', '\\', ':'])
+        || suggested_name.chars().any(char::is_control)
+    {
+        return Err("Invalid suggested workout filename.".into());
+    }
+    let suggested_name = std::ffi::CString::new(suggested_name).map_err(|_| "Invalid filename")?;
     OPEN.compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
         .map_err(|_| "A workout file dialog is already open.".to_string())?;
     let guard = Guard;
@@ -44,6 +57,7 @@ async fn panel(app: tauri::AppHandle, raw: Option<String>) -> Result<Option<Stri
         let status = unsafe {
             nr_workout_file(
                 i32::from(raw.is_some()),
+                suggested_name.as_ptr(),
                 bytes.as_ptr(),
                 bytes.len(),
                 output.as_mut_ptr(),
@@ -73,11 +87,15 @@ async fn panel(app: tauri::AppHandle, raw: Option<String>) -> Result<Option<Stri
 }
 #[tauri::command]
 pub async fn open_workout_file(app: tauri::AppHandle) -> Result<Option<String>, String> {
-    panel(app, None).await
+    panel(app, None, "NextRound-workout.json".into()).await
 }
 #[tauri::command]
-pub async fn save_workout_file(app: tauri::AppHandle, raw: String) -> Result<bool, String> {
-    Ok(panel(app, Some(raw)).await?.is_some())
+pub async fn save_workout_file(
+    app: tauri::AppHandle,
+    raw: String,
+    suggested_name: String,
+) -> Result<bool, String> {
+    Ok(panel(app, Some(raw), suggested_name).await?.is_some())
 }
 #[cfg(test)]
 mod tests {

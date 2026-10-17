@@ -1,13 +1,23 @@
 import { validateConfig, type WorkoutConfig } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
+import { normalizeSearch } from '@/lib/search';
 export type WorkoutTemplate = {
   id: string;
   name: string;
   config: WorkoutConfig;
   favourite?: boolean;
 };
-export type TemplateDocument = { version: 1; templates: WorkoutTemplate[] };
+export type WorkoutCollection = { id: string; name: string; workoutIds: string[] };
+export type TemplateDocument = {
+  version: 2;
+  templates: WorkoutTemplate[];
+  collections: WorkoutCollection[];
+};
 export type TemplateMutation =
+  | { action: 'collectioncreate'; name: string }
+  | { action: 'collectionrename'; id: string; name: string; expectedName: string }
+  | { action: 'collectiondelete'; id: string; expectedName: string }
+  | { action: 'membership'; id: string; collectionIds: string[]; expectedCollectionIds: string[] }
   | { action: 'save'; name: string; config: WorkoutConfig }
   | { action: 'import'; name: string; config: WorkoutConfig }
   | { action: 'update'; id: string; expected: WorkoutTemplate; name: string; config: WorkoutConfig }
@@ -105,8 +115,11 @@ export function copyValidatedConfig(value: unknown): WorkoutConfig {
 }
 export function parseTemplateDocument(value: unknown): TemplateDocument {
   if (!record(value)) throw new Error(invalid);
-  rejectUnknown(value, ['version', 'templates']);
-  if (value.version !== 1)
+  rejectUnknown(
+    value,
+    value.version === 1 ? ['version', 'templates'] : ['version', 'templates', 'collections'],
+  );
+  if (value.version !== 1 && value.version !== 2)
     throw new Error('This saved workout version is unsupported. Existing data has been preserved.');
   if (!Array.isArray(value.templates) || value.templates.length > 100) throw new Error(invalid);
   const ids = new Set<string>();
@@ -130,7 +143,44 @@ export function parseTemplateDocument(value: unknown): TemplateDocument {
       config: copyValidatedConfig(entry.config),
     };
   });
-  return { version: 1, templates };
+  const rawCollections = value.version === 1 ? [] : value.collections;
+  if (!Array.isArray(rawCollections) || rawCollections.length > 100) throw new Error(invalid);
+  const collectionIds = new Set<string>(),
+    names = new Set<string>();
+  const collections = rawCollections.map((c) => {
+    if (
+      !record(c) ||
+      typeof c.id !== 'string' ||
+      !c.id ||
+      c.id.length > 120 ||
+      collectionIds.has(c.id)
+    )
+      throw new Error(invalid);
+    rejectUnknown(c, ['id', 'name', 'workoutIds']);
+    const name = collectionName(c.name);
+    if (
+      names.has(normalizeSearch(name)) ||
+      !Array.isArray(c.workoutIds) ||
+      c.workoutIds.some((id) => typeof id !== 'string' || !ids.has(id)) ||
+      new Set(c.workoutIds).size !== c.workoutIds.length
+    )
+      throw new Error(invalid);
+    collectionIds.add(c.id);
+    names.add(normalizeSearch(name));
+    return { id: c.id, name, workoutIds: [...c.workoutIds] as string[] };
+  });
+  return { version: 2, templates, collections };
+}
+export function collectionName(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > 80)
+    throw new Error('Enter a collection name from 1 to 80 characters.');
+  return value.trim();
+}
+export function memberships(document: TemplateDocument, id: string): string[] {
+  return document.collections
+    .filter((c) => c.workoutIds.includes(id))
+    .map((c) => c.id)
+    .sort();
 }
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
@@ -148,7 +198,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<TemplateDocument> {
     const raw = storage.getItem(TEMPLATE_STORAGE_KEY);
-    if (raw === null) return { version: 1, templates: [] };
+    if (raw === null) return { version: 2, templates: [], collections: [] };
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw);
@@ -162,7 +212,56 @@ export function createBrowserRepository(storage: TemplateStorage) {
     const input = structuredClone(mutation);
     const operation = pending.then(async () => {
       const document = await read();
-      if (input.action === 'save' || input.action === 'import') {
+      if (
+        input.action === 'collectioncreate' ||
+        input.action === 'collectionrename' ||
+        input.action === 'collectiondelete'
+      ) {
+        const existing =
+          input.action === 'collectioncreate'
+            ? undefined
+            : document.collections.find((c) => c.id === input.id);
+        if (
+          input.action !== 'collectioncreate' &&
+          (!existing || existing.name !== input.expectedName)
+        )
+          throw new Error('This collection changed or was removed. Refresh and try again.');
+        if (input.action === 'collectiondelete')
+          document.collections = document.collections.filter((c) => c !== existing);
+        else {
+          const name = collectionName(input.name);
+          if (
+            document.collections.some(
+              (c) => c !== existing && normalizeSearch(c.name) === normalizeSearch(name),
+            )
+          )
+            throw new Error('A collection with this name already exists.');
+          if (existing) existing.name = name;
+          else {
+            if (document.collections.length >= 100)
+              throw new Error('You can save up to 100 collections.');
+            document.collections.push({ id: crypto.randomUUID(), name, workoutIds: [] });
+          }
+        }
+      } else if (input.action === 'membership') {
+        if (!document.templates.some((t) => t.id === input.id))
+          throw new Error('This saved workout no longer exists.');
+        if (
+          canonical(memberships(document, input.id)) !==
+          canonical([...input.expectedCollectionIds].sort())
+        )
+          throw new Error('Workout collections changed. Refresh and try again.');
+        if (
+          new Set(input.collectionIds).size !== input.collectionIds.length ||
+          input.collectionIds.some((id) => !document.collections.some((c) => c.id === id))
+        )
+          throw new Error('A selected collection no longer exists. Refresh and try again.');
+        for (const c of document.collections)
+          c.workoutIds = [
+            ...c.workoutIds.filter((id) => id !== input.id),
+            ...(input.collectionIds.includes(c.id) ? [input.id] : []),
+          ];
+      } else if (input.action === 'save' || input.action === 'import') {
         if (
           input.action === 'import' &&
           document.templates.some(
@@ -191,8 +290,11 @@ export function createBrowserRepository(storage: TemplateStorage) {
             throw new Error(
               'This saved workout changed. Refresh to review it before confirming again.',
             );
-          if (input.action === 'delete') document.templates.splice(index, 1);
-          else {
+          if (input.action === 'delete') {
+            document.templates.splice(index, 1);
+            for (const c of document.collections)
+              c.workoutIds = c.workoutIds.filter((id) => id !== input.id);
+          } else {
             if (document.templates.length >= 100)
               throw new Error('You can save up to 100 workouts. Delete one before saving another.');
             document.templates.push({
@@ -200,6 +302,9 @@ export function createBrowserRepository(storage: TemplateStorage) {
               name: nameValue(input.name),
               config: copyValidatedConfig(current.config),
             });
+            const copiedId = document.templates[document.templates.length - 1].id;
+            for (const c of document.collections)
+              if (c.workoutIds.includes(input.id)) c.workoutIds.push(copiedId);
           }
         } else if (input.action === 'update') {
           if (

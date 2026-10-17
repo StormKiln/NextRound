@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 
-const defaults = () => ({ search: '', workoutType: 'all', favouritesOnly: false });
+const defaults = () => ({
+  search: '',
+  workoutType: 'all',
+  favouritesOnly: false,
+  collection: 'all',
+});
 // Session UI only: independent of persistent templates and workout drafts.
 export const useTemplateFilters = create<ReturnType<typeof defaults> & { reset: () => void }>(
   (set) => ({ ...defaults(), reset: () => set(defaults()) }),

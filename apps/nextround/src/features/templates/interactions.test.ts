@@ -16,7 +16,8 @@ import { TemplateLibrary } from './index';
 afterEach(cleanup);
 it('an older query cannot replace a newer manual refresh', async () => {
   const original = {
-    version: 1,
+    version: 2,
+    collections: [],
     templates: [
       {
         id: 'a',
@@ -63,7 +64,7 @@ it('duplicate submission is locked until one write completes', async () => {
     name: 'Original',
     config: { type: 'countdown', durationSeconds: 30, leadInSeconds: 0, warningSeconds: 0 },
   };
-  const doc = { version: 1, templates: [entry] };
+  const doc = { version: 2, collections: [], templates: [entry] };
   mocks.read.mockResolvedValue(doc);
   let finish!: (value: typeof doc) => void;
   mocks.mutate.mockReturnValue(
@@ -107,7 +108,7 @@ it('a delayed favourite write does not steal focus from search', async () => {
     name: 'Focus',
     config: { type: 'countdown', durationSeconds: 30, leadInSeconds: 0, warningSeconds: 0 },
   };
-  const doc = { version: 1, templates: [entry] };
+  const doc = { version: 2, collections: [], templates: [entry] };
   mocks.read.mockResolvedValue(doc);
   let finish!: (value: unknown) => void;
   mocks.mutate.mockReturnValue(
@@ -137,7 +138,7 @@ it('failed favourite saves preserve intentional navigation', async () => {
     name: 'Failed',
     config: { type: 'countdown', durationSeconds: 30, leadInSeconds: 0, warningSeconds: 0 },
   };
-  mocks.read.mockResolvedValue({ version: 1, templates: [entry] });
+  mocks.read.mockResolvedValue({ version: 2, collections: [], templates: [entry] });
   let fail!: (reason: Error) => void;
   mocks.mutate.mockReturnValue(
     new Promise((_, reject) => {

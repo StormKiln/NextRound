@@ -216,3 +216,31 @@ Reviewed October 16, 2026. Twenty distinct additions bring the catalog to **163*
 Static stretches, balance and plank holds use seconds. The bottoms-up carry accepts seconds/metres. These are excluded from reps-only Ladder. Dynamic unilateral movements count each complete action on the chosen side; paired lifts count the simultaneous pair once. Step-ups alternate leading legs and count each ascent/descent once. A rotational squat counts each squat/turn once. Starting targets are editable suggestions, not pace or performance estimates.
 
 Variants are deliberately distinct: the W arm path differs from Y/T raises; knee-supported and single-arm plank holds differ from existing straight-leg/tapping planks. The suitcase squat carries two weights beside the legs instead of a goblet/front rack. Two-arm rows use a bilateral unsupported hinge. Suitcase deadlifts load one side with both feet down. Bottoms-up movements balance an inverted bell; the double push press uses two bells. No existing exercise or historical snapshot is rewritten.
+
+
+## 1.22.0 additions
+
+Twenty distinct movements; the prior 163 records are unchanged. Descriptions are original concise cues. Defaults are editable prescriptions, not predictions. Timed unilateral holds are per side; switch between sets. Training type and intensity are qualitative catalog guidance, not measured effort. Wall support is stated explicitly for ankle/calf movements; wrist work requires a stable raised surface.
+
+| Movement | Technique reference | Default | Type / intensity |
+|---|---|---|---|
+| Supine snow angel | [Source](https://www.acefitness.org/resources/everyone/exercise-library/124/supine-snow-angel-wipers-exercise/) | 8 reps | mobility / moderate |
+| Seated side-straddle stretch | [Source](https://www.acefitness.org/resources/everyone/exercise-library/212/seated-side-straddle-stretch/) | 30 seconds | mobility / low |
+| Cycled split-squat jump | [Source](https://www.acefitness.org/resources/everyone/exercise-library/234/cycled-split-squat-jump/) | 6 reps | strength / high |
+| Single-arm single-leg plank | [Source](https://www.acefitness.org/resources/everyone/exercise-library/325/single-arm-single-leg-plank/) | 30 seconds | strength / moderate |
+| Spider walk | [Source](https://www.acefitness.org/resources/everyone/exercise-library/247/spider-walks/) | 6 reps | strength / high |
+| Sprinter pull | [Source](https://www.acefitness.org/resources/everyone/exercise-library/250/sprinter-pulls/) | 6 reps | strength / moderate |
+| Standing ankle mobilization | [Source](https://www.acefitness.org/resources/everyone/exercise-library/224/standing-ankle-mobilization/) | 6 reps | mobility / low |
+| Standing calf stretch | [Source](https://www.acefitness.org/resources/everyone/exercise-library/152/standing-dorsi-flexion-calf-stretch/) | 30 seconds | mobility / low |
+| Seated hamstring stretch | [Source](https://contentcdn.eacefitness.com/assets/education-resources/lifestyle/acefit/ofk-curriculum-6-8.pdf) | 30 seconds | mobility / low |
+| Seated butterfly stretch | [Source](https://www.nasm.org/resource-center/exercise-library/static-butterfly-stretch) | 30 seconds | mobility / low |
+| Dumbbell single-arm single-leg Romanian deadlift | [Source](https://www.acefitness.org/resources/everyone/exercise-library/127/single-arm-single-leg-romanian-dead-lift/) | 6 reps | strength / moderate |
+| Dumbbell squat to overhead raise | [Source](https://www.acefitness.org/resources/everyone/exercise-library/361/squat-to-overhead-raise/) | 6 reps | strength / moderate |
+| Dumbbell transverse lunge | [Source](https://www.acefitness.org/resources/everyone/exercise-library/365/transverse-lunge/) | 6 reps | strength / moderate |
+| Dumbbell V raise | [Source](https://www.acefitness.org/resources/everyone/exercise-library/370/v-raise/) | 8 reps | strength / moderate |
+| Dumbbell wrist extension | [Source](https://www.acefitness.org/resources/everyone/exercise-library/29/wrist-curl-extension/) | 10 reps | strength / moderate |
+| Dumbbell wrist flexion | [Source](https://www.acefitness.org/resources/everyone/exercise-library/30/wrist-curl-flexion/) | 10 reps | strength / moderate |
+| Kettlebell high pull | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 6 reps | strength / high |
+| Kettlebell bob and weave | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 8 reps | strength / moderate |
+| Kettlebell clean, squat and press | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 3 reps | strength / high |
+| Kettlebell forward-and-reverse lunge | [Source](https://kettlebellsworkouts.com/kettlebell-exercises/) | 4 reps | strength / moderate |
