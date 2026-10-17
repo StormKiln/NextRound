@@ -6,6 +6,7 @@ import { HISTORY_STORAGE_KEY, readHistory } from '../history/repository';
 import { useTrainingOwnership } from '../sessions/ownership';
 import { readTraining, TRAINING_KEY } from '../sessions/repository';
 import { readTemplates, TEMPLATE_STORAGE_KEY } from '../templates/repository';
+import { blockRestore } from './gate';
 import {
   type Backup,
   type BackupData,
@@ -89,8 +90,13 @@ export async function restoreBackup(backup: Backup) {
   const next = parseData(backup.data);
   const previous = await exportBackup();
   if (isTauri()) {
-    await invoke('restore_backup', { next, preferences: previous.data.preferences });
-    await recoverRestore();
+    try {
+      await invoke('restore_backup', { next, preferences: previous.data.preferences });
+      await recoverRestore();
+    } catch (error) {
+      if (await invoke<boolean>('has_pending_restore').catch(() => true)) blockRestore(error);
+      throw error;
+    }
   } else {
     localStorage.setItem(rollbackKey, JSON.stringify(previous));
     const journal = { version: 1, committed: false, previous: previous.data, next };
@@ -104,6 +110,7 @@ export async function restoreBackup(backup: Backup) {
         applyBrowser(previous.data);
         localStorage.removeItem(journalKey);
       } catch {
+        blockRestore(error);
         throw new Error(
           `Restore interrupted. Restart NextRound to recover before continuing: ${String(error)}`,
         );
@@ -127,6 +134,21 @@ export async function commitLibrary(
   expected: Pick<BackupData, 'templates' | 'training'>,
   next: Pick<BackupData, 'templates' | 'training'>,
 ) {
+  return commitDocuments('templates', expected, next);
+}
+
+export async function commitHistory(
+  expected: Pick<BackupData, 'history' | 'training'>,
+  next: Pick<BackupData, 'history' | 'training'>,
+) {
+  return commitDocuments('history', expected, next);
+}
+
+async function commitDocuments<K extends 'templates' | 'history'>(
+  key: K,
+  expected: Pick<BackupData, K | 'training'>,
+  next: Pick<BackupData, K | 'training'>,
+) {
   guard();
   const snapshot = (await exportBackup()).data;
   const canonical = (value: unknown): string =>
@@ -140,18 +162,23 @@ export async function commitLibrary(
         : v,
     );
   if (
-    canonical(snapshot.templates) !== canonical(expected.templates) ||
+    canonical(snapshot[key]) !== canonical(expected[key]) ||
     canonical(snapshot.training) !== canonical(expected.training)
   )
     throw new Error('Library changed. Refresh and retry import.');
   const data = parseData({ ...snapshot, ...next });
   if (isTauri()) {
-    await invoke('write_library_batch', {
-      expected,
-      next: { templates: data.templates, training: data.training },
-      preferences: snapshot.preferences,
-    });
-    await recoverRestore();
+    try {
+      await invoke(key === 'templates' ? 'write_library_batch' : 'write_history_batch', {
+        expected,
+        next: { [key]: data[key], training: data.training },
+        preferences: snapshot.preferences,
+      });
+      await recoverRestore();
+    } catch (error) {
+      if (await invoke<boolean>('has_pending_restore').catch(() => true)) blockRestore(error);
+      throw error;
+    }
     return;
   }
   const journal = { version: 1, committed: false, previous: snapshot, next: data };
@@ -161,7 +188,12 @@ export async function commitLibrary(
     localStorage.setItem(journalKey, JSON.stringify({ ...journal, committed: true }));
     localStorage.removeItem(journalKey);
   } catch (e) {
-    await recoverRestore();
+    try {
+      await recoverRestore();
+    } catch (error) {
+      blockRestore(error);
+      throw error;
+    }
     throw e;
   }
 }

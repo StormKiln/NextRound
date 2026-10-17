@@ -34,6 +34,7 @@ type State = {
 };
 let initialized: Promise<void> | undefined;
 let polling = false;
+let generation = 0;
 let lastCheckpoint = 0;
 const restConfig = (ms: number): WorkoutConfig => ({
   type: 'countdown',
@@ -118,6 +119,7 @@ export const useTraining = create<State>((set, get) => ({
     if (get().busy || get().run || useWorkout.getState().pendingResult) return false;
     const existing = useWorkout.getState().snapshot;
     if (existing && ['running', 'leadIn'].includes(existing.phase)) return false;
+    generation++;
     set({ busy: true, error: null });
     try {
       const run = beginRun(session);
@@ -156,6 +158,7 @@ export const useTraining = create<State>((set, get) => ({
   resumeRecovery: async () => {
     const current = get().run;
     if (!current || get().busy) return false;
+    generation++;
     set({ busy: true, error: null });
     try {
       const run = recoveryPaused(current);
@@ -195,18 +198,22 @@ export const useTraining = create<State>((set, get) => ({
     )
       return;
     polling = true;
+    const ticket = generation;
     try {
       const snapshot = await adapter.readWorkout();
-      if (!snapshot) return;
+      if (!snapshot || ticket !== generation) return;
       const run = structuredClone(get().run as Recovery);
       await context(run, !snapshot.paused);
+      if (ticket !== generation) return;
       if (run.stage === 'rest') {
         run.restRemainingMs = Math.floor(snapshot.remainingMs);
         set({ run, paused: snapshot.paused });
         if (snapshot.phase === 'completed') {
           await adapter.resolveResult();
+          if (ticket !== generation) return;
           run.stage = 'ready';
           await persist(run);
+          if (ticket !== generation) return;
           set({ run });
           if (run.session.blocks[run.index].advance === 'automatic') await get().next();
         }
@@ -224,13 +231,16 @@ export const useTraining = create<State>((set, get) => ({
         set({ run, paused: snapshot.paused });
         if (snapshot.phase === 'completed') {
           await adapter.resolveResult();
+          if (ticket !== generation) return;
           const done = finishBlock(
             run,
             snapshot.outcome === 'timeCapReached' ? 'partial' : 'complete',
           );
           await persist(done);
+          if (ticket !== generation) return;
           set({ run: done });
           await context(done);
+          if (ticket !== generation) return;
           if (done.stage === 'rest') await adapter.startWorkout(restConfig(done.restRemainingMs));
           else if (
             done.stage === 'ready' &&
@@ -239,11 +249,15 @@ export const useTraining = create<State>((set, get) => ({
             await get().next();
         }
       }
-      if (performance.now() - lastCheckpoint >= 1000) await persist(get().run);
+      if (ticket === generation && performance.now() - lastCheckpoint >= 1000)
+        await persist(get().run);
     } catch (error) {
+      if (ticket !== generation) return;
       await adapter.controlWorkout('pause').catch(() => {});
+      if (ticket !== generation) return;
       const retained = get().run;
       if (retained) await context(retained, false).catch(() => {});
+      if (ticket !== generation) return;
       set({
         error: `Session paused: ${String(error)}. Recover the session before resuming.`,
         paused: true,
@@ -255,6 +269,7 @@ export const useTraining = create<State>((set, get) => ({
   },
   pause: async (pause) => {
     if (get().busy || get().recovered) return;
+    generation++;
     set({ busy: true, error: null });
     try {
       await persist(get().run);
@@ -288,6 +303,7 @@ export const useTraining = create<State>((set, get) => ({
       current.index >= current.session.blocks.length - 1
     )
       return;
+    generation++;
     set({ busy: true, error: null });
     try {
       const run = structuredClone(current);
@@ -317,6 +333,7 @@ export const useTraining = create<State>((set, get) => ({
   end: async (skip = false) => {
     const current = get().run;
     if (!current || get().busy) return;
+    generation++;
     set({ busy: true, error: null });
     try {
       await releaseClock();
@@ -343,6 +360,7 @@ export const useTraining = create<State>((set, get) => ({
   save: async () => {
     const run = get().run;
     if (!run || run.stage !== 'review' || get().busy) return false;
+    generation++;
     set({ busy: true, error: null });
     try {
       const result: TrainingResult = parseResult({
@@ -374,6 +392,7 @@ export const useTraining = create<State>((set, get) => ({
   },
   discard: async () => {
     if (get().busy) return false;
+    generation++;
     set({ busy: true, error: null });
     try {
       await releaseClock();
@@ -393,6 +412,7 @@ export const useTraining = create<State>((set, get) => ({
   setActuals: async (blockId, actuals) => {
     const current = get().run;
     if (!current || get().busy) return;
+    generation++;
     set({ busy: true, error: null });
     try {
       const run = structuredClone(current);

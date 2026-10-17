@@ -133,7 +133,7 @@ impl HistoryStore {
             gate: Mutex::new(()),
         }
     }
-    fn read_disk(&self) -> Result<HistoryDocument, String> {
+    pub(crate) fn read_disk(&self) -> Result<HistoryDocument, String> {
         let raw = match fs::read(&self.path) {
             Ok(raw) => raw,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
@@ -166,10 +166,12 @@ impl HistoryStore {
     }
     pub fn read(&self) -> Result<HistoryDocument, String> {
         let _guard = self.gate.lock().map_err(|_| "History unavailable")?;
+        crate::backup::ensure_store_ready(&self.path)?;
         self.read_disk()
     }
     pub fn mutate(&self, mutation: Mutation) -> Result<HistoryDocument, String> {
         let _guard = self.gate.lock().map_err(|_| "History unavailable")?;
+        crate::backup::ensure_store_ready(&self.path)?;
         let mut document = self.read_disk()?;
         match mutation {
             Mutation::Save { result } => {

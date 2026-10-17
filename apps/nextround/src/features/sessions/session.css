@@ -233,3 +233,13 @@
 .editing-session-block .setup .start-button {
   display: none;
 }
+
+.file-picker {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.file-picker input {
+  width: 100%;
+  min-width: 0;
+}

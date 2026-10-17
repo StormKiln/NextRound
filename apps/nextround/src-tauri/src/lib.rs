@@ -80,8 +80,13 @@ impl Runtime {
 type Shared = Arc<Mutex<Runtime>>;
 
 #[tauri::command]
-fn start_workout(config: Config, state: State<'_, Shared>) -> Result<Snapshot, String> {
+fn start_workout(
+    app: tauri::AppHandle,
+    config: Config,
+    state: State<'_, Shared>,
+) -> Result<Snapshot, String> {
     let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    backup::ensure_app_ready(&app)?;
     rt.update();
     if rt.update_gate.busy {
         return Err("An update is being installed. Wait for NextRound to restart.".into());
@@ -140,12 +145,14 @@ fn set_training_guard(
 }
 #[tauri::command]
 fn restore_workout(
+    app: tauri::AppHandle,
     config: Config,
     elapsed: u64,
     completed_movements: u32,
     state: State<'_, Shared>,
 ) -> Result<Snapshot, String> {
     let mut rt = state.lock().map_err(|_| "Timer unavailable")?;
+    backup::ensure_app_ready(&app)?;
     if rt.update_gate.busy
         || rt
             .session
@@ -296,9 +303,13 @@ fn get_close_behavior(
 }
 #[tauri::command]
 fn set_close_behavior(
+    app: tauri::AppHandle,
     state: State<WindowSettings>,
     behavior: window_behavior::CloseBehavior,
 ) -> Result<(), String> {
+    let shared = app.state::<Shared>();
+    let _runtime = shared.lock().map_err(|_| "Timer unavailable")?;
+    backup::ensure_app_ready(&app)?;
     state
         .preferences
         .lock()
@@ -373,8 +384,10 @@ pub fn run() {
             set_training_guard,
             restore_workout,
             backup::write_library_batch,
+            backup::write_history_batch,
             backup::backup_snapshot,
             backup::restore_backup,
+            backup::has_pending_restore,
             backup::pending_restore_preferences,
             backup::acknowledge_restore,
             backup::read_backup_rollback,
@@ -409,8 +422,10 @@ pub fn run() {
         set_training_guard,
         restore_workout,
         backup::write_library_batch,
+        backup::write_history_batch,
         backup::backup_snapshot,
         backup::restore_backup,
+        backup::has_pending_restore,
         backup::pending_restore_preferences,
         backup::acknowledge_restore,
         backup::read_backup_rollback,

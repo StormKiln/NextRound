@@ -122,7 +122,11 @@ export function SessionEditor() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const training = useTraining();
-  const templates = useQuery({ queryKey: ['workout-templates'], queryFn: readTemplates });
+  const templates = useQuery({
+    queryKey: ['workout-templates'],
+    queryFn: readTemplates,
+    retry: false,
+  });
   const edit = (mode: WorkoutMode, block?: TrainingBlock) => {
     if (block && !useWorkout.getState().loadConfig(block.config)) return;
     useSessionEditor.setState({ editing: { id: block?.id ?? crypto.randomUUID(), mode } });

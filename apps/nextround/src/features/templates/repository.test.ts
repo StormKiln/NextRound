@@ -11,7 +11,7 @@ function fixture() {
   let raw: string | null = null;
   let fail = false;
   const storage: TemplateStorage = {
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-templates.v1' ? raw : null),
     setItem: (_key, value) => {
       if (fail) throw new Error('Disk full');
       raw = value;

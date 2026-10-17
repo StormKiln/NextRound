@@ -303,6 +303,12 @@ test('session actuals persist independently of targets and appear in history', a
   await expect(page.getByLabel('Session note', { exact: true })).toHaveValue(
     'Keep this observation',
   );
+  await page.getByRole('button', { name: 'Edit actuals for Work', exact: true }).click();
+  expect(
+    await page.evaluate(() =>
+      window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+    ),
+  ).toBe(false);
 });
 test('imports a session-only collection atomically and exposes its saved routine', async ({
   page,
@@ -532,4 +538,131 @@ test('minimum window keeps session actions visible and focuses invalid fields', 
     path: '/tmp/nextround-200-planning/session-editor-760.png',
     fullPage: true,
   });
+});
+test('failed restore and rollback blocks normal use until recovery succeeds', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(
+    (session) =>
+      localStorage.setItem(
+        'nextround.training.v1',
+        JSON.stringify({
+          version: 1,
+          sessions: [session],
+          results: [],
+          actuals: {},
+          recovery: null,
+        }),
+      ),
+    session,
+  );
+  await page.reload();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: 'Backup', exact: true }).click();
+  const backup = {
+    format: 'nextround-backup',
+    version: 1,
+    createdAt: Date.now(),
+    data: {
+      templates: { version: 2, templates: [], collections: [] },
+      history: { version: 1, results: [] },
+      personal: { version: 1, exercises: [] },
+      training: { version: 1, sessions: [], results: [], actuals: {}, recovery: null },
+      window: { version: 1, closeBehavior: 'minimize' },
+      preferences: {},
+    },
+  };
+  await page.getByLabel('Choose JSON file').setInputFiles({
+    name: 'backup.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(backup)),
+  });
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    Object.assign(window, {
+      restoreStorage: () => {
+        Storage.prototype.setItem = original;
+      },
+    });
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'nextround.training.v1') throw Error('Storage unavailable');
+      return original.call(this, key, value);
+    };
+  });
+  await page.getByRole('button', { name: 'Replace data and reload', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Restore needs attention', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toHaveCount(0);
+  await page.evaluate(() => {
+    (window as unknown as { restoreStorage: () => void }).restoreStorage();
+  });
+  await page.getByRole('button', { name: 'Retry restore recovery', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Open Two blocks', exact: true })).toBeVisible();
+  expect(
+    await page.evaluate(() => localStorage.getItem('nextround.restore-journal.v1')),
+  ).toBeNull();
+});
+test('deleting standalone history also removes its actuals and preserves both on write failure', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    const config = {
+      type: 'countdown',
+      durationSeconds: 1,
+      leadInSeconds: 0,
+      warningSeconds: 0,
+      exercises: [{ id: 'e', name: 'Push-up' }],
+    };
+    localStorage.setItem(
+      'nextround.workout-history.v1',
+      JSON.stringify({
+        version: 1,
+        results: [
+          { id: 'r', completedAt: Date.now(), elapsedMs: 1000, config, checkedExerciseIds: [] },
+        ],
+      }),
+    );
+    localStorage.setItem(
+      'nextround.training.v1',
+      JSON.stringify({
+        version: 1,
+        sessions: [],
+        results: [],
+        actuals: { r: [{ exerciseId: 'e', occurrence: 0, reps: 3 }] },
+        recovery: null,
+      }),
+    );
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Workout history', exact: true }).click();
+  await page.getByRole('button', { name: /Delete result:/ }).click();
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    let failed = false;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'nextround.training.v1' && !failed) {
+        failed = true;
+        throw Error('Actual deletion failed');
+      }
+      return original.call(this, key, value);
+    };
+  });
+  await page.getByRole('button', { name: 'Delete permanently', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Delete this result?' })).toContainText(
+    'Actual deletion failed',
+  );
+  expect(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem('nextround.workout-history.v1')!).results,
+    ),
+  ).toHaveLength(1);
+  await page.getByRole('button', { name: 'Delete permanently', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Delete this result?' })).toHaveCount(0);
+  const docs = await page.evaluate(() => ({
+    h: JSON.parse(localStorage.getItem('nextround.workout-history.v1')!),
+    t: JSON.parse(localStorage.getItem('nextround.training.v1')!),
+  }));
+  expect(docs.h.results).toHaveLength(0);
+  expect(docs.t.actuals).toEqual({});
 });

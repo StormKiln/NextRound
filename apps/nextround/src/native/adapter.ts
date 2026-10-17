@@ -161,16 +161,21 @@ export async function resolveResult() {
   if (native) await invoke('resolve_workout_result');
 }
 
-export async function setTrainingGuard(
+let trainingGuardQueue: Promise<unknown> = Promise.resolve();
+export function setTrainingGuard(
   active: boolean,
   awake = false,
   finalBlock = false,
   silent = false,
 ) {
   const next = { active, awake, finalBlock, silent };
-  if (JSON.stringify(next) === JSON.stringify(trainingContext)) return;
-  if (native) await invoke('set_training_guard', next);
-  trainingContext = next;
+  const operation = trainingGuardQueue.then(async () => {
+    if (JSON.stringify(next) === JSON.stringify(trainingContext)) return;
+    if (native) await invoke('set_training_guard', next);
+    trainingContext = next;
+  });
+  trainingGuardQueue = operation.catch(() => {});
+  return operation;
 }
 export async function restoreWorkout(
   config: WorkoutConfig,

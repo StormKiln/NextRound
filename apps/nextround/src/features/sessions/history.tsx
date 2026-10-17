@@ -95,7 +95,7 @@ export function SessionHistory() {
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [notes, setNotes] = useState(false);
-  const unsaved = useUnsavedChanges(!!selected && note !== selected.note && !editing, busy);
+  const unsaved = useUnsavedChanges(!!selected && note !== selected.note, busy);
   const closeResult = () =>
     unsaved.request(() => {
       setSelected(null);

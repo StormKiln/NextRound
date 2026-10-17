@@ -26,7 +26,7 @@ function fixture() {
   let raw: string | null = null;
   let fail = false;
   const storage = {
-    getItem: () => raw,
+    getItem: (key: string) => (key === 'nextround.workout-history.v1' ? raw : null),
     setItem: (_key: string, value: string) => {
       if (fail) throw new Error('Disk full');
       raw = value;

@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { JsonPicker, saveJson } from '../sessions/files';
+import { useRestoreGate } from './gate';
 import { type Backup, parseBackup } from './model';
 import { exportBackup, recoverRestore, restoreBackup, rollbackBackup } from './repository';
 export function BackupPanel() {
@@ -139,6 +140,7 @@ export function BackupPanel() {
 }
 let recovery: Promise<void> | undefined;
 export function BackupBootstrap({ children }: { children: ReactNode }) {
+  const blocked = useRestoreGate((s) => s.error);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -158,21 +160,27 @@ export function BackupBootstrap({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [retry]);
-  if (!ready)
+  if (!ready || blocked)
     return (
       <main className="page">
-        <h1>{error ? 'Restore needs attention' : 'Opening your training data…'}</h1>
-        {error && (
+        <h1>{error || blocked ? 'Restore needs attention' : 'Opening your training data…'}</h1>
+        {(error || blocked) && (
           <>
-            <p role="alert">{error}</p>
+            <p role="alert">{error || blocked}</p>
             <p>
               Your saved files have been preserved. Resolve the storage problem, then retry
               recovery.
             </p>
             <Button
               onClick={() => {
-                setError('');
-                setRetry((n) => n + 1);
+                if (blocked) {
+                  void recoverRestore()
+                    .then(() => location.assign('/'))
+                    .catch((e) => useRestoreGate.setState({ error: String(e) }));
+                } else {
+                  setError('');
+                  setRetry((n) => n + 1);
+                }
               }}
             >
               Retry restore recovery

@@ -5,9 +5,40 @@ use crate::{
     training::TrainingStore,
 };
 use serde_json::{json, Value};
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 use tauri::Manager;
 const LIMIT: usize = 32 * 1024 * 1024;
+pub(crate) fn ensure_store_ready(path: &Path) -> Result<(), String> {
+    let journal = path
+        .parent()
+        .unwrap_or(Path::new("."))
+        .join("restore-journal-v1.json");
+    if journal.try_exists().map_err(|e| e.to_string())? {
+        return Err(
+            "Restore recovery must finish before continuing. Restart NextRound or retry recovery."
+                .into(),
+        );
+    }
+    Ok(())
+}
+pub(crate) fn ensure_app_ready(app: &tauri::AppHandle) -> Result<(), String> {
+    ensure_store_ready(
+        &app.path()
+            .app_data_dir()
+            .map_err(|e| e.to_string())?
+            .join("training-v1.json"),
+    )
+}
+#[tauri::command]
+pub fn has_pending_restore(app: tauri::AppHandle) -> Result<bool, String> {
+    transaction(&app)?
+        .journal()
+        .try_exists()
+        .map_err(|e| e.to_string())
+}
 pub(crate) struct Transaction {
     data: PathBuf,
     config: PathBuf,
@@ -38,7 +69,7 @@ impl Transaction {
             Err(e) => return Err(e.to_string()),
         };
         Ok(
-            json!({"templates":TemplateStore::new(self.data.join("workout-templates.json")).read()?,"history":HistoryStore::new(self.data.join("workout-history.json")).read()?,"personal":ExerciseStore::new(self.data.join("personal-exercises.json")).read()?,"training":TrainingStore::new(self.data.join("training-v1.json")).read_disk()?,"window":window,"preferences":preferences}),
+            json!({"templates":TemplateStore::new(self.data.join("workout-templates.json")).read_disk()?,"history":HistoryStore::new(self.data.join("workout-history.json")).read_disk()?,"personal":ExerciseStore::new(self.data.join("personal-exercises.json")).read_disk()?,"training":TrainingStore::new(self.data.join("training-v1.json")).read_disk()?,"window":window,"preferences":preferences}),
         )
     }
     fn apply(
@@ -316,6 +347,26 @@ pub fn write_library_batch(
             return Err("Library changed. Refresh and retry import.".into());
         }
         snapshot["templates"] = next["templates"].clone();
+        snapshot["training"] = next["training"].clone();
+        t.restore(snapshot, preferences, false, |_| Ok(()))
+    })
+}
+
+#[tauri::command]
+pub fn write_history_batch(
+    app: tauri::AppHandle,
+    expected: Value,
+    next: Value,
+    preferences: Value,
+) -> Result<(), String> {
+    with_stores(&app, |t| {
+        let mut snapshot = t.snapshot(preferences.clone())?;
+        if snapshot["history"] != expected["history"]
+            || snapshot["training"] != expected["training"]
+        {
+            return Err("History changed. Refresh and retry deletion.".into());
+        }
+        snapshot["history"] = next["history"].clone();
         snapshot["training"] = next["training"].clone();
         t.restore(snapshot, preferences, false, |_| Ok(()))
     })

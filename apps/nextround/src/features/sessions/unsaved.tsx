@@ -5,6 +5,12 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { setNativeNoteGuard, useNoteGuard } from '@/features/history/note-guard';
 
+const guards = new Map<symbol, () => void>();
+function syncGuards() {
+  const onQuit = [...guards.values()].at(-1) ?? null;
+  useNoteGuard.setState({ onQuit });
+  return setNativeNoteGuard(!!onQuit);
+}
 export function useUnsavedChanges(dirty: boolean, busy: boolean) {
   const [intent, setIntent] = useState<(() => void) | null>(null);
   const [error, setError] = useState('');
@@ -16,23 +22,21 @@ export function useUnsavedChanges(dirty: boolean, busy: boolean) {
     withResolver: true,
   });
   useEffect(() => {
-    if (!dirty) return;
-    const prior = useNoteGuard.getState().onQuit;
+    if (!dirty && !busy) return;
+    const key = Symbol();
     const onQuit = () =>
       setIntent(() => () => {
         void setNativeNoteGuard(false)
           .then(() => (isTauri() ? invoke('quit_app') : undefined))
           .catch((e) => setError(String(e)));
       });
-    useNoteGuard.setState({ onQuit });
-    void setNativeNoteGuard(true).catch((e) => setError(String(e)));
+    guards.set(key, onQuit);
+    void syncGuards().catch((e) => setError(String(e)));
     return () => {
-      if (useNoteGuard.getState().onQuit === onQuit) {
-        useNoteGuard.setState({ onQuit: prior });
-        void setNativeNoteGuard(!!prior).catch(() => {});
-      }
+      guards.delete(key);
+      void syncGuards().catch(() => {});
     };
-  }, [dirty]);
+  }, [dirty, busy]);
   const cancel = () => {
     if (busy) return;
     setIntent(null);

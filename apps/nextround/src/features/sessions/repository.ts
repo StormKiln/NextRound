@@ -1,4 +1,5 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
+import { assertStorageReady } from '../backup/gate';
 import { emptyTraining, parseTrainingDocument, type TrainingDocument } from './model';
 export const TRAINING_KEY = 'nextround.training.v1';
 export const trainingKey = ['training'];
@@ -6,6 +7,7 @@ type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
 export function createTrainingRepository(storage: StorageLike) {
   let pending: Promise<unknown> = Promise.resolve();
   const read = async () => {
+    assertStorageReady(storage);
     const raw = storage.getItem(TRAINING_KEY);
     return raw === null ? emptyTraining() : parseTrainingDocument(JSON.parse(raw));
   };
@@ -14,6 +16,7 @@ export function createTrainingRepository(storage: StorageLike) {
       const document = await read();
       change(document);
       const next = parseTrainingDocument(document);
+      assertStorageReady(storage);
       storage.setItem(TRAINING_KEY, JSON.stringify(next));
       return next;
     });

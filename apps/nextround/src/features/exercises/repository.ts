@@ -2,6 +2,7 @@ import type { ExerciseTarget, TargetUnit } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { categories, type EquipmentId, equipmentLabels } from '@/data/equipment';
 import { type FocusArea, focusAreas } from '@/data/focus';
+import { assertStorageReady } from '../backup/gate';
 export type PersonalExercise = {
   id: string;
   name: string;
@@ -110,6 +111,7 @@ function canonical(value: unknown): string {
 export function createPersonalRepository(storage: Pick<Storage, 'getItem' | 'setItem'>) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<PersonalDocument> {
+    assertStorageReady(storage);
     const raw = storage.getItem(PERSONAL_STORAGE_KEY);
     if (raw === null) return { version: 1, exercises: [] };
     let value: unknown;
@@ -139,6 +141,7 @@ export function createPersonalRepository(storage: Pick<Storage, 'getItem' | 'set
           throw Error('The personal library limit is 500 exercises, including archived entries.');
         document.exercises.push(exercise);
       }
+      assertStorageReady(storage);
       storage.setItem(PERSONAL_STORAGE_KEY, JSON.stringify(document));
       return parsePersonalDocument(JSON.parse(JSON.stringify(document)));
     });

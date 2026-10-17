@@ -14,7 +14,11 @@ import { encodeSession, independentSession, parseSessionFile } from './portable'
 import { mutateTraining, readTraining, trainingKey } from './repository';
 export function SessionLibrary() {
   const query = useQuery({ queryKey: trainingKey, queryFn: readTraining, retry: false });
-  const templates = useQuery({ queryKey: ['workout-templates'], queryFn: readTemplates });
+  const templates = useQuery({
+    queryKey: ['workout-templates'],
+    queryFn: readTemplates,
+    retry: false,
+  });
   const client = useQueryClient();
   const navigate = useNavigate();
   const filters = useTemplateFilters();

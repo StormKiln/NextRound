@@ -1,6 +1,7 @@
 import { validateConfig, type WorkoutConfig } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { normalizeSearch } from '@/lib/search';
+import { assertStorageReady } from '../backup/gate';
 import { collectionError } from './collection-errors';
 export type WorkoutTemplate = {
   id: string;
@@ -203,6 +204,7 @@ export function sameTemplate(a: WorkoutTemplate, b: WorkoutTemplate): boolean {
 export function createBrowserRepository(storage: TemplateStorage) {
   let pending: Promise<unknown> = Promise.resolve();
   async function read(): Promise<TemplateDocument> {
+    assertStorageReady(storage);
     const raw = storage.getItem(TEMPLATE_STORAGE_KEY);
     if (raw === null) return { version: 2, templates: [], collections: [] };
     let parsed: unknown;
@@ -380,6 +382,7 @@ export function createBrowserRepository(storage: TemplateStorage) {
           document.templates[index].name = nameValue(input.name);
         }
       }
+      assertStorageReady(storage);
       storage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(document));
       return parseTemplateDocument(JSON.parse(JSON.stringify(document)));
     });

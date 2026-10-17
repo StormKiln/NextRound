@@ -45,6 +45,7 @@ export function mutateHistoryIntoCache(client: QueryClient, mutation: HistoryMut
     const document = await mutateHistory(mutation);
     await client.cancelQueries({ queryKey: historyKey });
     client.setQueryData(historyKey, document);
+    if (mutation.action === 'delete') await client.invalidateQueries({ queryKey: ['training'] });
     return document;
   });
 }

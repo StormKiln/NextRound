@@ -32,6 +32,7 @@ impl TrainingStore {
     }
     fn write(&self, expected: Value, next: Value) -> Result<Value, String> {
         let _guard = self.gate.lock().map_err(|_| "Training store unavailable")?;
+        crate::backup::ensure_store_ready(&self.path)?;
         validate(&next)?;
         if self.read_disk()? != expected {
             return Err("Training data changed. Refresh and try again.".into());
@@ -147,6 +148,7 @@ pub fn read_training(state: tauri::State<'_, TrainingStore>) -> Result<Value, St
         .gate
         .lock()
         .map_err(|_| "Training store unavailable")?;
+    crate::backup::ensure_store_ready(&state.path)?;
     state.read_disk()
 }
 #[tauri::command]
@@ -161,6 +163,21 @@ pub fn write_training(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pending_restore_prevents_training_mutations_until_recovered() {
+        let dir =
+            std::env::temp_dir().join(format!("nextround-restore-gate-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let store = TrainingStore::new(dir.join("training-v1.json"));
+        let before = store.read_disk().unwrap();
+        fs::write(dir.join("restore-journal-v1.json"), "{}").unwrap();
+        assert!(store.write(before.clone(), before.clone()).is_err());
+        assert!(!store.path.exists());
+        fs::remove_file(dir.join("restore-journal-v1.json")).unwrap();
+        assert!(store.write(before.clone(), before).is_ok());
+        fs::remove_dir_all(dir).unwrap();
+    }
+
     #[test]
     fn atomic_conflict_and_future_document_preservation() {
         let dir = std::env::temp_dir().join(format!("nextround-training-{}", std::process::id()));

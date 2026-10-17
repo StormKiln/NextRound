@@ -25,6 +25,8 @@ Settings now includes full local backup and restore for saved workouts, sessions
 - Intermediate blocks use a transition cue; the session ending uses the completion cue.
 - Resolved session blocks cannot reappear as standalone unsaved results.
 - Unsaved notes and actual edits have confirmation protection; write failures preserve entered values.
+- Unresolved restore recovery blocks normal use until the local stores are consistent.
+- Deleting a workout result also deletes its actual performance atomically.
 - Expanded previews, minimum-window spacing, fixed actions and validation focus keep controls reachable.
 
 ## Your data and distribution
