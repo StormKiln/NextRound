@@ -18,7 +18,12 @@ import { deferredScreen } from '@/components/deferred-screen';
 import { Dialog } from '@/components/dialog';
 import { Startup } from '@/components/startup';
 import { Button } from '@/components/ui/button';
+import { BackupBootstrap } from '@/features/backup/panel';
 import { useNoteGuard } from '@/features/history/note-guard';
+import { BlockCapture, SessionEditor } from '@/features/sessions/editor';
+import { useTrainingOwnership } from '@/features/sessions/ownership';
+import { TrainingRunner } from '@/features/sessions/runner';
+import { useTraining } from '@/features/sessions/state';
 
 const ExerciseLibrary = deferredScreen(() =>
   import('@/features/exercises/library-view').then((module) => module.ExerciseLibrary),
@@ -60,6 +65,13 @@ try {
 }
 const queryClient = new QueryClient();
 function Shell() {
+  const training = useTraining();
+  const ownership = useTrainingOwnership();
+  useEffect(() => {
+    void useTraining.getState().initialize();
+    const timer = setInterval(() => void useTraining.getState().tick(), 100);
+    return () => clearInterval(timer);
+  }, []);
   const s = useWorkout((state) => state.snapshot);
   const control = useWorkout((state) => state.control);
   const pendingResult = useWorkout((state) => state.pendingResult);
@@ -102,8 +114,11 @@ function Shell() {
     };
   }, [updates.channel, updates.preferences.automatic]);
   useBlocker({
-    shouldBlockFn: ({ next }) => installing || (active && next.pathname !== '/workout'),
-    enableBeforeUnload: active || installing,
+    shouldBlockFn: ({ next }) =>
+      installing ||
+      (ownership.owned && !training.recovered && next.pathname !== '/session-run') ||
+      (active && !ownership.owned && next.pathname !== '/workout'),
+    enableBeforeUnload: active || installing || ownership.owned,
   });
   const resultBlocker = useBlocker({
     shouldBlockFn: ({ next }) =>
@@ -152,8 +167,9 @@ function Shell() {
     };
   }, []);
   useEffect(() => {
-    if (active && location.pathname !== '/workout') void navigate({ to: '/workout' });
-  }, [active, navigate]);
+    if (active && !ownership.owned && location.pathname !== '/workout')
+      void navigate({ to: '/workout' });
+  }, [active, navigate, ownership.owned]);
   return (
     <>
       <header className="app-header">
@@ -169,7 +185,7 @@ function Shell() {
           variant="ghost"
           size="icon"
           aria-label="Home"
-          disabled={active || installing}
+          disabled={active || installing || (ownership.owned && !training.recovered)}
           onClick={() => void navigate({ to: '/' })}
         >
           <HomeIcon size={18} />
@@ -178,7 +194,7 @@ function Shell() {
           variant="ghost"
           size="icon"
           aria-label="Workout history"
-          disabled={active || installing}
+          disabled={active || installing || (ownership.owned && !training.recovered)}
           onClick={() => void navigate({ to: '/history' })}
         >
           <HistoryIcon size={18} />
@@ -197,7 +213,8 @@ function Shell() {
           {windowError}
         </p>
       )}
-      <div inert={installing}>
+      <div inert={installing} className={ownership.editing ? 'editing-session-block' : ''}>
+        <BlockCapture />
         <Outlet />
       </div>
       {updates.available &&
@@ -246,7 +263,22 @@ function Shell() {
           </div>
         </Dialog>
       )}
-      {close && (
+      {close && ownership.owned && (
+        <Dialog title="Training session in progress" onClose={() => setClose(false)}>
+          <p>
+            Return to your session to stop and save partial work, or discard it before quitting.
+          </p>
+          <Button
+            onClick={() => {
+              setClose(false);
+              void navigate({ to: '/session-run' });
+            }}
+          >
+            Return to session
+          </Button>
+        </Dialog>
+      )}
+      {close && !ownership.owned && (
         <Dialog title="Close NextRound?" onClose={() => setClose(false)}>
           <p>
             {pendingResult
@@ -344,9 +376,21 @@ const completeRoute = createRoute({
   path: '/complete',
   component: Completion,
 });
+const sessionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sessions',
+  component: SessionEditor,
+});
+const sessionRunRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/session-run',
+  component: TrainingRunner,
+});
 const router = createRouter({
   routeTree: rootRoute.addChildren([
     homeRoute,
+    sessionRoute,
+    sessionRunRoute,
     exercisesRoute,
     historyRoute,
     setupRoute,
@@ -369,9 +413,11 @@ if (root)
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <Startup>
-          <RouterProvider router={router} />
-        </Startup>
+        <BackupBootstrap>
+          <Startup>
+            <RouterProvider router={router} />
+          </Startup>
+        </BackupBootstrap>
       </QueryClientProvider>
     </React.StrictMode>,
   );

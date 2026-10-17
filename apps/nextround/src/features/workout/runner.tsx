@@ -12,12 +12,13 @@ import { useWorkout, workoutError } from '@/state/workout';
 import '../countdown/checklist.css';
 import { returnToSetup } from './navigation';
 
-export function Runner() {
+export function Runner({ embedded = false }: { embedded?: boolean }) {
   const { snapshot: s, control, busy, checkedExerciseIds, toggleChecked } = useWorkout();
   const error = useWorkout(workoutError);
   const navigate = useNavigate();
   const { stopConfirmation: stop, requestStop, cancelStop } = useWorkout();
   useEffect(() => {
+    if (embedded) return;
     if (!s || s.phase === 'cancelled')
       void navigate({
         to:
@@ -34,7 +35,7 @@ export function Runner() {
                     : '/emom',
       });
     else if (s.phase === 'completed') void navigate({ to: '/complete' });
-  }, [s?.phase, navigate, s]);
+  }, [s?.phase, navigate, s, embedded]);
   if (!s) return null;
   const lead = s.phase === 'leadIn';
   const amrap = s.config.type === 'amrap';

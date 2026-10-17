@@ -6,9 +6,14 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 1.24.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-1.24.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 2.0.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.0.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
+
+- **Train through a complete session:** combine 1–20 blocks from all six workout modes, with warm-up, main work, recovery and cooldown. Choose automatic transitions or wait until ready. Save, duplicate, organise and share the whole routine.
+- **Recover interrupted training:** multi-part sessions keep local checkpoints and recover paused, without counting time away. Review and save partial work or discard it explicitly.
+- **Record what you did:** optionally enter actual reps, time, distance, calories and load with kg/lb units, separate from prescribed targets. Review each block under one session result, correct actuals and compare compatible attempts.
+- **Protect your local data:** export a full backup in Settings, preview a restore before replacing data, and keep a rollback copy. Backups include private history and notes and are not encrypted. [Data and recovery details](docs/training-storage.md).
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
 - **Build your exercise order:** browse 223 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.

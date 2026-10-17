@@ -108,7 +108,7 @@ pub enum Mutation {
 }
 pub struct TemplateStore {
     path: PathBuf,
-    gate: Mutex<()>,
+    pub(crate) gate: Mutex<()>,
 }
 fn name_value(name: &str) -> Result<String, String> {
     let name = name.trim();

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { ExternalLink } from '@/components/external-link';
 import { Button } from '@/components/ui/button';
+import { BackupPanel } from '@/features/backup/panel';
 import icon from '../../../../../assets/icons/ios/AppIcon.appiconset/AppIcon.png';
 import { version } from '../../../package.json';
 import { EquipmentSettings } from './equipment-settings';
@@ -21,7 +22,7 @@ export function Settings({
   const dismiss = () => {
     if (!installing) onClose();
   };
-  const [section, setSection] = useState<'general' | 'updates' | 'about' | 'equipment'>(
+  const [section, setSection] = useState<'general' | 'updates' | 'about' | 'equipment' | 'backup'>(
     initialSection,
   );
   return (
@@ -59,6 +60,14 @@ export function Settings({
           >
             <Settings2 size={17} /> Equipment
           </Button>
+          <Button
+            variant="ghost"
+            aria-pressed={section === 'backup'}
+            onClick={() => setSection('backup')}
+          >
+            <Download size={17} />
+            Backup
+          </Button>
         </nav>
         <section className="settings-content">
           <Button
@@ -71,7 +80,9 @@ export function Settings({
           >
             <X size={18} />
           </Button>
-          {section === 'general' ? (
+          {section === 'backup' ? (
+            <BackupPanel />
+          ) : section === 'general' ? (
             <GeneralSettings />
           ) : section === 'equipment' ? (
             <EquipmentSettings />

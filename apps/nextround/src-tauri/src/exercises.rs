@@ -13,7 +13,7 @@ pub enum Mutation {
 }
 pub struct ExerciseStore {
     path: PathBuf,
-    gate: Mutex<()>,
+    pub(crate) gate: Mutex<()>,
 }
 fn keys(v: &Value, allowed: &[&str]) -> Result<(), String> {
     let o = v.as_object().ok_or(INVALID)?;

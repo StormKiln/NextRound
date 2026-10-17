@@ -156,3 +156,27 @@ it('rechecks latest collection capacity and destination names before committing'
   await expect(repo.mutate({ action: 'collectionimport', ...collection })).rejects.toThrow(/100/);
   expect(raw).toBe(before);
 });
+
+it('round trips a collection containing only sessions and keeps version 1 for old collections', () => {
+  const session = {
+    id: 's',
+    name: 'Routine',
+    blocks: [
+      {
+        id: 'b',
+        name: 'Warm-up',
+        config: {
+          type: 'countdown' as const,
+          durationSeconds: 10,
+          leadInSeconds: 0,
+          warningSeconds: 3,
+        },
+        restSeconds: 0,
+        advance: 'automatic' as const,
+      },
+    ],
+  };
+  const encoded = encodeCollection({ name: 'Routines', workouts: [], sessions: [session] });
+  expect(JSON.parse(encoded).version).toBe(2);
+  expect(parseCollection(encoded).sessions?.[0].name).toBe('Routine');
+});

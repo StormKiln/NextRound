@@ -32,9 +32,17 @@ async fn panel(
     app: tauri::AppHandle,
     raw: Option<String>,
     suggested_name: String,
+    limit: usize,
 ) -> Result<Option<String>, String> {
     if let Some(data) = &raw {
-        bounded_json(data)?;
+        if limit == LIMIT {
+            bounded_json(data)?;
+        } else if data.is_empty()
+            || data.len() > limit
+            || serde_json::from_str::<serde_json::Value>(data).is_err()
+        {
+            return Err("Invalid or oversized backup JSON.".into());
+        }
     }
     if suggested_name.len() > 185
         || !suggested_name.ends_with(".json")
@@ -50,7 +58,7 @@ async fn panel(
     let (sender, receiver) = std::sync::mpsc::channel();
     app.run_on_main_thread(move || {
         let _guard = guard;
-        let mut output = vec![0u8; LIMIT];
+        let mut output = vec![0u8; limit];
         let mut length = 0usize;
         let mut message = [0 as std::ffi::c_char; 2048];
         let bytes = raw.as_deref().unwrap_or("").as_bytes();
@@ -62,7 +70,7 @@ async fn panel(
                 bytes.len(),
                 output.as_mut_ptr(),
                 &mut length,
-                LIMIT,
+                limit,
                 message.as_mut_ptr(),
                 message.len(),
             )
@@ -87,7 +95,7 @@ async fn panel(
 }
 #[tauri::command]
 pub async fn open_workout_file(app: tauri::AppHandle) -> Result<Option<String>, String> {
-    panel(app, None, "NextRound-workout.json".into()).await
+    panel(app, None, "NextRound-workout.json".into(), LIMIT).await
 }
 #[tauri::command]
 pub async fn save_workout_file(
@@ -95,7 +103,9 @@ pub async fn save_workout_file(
     raw: String,
     suggested_name: String,
 ) -> Result<bool, String> {
-    Ok(panel(app, Some(raw), suggested_name).await?.is_some())
+    Ok(panel(app, Some(raw), suggested_name, LIMIT)
+        .await?
+        .is_some())
 }
 #[cfg(test)]
 mod tests {
@@ -107,4 +117,19 @@ mod tests {
         assert!(bounded_json(&" ".repeat(LIMIT + 1)).is_err());
         assert!(bounded_json("{\"version\":1}").is_ok());
     }
+}
+
+#[tauri::command]
+pub async fn open_backup_file(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    panel(app, None, "NextRound-backup.json".into(), 32 * 1024 * 1024).await
+}
+#[tauri::command]
+pub async fn save_backup_file(
+    app: tauri::AppHandle,
+    raw: String,
+    suggested_name: String,
+) -> Result<bool, String> {
+    Ok(panel(app, Some(raw), suggested_name, 32 * 1024 * 1024)
+        .await?
+        .is_some())
 }

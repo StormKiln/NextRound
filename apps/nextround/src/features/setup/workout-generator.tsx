@@ -11,6 +11,7 @@ import { type FocusArea, matchesFocus } from '@/data/focus';
 import { useExerciseFavorites } from '@/features/exercises/favorites-store';
 import { toWorkoutEntry, useExerciseLibrary } from '@/features/exercises/library';
 import { readHistory } from '@/features/history/repository';
+import { readTraining, trainingKey } from '@/features/sessions/repository';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget } from './emom-defaults';
@@ -172,6 +173,12 @@ function GenerateDialog({
   const favorites = useExerciseFavorites();
   const starred = preset === 'favorites';
   useEffect(() => favorites.load(), [favorites.load]);
+  const training = useQuery({
+    queryKey: trainingKey,
+    queryFn: readTraining,
+    retry: false,
+    enabled: !starred,
+  });
   const history = useQuery({
     queryKey: ['workout-history'],
     queryFn: readHistory,
@@ -190,13 +197,13 @@ function GenerateDialog({
   const loading =
     personal.isPending ||
     bundled.isPending ||
-    (!starred && history.isPending) ||
+    (!starred && (history.isPending || training.isPending)) ||
     (starred && !favorites.loaded && !favorites.error) ||
     (!equipment.loaded && !equipment.error);
   const failed =
     personal.isError ||
     bundled.isError ||
-    (!starred && history.isError) ||
+    (!starred && (history.isError || training.isError)) ||
     (starred && !!favorites.error) ||
     !!equipment.error;
   const eligible = library.filter(
@@ -206,7 +213,9 @@ function GenerateDialog({
       matchesFocus(entry, areas) &&
       (mode !== 'ladder' || !entry.supportedUnits || entry.supportedUnits.includes('reps')),
   );
-  const counts = history.data ? deriveUsage(history.data).counts : new Map<string, number>();
+  const counts = history.data
+    ? deriveUsage(history.data, training.data?.results).counts
+    : new Map<string, number>();
   if (settings)
     return (
       <Settings

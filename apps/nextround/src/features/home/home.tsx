@@ -1,6 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { openSession, useSessionEditor } from '@/features/sessions/editor';
+import { useTraining } from '@/features/sessions/state';
 import { TemplateLibrary } from '@/features/templates';
 import { useTemplateSources } from '@/state/template-source';
 import { useWorkout } from '@/state/workout';
@@ -8,6 +10,8 @@ import artwork from '../../../../../assets/brand/nextround-splash.png';
 
 export function Home() {
   const navigate = useNavigate();
+  const training = useTraining();
+  const draft = useSessionEditor((s) => s.draft);
   return (
     <main className="home page">
       <section className="home-intro">
@@ -21,6 +25,31 @@ export function Home() {
         </div>
         <img className="home-art" src={artwork} alt="NextRound timer artwork in a gym" />
       </section>
+      <div className="training-home-actions">
+        <Button
+          disabled={!training.initialized || !!training.run}
+          onClick={() => {
+            if (!draft.blocks.length) openSession();
+            void navigate({ to: '/sessions' });
+          }}
+        >
+          {draft.blocks.length ? 'Continue editing session' : 'Build a session'}
+        </Button>
+        <span>Combine warm-up, workout and cooldown.</span>
+        {training.run && (
+          <Button onClick={() => void navigate({ to: '/session-run' })}>
+            {training.recovered ? 'Recover interrupted session' : 'Continue session'}
+          </Button>
+        )}
+        {training.error && (
+          <p role="alert">
+            {training.error}
+            <Button variant="ghost" onClick={() => void training.initialize()}>
+              Retry training data
+            </Button>
+          </p>
+        )}
+      </div>
       <div className="dialog-actions home-actions">
         <Button variant="secondary" onClick={() => void navigate({ to: '/exercises' })}>
           My exercises

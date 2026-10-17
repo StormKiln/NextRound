@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { importMixedCollection } from '../sessions/collection-import';
+import { sessionTimeLabel } from '../sessions/model';
+import { readTraining, trainingKey } from '../sessions/repository';
 import { collectionFailure } from './collection-errors';
 import { validateImportNames } from './collection-name-errors';
 import { workoutFilename } from './filename';
@@ -60,8 +63,9 @@ export function CollectionImport({
       const parsed = parseCollection(raw),
         doc = await readTemplates();
       if (!mounted.current) return;
-      const used = doc.templates.map((t) => t.name);
-      const suggested = parsed.workouts.map((w) => {
+      const sessions = await readTraining();
+      const used = [...doc.templates.map((t) => t.name), ...sessions.sessions.map((s) => s.name)];
+      const suggested = [...parsed.workouts, ...(parsed.sessions ?? [])].map((w) => {
         const name = availableTransferName(w.name, used, 120);
         used.push(name);
         return name;
@@ -93,16 +97,19 @@ export function CollectionImport({
     setError('');
     try {
       await client.cancelQueries({ queryKey: ['workout-templates'] });
-      const doc = await mutateTemplates({
-        action: 'collectionimport',
-        name,
-        workouts: preview.workouts.map((w, i) => ({
-          name: names[i],
-          config: importedConfig(w.config),
-        })),
-      });
+      const doc = preview.sessions?.length
+        ? await importMixedCollection(preview, name, names)
+        : await mutateTemplates({
+            action: 'collectionimport',
+            name,
+            workouts: preview.workouts.map((w, i) => ({
+              name: names[i],
+              config: importedConfig(w.config),
+            })),
+          });
       await client.cancelQueries({ queryKey: ['workout-templates'] });
       client.setQueryData(['workout-templates'], doc);
+      await client.invalidateQueries({ queryKey: trainingKey });
       if (mounted.current) onImported(doc.collections[doc.collections.length - 1].name);
     } catch (e) {
       if (mounted.current) setError(errorMessage(e));
@@ -197,8 +204,9 @@ export function CollectionImport({
               <p id="import-collection-name-error">{validation.collection}</p>
             )}
             <p>
-              {preview.workouts.length} workouts will be added. Suggested copy names avoid existing
-              names; review or edit them before adding. Nothing will be overwritten.
+              {preview.workouts.length} workouts and {preview.sessions?.length ?? 0} sessions will
+              be added. Suggested copy names avoid existing names; review or edit them before
+              adding. Nothing will be overwritten.
             </p>
             {preview.workouts.map((w, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: Imported preview order is immutable; editable names are separate state.
@@ -223,6 +231,36 @@ export function CollectionImport({
                 <WorkoutDetails config={w.config} />
               </section>
             ))}
+            {preview.sessions?.map((session, index) => {
+              const i = preview.workouts.length + index;
+              return (
+                <section className="template-review" key={session.id}>
+                  <label htmlFor={`collection-workout-${i}`}>Session {index + 1} name</label>
+                  <Input
+                    id={`collection-workout-${i}`}
+                    aria-invalid={!!validation.workouts[i]}
+                    aria-describedby={
+                      validation.workouts[i] ? `collection-workout-error-${i}` : undefined
+                    }
+                    maxLength={120}
+                    value={names[i]}
+                    disabled={busy}
+                    onChange={(e) =>
+                      setNames((current) => current.map((n, j) => (i === j ? e.target.value : n)))
+                    }
+                  />
+                  {validation.workouts[i] && (
+                    <p id={`collection-workout-error-${i}`}>{validation.workouts[i]}</p>
+                  )}
+                  <p>{sessionTimeLabel(session)}</p>
+                  <ol>
+                    {session.blocks.map((b) => (
+                      <li key={b.id}>{b.name}</li>
+                    ))}
+                  </ol>
+                </section>
+              );
+            })}
           </>
         )}
       </div>
@@ -281,8 +319,9 @@ export function CollectionExport({
     setPreview(null);
     setBusy(true);
     void readTemplates()
-      .then((doc) => {
-        if (active) setPreview(collectionFromDocument(doc, id));
+      .then(async (doc) => {
+        const training = await readTraining();
+        if (active) setPreview(collectionFromDocument(doc, id, training.sessions));
       })
       .catch((e) => {
         if (active) setError(errorMessage(e));
@@ -303,7 +342,8 @@ export function CollectionExport({
     try {
       const doc: TemplateDocument = await readTemplates();
       if (!mounted.current) return;
-      const collection = collectionFromDocument(doc, id),
+      const training = await readTraining();
+      const collection = collectionFromDocument(doc, id, training.sessions),
         raw = encodeCollection(collection);
       if (isTauri()) {
         if (
@@ -346,13 +386,18 @@ export function CollectionExport({
           <>
             <h3>{preview.name}</h3>
             <p>
-              {preview.workouts.length} saved workouts. The latest saved collection will be read
-              when you save.
+              {preview.workouts.length} saved workouts and {preview.sessions?.length ?? 0} sessions.
+              The latest saved collection will be read when you save.
             </p>
             <ol>
               {preview.workouts.map((w, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: Export preview order is immutable.
                 <li key={i}>{w.name}</li>
+              ))}
+              {preview.sessions?.map((session) => (
+                <li key={session.id}>
+                  {session.name} — {session.blocks.length} blocks
+                </li>
               ))}
             </ol>
           </>

@@ -378,6 +378,23 @@ impl Session {
             completed_movements: 0,
         })
     }
+    pub fn restore(config: Config, elapsed: u64, completed_movements: u32) -> Result<Self, String> {
+        let mut session = Self::new(config)?;
+        if elapsed > 604_800_000
+            || (session.config.mode == Mode::Ladder
+                && completed_movements > session.config.ladder_total())
+            || (session.config.mode != Mode::Ladder && completed_movements != 0)
+        {
+            return Err("Invalid recovery position".into());
+        }
+        session.elapsed = elapsed;
+        session.last_second = elapsed / 1000;
+        session.completed_movements = completed_movements;
+        session.paused = true;
+        session.notice =
+            Some("Recovered paused. Resume when ready; time away was not counted.".into());
+        Ok(session)
+    }
     pub fn needs_result_decision(&self) -> bool {
         !self.cancelled && !self.result_resolved && self.snapshot().phase == "completed"
     }
@@ -899,5 +916,55 @@ mod tests {
             r#"{"minutes":1.5,"leadInSeconds":0,"warningSeconds":3,"exercises":[]}"#
         )
         .is_err());
+    }
+}
+
+#[cfg(test)]
+mod recovery_tests {
+    use super::*;
+    #[test]
+    fn restores_paused_without_replaying_downtime_or_cues() {
+        let config:Config=serde_json::from_value(serde_json::json!({"type":"countdown","durationSeconds":30,"leadInSeconds":5,"warningSeconds":3})).unwrap();
+        let mut restored = Session::restore(config, 7000, 0).unwrap();
+        assert!(restored.paused);
+        assert_eq!(restored.snapshot().elapsed_ms, 2000);
+        assert_eq!(restored.advance(60000, false), None);
+        assert_eq!(restored.snapshot().elapsed_ms, 2000);
+    }
+}
+
+#[cfg(test)]
+mod training_cue_tests {
+    use super::*;
+    #[test]
+    fn only_final_training_block_uses_completion_sound_and_transition_rest_is_silent() {
+        assert_eq!(
+            training_cue(Some("complete"), true, false, false),
+            Some("beep")
+        );
+        assert_eq!(
+            training_cue(Some("complete"), true, true, false),
+            Some("complete")
+        );
+        assert_eq!(training_cue(Some("beep"), true, false, true), None);
+        assert_eq!(
+            training_cue(Some("complete"), false, false, false),
+            Some("complete")
+        );
+    }
+}
+
+pub fn training_cue(
+    cue: Option<&'static str>,
+    active: bool,
+    final_block: bool,
+    silent: bool,
+) -> Option<&'static str> {
+    if active && silent {
+        None
+    } else if active && !final_block && cue == Some("complete") {
+        Some("beep")
+    } else {
+        cue
     }
 }

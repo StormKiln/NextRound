@@ -52,7 +52,7 @@ pub enum Mutation {
 }
 pub struct HistoryStore {
     path: PathBuf,
-    gate: Mutex<()>,
+    pub(crate) gate: Mutex<()>,
 }
 // Keep this explicit set in sync with history/note-text.ts (ECMAScript whitespace).
 fn blank_note(note: &str) -> bool {
