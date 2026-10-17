@@ -42,7 +42,7 @@ ditto -c -k --keepParent "$app" release/NextRound-notarization.zip
 python3 scripts/notarize.py release/NextRound-notarization.zip release/app-notarization.json "${notary_args[@]}"
 python3 -c 'import json; assert json.load(open("release/app-notarization.json"))["status"] == "Accepted", "App notarization was not accepted"'
 printf '%s\n' 'Release stage: Staple and verify application'
-xcrun stapler staple "$app"
+python3 scripts/staple.py "$app"
 xcrun stapler validate "$app"
 spctl --assess --type execute --verbose "$app"
 stage=$(mktemp -d "${TMPDIR:-/tmp}/nextround-release.XXXXXX")
@@ -58,7 +58,7 @@ printf '%s\n' 'Release stage: Upload disk image for notarization'
 python3 scripts/notarize.py "$dmg" release/dmg-notarization.json "${notary_args[@]}"
 python3 -c 'import json; assert json.load(open("release/dmg-notarization.json"))["status"] == "Accepted", "DMG notarization was not accepted"'
 printf '%s\n' 'Release stage: Staple and verify disk image'
-xcrun stapler staple "$dmg"
+python3 scripts/staple.py "$dmg"
 xcrun stapler validate "$dmg"
 spctl --assess --type open --context context:primary-signature --verbose "$dmg"
 # Package only after stapling the app; sign these final archive bytes.
