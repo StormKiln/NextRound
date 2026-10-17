@@ -1496,6 +1496,146 @@ export const exercises: ExerciseEntry[] = [
       'Raise one arm and bend its elbow so the hand rests behind your head. Use the other hand above the elbow for gentle support, keeping your ribs settled. Choose one side for the interval and breathe steadily.',
     supportedUnits: ['seconds'],
   },
+  {
+    id: 'pilates-hundred',
+    supportedUnits: ['seconds'],
+    name: 'Pilates hundred',
+    description:
+      'Lie on your back with knees lifted and chest gently curled. Pulse straight arms beside your hips while breathing evenly. Keep knees bent to reduce the load.',
+  },
+  {
+    id: 'pilates-roll-up',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Pilates roll-up',
+    description:
+      'Lie long with arms reaching overhead. Curl up gradually toward your toes, then lower with control. Bend your knees if needed and avoid using momentum.',
+  },
+  {
+    id: 'supine-single-leg-circle',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Supine single-leg circle',
+    description:
+      'Lie on your back and raise one leg. Draw small circles without rocking your pelvis, then reverse direction. Choose a side for the interval.',
+  },
+  {
+    id: 'pilates-single-leg-stretch',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Pilates single-leg stretch',
+    description:
+      'Curl your upper back off the floor. Hold one bent knee as the other leg reaches away, then switch smoothly. Count each switch as one rep.',
+  },
+  {
+    id: 'pilates-double-leg-stretch',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Pilates double-leg stretch',
+    description:
+      'From a curled position with knees tucked, reach both arms and legs away. Circle arms back as knees return. Shorten the reach if your back arches.',
+  },
+  {
+    id: 'pilates-saw',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Pilates saw',
+    description:
+      'Sit tall with legs apart and arms wide. Rotate, reaching one hand toward the opposite foot. Return upright and alternate; count each reach as one rep.',
+  },
+  {
+    id: 'supine-corkscrew',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Supine corkscrew',
+    description:
+      'Lie back with legs raised together. Trace small circles with your feet, keeping hips on the floor. Reverse direction and reduce the circle if your back lifts.',
+  },
+  {
+    id: 'seated-spine-stretch-forward',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Seated spine stretch forward',
+    description:
+      'Sit tall with legs comfortably apart. Reach forward while gently rounding your upper back, then stack upright. Keep the movement controlled rather than bouncing.',
+  },
+  {
+    id: 'prone-single-leg-kick',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Prone single-leg kick',
+    description:
+      'Lie on your front supported on forearms. Bend one knee toward your seat twice, then extend and switch. Keep hips grounded; each two-pulse side is one rep.',
+  },
+  {
+    id: 'prone-double-leg-kick',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Prone double-leg kick',
+    description:
+      'Lie face down with hands behind your back. Bend both knees for three small pulses, then lengthen legs and gently lift the chest. Lower; the whole sequence is one rep.',
+  },
+  {
+    id: 'standing-broad-jump',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Standing broad jump',
+    description:
+      'With clear space ahead, bend hips and knees and swing your arms to jump forward. Land softly on both feet and regain balance before repeating.',
+  },
+  {
+    id: 'tuck-jump',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Tuck jump',
+    description:
+      'Jump vertically from a small dip, lifting knees toward your chest. Extend legs to land softly with knees tracking over feet. Reset before each jump.',
+  },
+  {
+    id: 'dumbbell-hang-power-clean',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell hang power clean',
+    description:
+      'Hold two dumbbells beside your thighs. Hinge, drive through your hips and receive the weights at your shoulders with knees slightly bent. Stand, then lower with control.',
+  },
+  {
+    id: 'dumbbell-squat-clean',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell squat clean',
+    description:
+      'Drive two dumbbells upward from the floor, receiving them at your shoulders in a squat. Stand fully before lowering. Use a load you can control.',
+  },
+  {
+    id: 'dumbbell-push-jerk',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell push jerk',
+    description:
+      'Start with two dumbbells at your shoulders. Dip and drive upward, then bend your knees to receive locked-out weights overhead. Stand before lowering.',
+  },
+  {
+    id: 'dumbbell-split-jerk',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell split jerk',
+    description:
+      'Dip and drive two shoulder-held dumbbells overhead, receiving them in a split stance. Bring feet together under control before lowering. Alternate the leading foot.',
+  },
+  {
+    id: 'dumbbell-overhead-walking-lunge',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell overhead walking lunge',
+    description:
+      'Hold one dumbbell steadily overhead. Step into controlled walking lunges without leaning sideways. Choose an arm for the interval; count each step as one rep.',
+  },
+  {
+    id: 'dumbbell-overhead-squat',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell overhead squat',
+    description:
+      'Hold one dumbbell overhead with a steady arm. Squat through a comfortable range while keeping the weight balanced over your feet. Choose one arm for the interval.',
+  },
+  {
+    id: 'kettlebell-crush-curl-squat',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell crush curl in squat',
+    description:
+      'Hold a comfortable squat and grip the bell body with both hands. Curl it toward your chest and lower without swinging your elbows or rounding your back. Each curl is one rep.',
+  },
+  {
+    id: 'kettlebell-sumo-deadlift-high-pull',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell sumo deadlift high pull',
+    description:
+      'Take a wide stance with the bell between your feet. Drive hips and legs to stand, then guide the bell upward with elbows high. Lower under control before repeating.',
+  },
 ];
 
 export async function listExercises() {

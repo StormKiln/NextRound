@@ -265,3 +265,25 @@ Technique references checked 17 October 2026; all app cues are original summarie
 | Supine figure-four stretch; side-lying quadriceps stretch | [NHS post-exercise stretches](https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/) |
 | Cross-body shoulder stretch | [AAOS crossover arm stretch](https://orthoinfo.aaos.org/globalassets/pdfs/2024-rotator-cuff-and-shoulder-conditioning-program.pdf) |
 | Overhead triceps stretch | [ACE overhead triceps stretch](https://www.acefitness.org/resources/everyone/exercise-library/174/overhead-triceps-stretch/) |
+
+## 1.24.0: 20 core and whole-body movements
+
+Reviewed 2026-10-17 against the preceding 203 IDs/names and aliases. Original concise cues are used; no source images or text are copied. Twelve movements need no dedicated equipment (a comfortable floor surface is recommended); six use dumbbells and two use a kettlebell. Targets are editable starting suggestions, not measured effort or individual readiness guidance.
+
+| Movements | Technique reference |
+| --- | --- |
+| Pilates hundred, roll-up, supine single-leg circle, single-leg stretch, double-leg stretch | [Pilates Anytime: Connecting to the Mat, Lesley Logan](https://www.pilatesanytime.com/class-view/3465/video/Pilates-Connecting-to-the-Mat-by-Lesley-Logan) |
+| Pilates saw, supine corkscrew, seated spine stretch forward, prone single-leg kick, prone double-leg kick | [Pilates Anytime: No Tension Mat, Amy Taylor Alpers](https://www.pilatesanytime.com/class-view/3539/video/Pilates-No-Tension-Mat-by-Amy-Taylor-Alpers) |
+| Standing broad jump | [Catalyst Athletics: Broad Jump](https://www.catalystathletics.com/exercise/549/Broad-Jump/) |
+| Tuck jump | [NASM: Tuck Jump](https://www.nasm.org/resource-center/exercise-library/tuck-jump) |
+| Dumbbell hang power clean, squat clean, push jerk, split jerk, overhead walking lunge, overhead squat | [CrossFit Dumbbells Training Guide](https://assets.crossfit.com/pdfs/seminars/Dumbbell_Training_Guide.pdf) |
+| Kettlebell crush curl in squat | [NASM: Kettlebell Crush Curl With Squat](https://www.nasm.org/resource-center/exercise-library/kettlebell-crush-curl-with-squat) |
+| Kettlebell sumo deadlift high pull | [Original Kettlebell: Sumo Deadlift High Pull](https://www.originalkettlebell.com/en-us/exercise/kettlebell-sumo-deadlift) |
+
+### Catalogue decisions
+
+- Corkscrew uses small circles with hips down, not an overhead rollover. Single-leg circles rotate at the hip while the torso stays still; this differs from the existing leg raise. Single-/double-leg stretches coordinate a curled trunk and reaching limbs, rather than duplicating dead bugs.
+- Prone kicks use controlled knee flexion with supported trunk work, distinct from the existing quadruped donkey kick and contralateral limb raise. Counting conventions are included for multi-pulse/alternating movements.
+- Power versus squat cleans differ in receiving depth; push versus split jerks differ in receiving stance. Neither is a renamed push press. The overhead squat/lunge adds an overhead stabilization task to existing rack/goblet variants.
+- The sumo deadlift high pull starts from the floor with a two-handed wide stance, distinct from the existing single-arm swing-based kettlebell high pull. Crush curls hold a squat while the elbows flex.
+- The hundred is timed; other additions support reps and seconds. Defaults are 4–8 controlled repetitions (30 seconds for the hundred). Jumps and ballistic lifts are labelled high intensity; users can edit or replace them.

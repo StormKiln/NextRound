@@ -135,7 +135,9 @@ test('retries an initial export read failure without reopening the dialog', asyn
   await page.getByLabel('Collection', { exact: true }).selectOption('c');
   await page.evaluate((key) => {
     const get = Storage.prototype.getItem;
-    (window as unknown as { restoreRead: () => void }).restoreRead = () => { Storage.prototype.getItem = get; };
+    (window as unknown as { restoreRead: () => void }).restoreRead = () => {
+      Storage.prototype.getItem = get;
+    };
     Storage.prototype.getItem = function (k) {
       if (k === key) {
         throw Error('Read temporarily unavailable');
