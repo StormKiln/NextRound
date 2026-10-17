@@ -6,8 +6,8 @@ import { eligibleExercise, metadataFor } from './equipment';
 import { exercises } from './exercises';
 import { areasFor, focusAreas, matchesFocus, parseTargetAreas } from './focus';
 
-it('audits all 183 catalog movements with valid, unique focus tags', () => {
-  expect(exercises).toHaveLength(183);
+it('audits all 203 catalog movements with valid, unique focus tags', () => {
+  expect(exercises).toHaveLength(203);
   for (const entry of exercises) {
     const areas = metadataFor(entry)?.targetAreas;
     expect(areas).toBeDefined();
@@ -30,7 +30,7 @@ it('matches any selected area, expands lats into back, and supports unspecified 
 it('adds twenty equipment-free movements with compatible editable defaults', () => {
   const added = exercises.slice(63, 83);
   expect(added).toHaveLength(20);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(183);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(203);
   for (const e of added) {
     expect(eligibleExercise(e, [])).toBe(true);
     expect(e.name.length).toBeLessThanOrEqual(60);

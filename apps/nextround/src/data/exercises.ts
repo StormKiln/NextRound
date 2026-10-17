@@ -1356,7 +1356,148 @@ export const exercises: ExerciseEntry[] = [
       'Hold one bell at the chest. Lunge forward, return to standing, then lunge backward with the same leg. That pair is one rep per side. Keep the trunk steady; practise unweighted first.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'seated-knee-extension',
+    name: 'Seated knee extension',
+    description:
+      'Sit tall on a stable chair with feet down. Straighten one knee without leaning back, then lower slowly. Alternate legs; each extension counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-shoulder-roll',
+    name: 'Standing shoulder roll',
+    description:
+      'Stand tall with relaxed arms. Circle both shoulders up, back and down without craning your neck. One full circle counts as one rep; reverse direction halfway through.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'supine-heel-slide',
+    name: 'Supine heel slide',
+    description:
+      'Lie on your back with legs comfortable and your trunk steady. Slide one heel toward your hips, then lengthen the leg again. Alternate legs; each in-and-out slide is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bent-knee-fallout',
+    name: 'Bent-knee fallout',
+    description:
+      'Lie on your back with knees bent and feet planted. Let one knee open a short way to the side while your pelvis stays still, then return. Alternate sides; each opening and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-march',
+    name: 'Seated march',
+    description:
+      'Sit upright on a stable chair and hold its sides. Lift one bent knee without leaning back, lower it gently, then switch legs. Each knee lift counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-toe-raise',
+    name: 'Seated toe raise',
+    description:
+      'Sit on a stable chair with feet flat. Keep your heels grounded as you lift both forefeet, then lower with control. Each lift and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-hip-extension',
+    name: 'Supported standing hip extension',
+    description:
+      'Hold a fixed stable support and stand tall. Move one straight leg a little behind you without arching your back, then return. Choose one side for the interval; each return completes one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-hip-abduction',
+    name: 'Supported standing hip abduction',
+    description:
+      'Stand beside a fixed stable support. Lift one leg sideways with toes facing forward and your trunk upright, then lower. Choose one side for the interval; each lift and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'tandem-walk',
+    name: 'Supported tandem walk',
+    description:
+      'Walk beside a fixed stable support, placing each heel just in front of the other foot’s toes. Look ahead and take small controlled steps. Each step is one rep; turn normally at the end.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'heel-walk',
+    name: 'Supported heel walk',
+    description:
+      'Hold a fixed stable support and lift your forefeet. Take small steps on your heels while staying upright. Each step is one rep. Lower your feet before turning.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'toe-walk',
+    name: 'Supported toe walk',
+    description:
+      'Stand beside a fixed stable support and rise onto your forefeet. Walk with small controlled steps, keeping your ankles steady. Each step is one rep. Lower your heels before turning.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-trunk-rotation',
+    name: 'Seated trunk rotation',
+    description:
+      'Sit tall on a stable chair with feet planted and arms crossed over your chest. Turn your upper body gently while your hips face forward, then return. Alternate sides; each turn and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'side-lying-open-book',
+    name: 'Side-lying open book',
+    description:
+      'Lie on your side with bent knees stacked and arms reaching forward. Sweep the top arm open as your chest turns, keeping your knees together, then return. Choose one side; each open-and-close is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'thread-the-needle',
+    name: 'Thread the needle',
+    description:
+      'From hands and knees, slide one arm beneath the other and gently turn your chest toward that side. Return to your starting position without forcing the stretch. Choose one side; each reach and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'quadruped-rockback',
+    name: 'Quadruped rock-back',
+    description:
+      'Start on hands and knees with your spine neutral. Move your hips slowly toward your heels, stopping before your lower back rounds, then return over your knees. Each back-and-forward movement is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'sideways-walk',
+    name: 'Sideways walk',
+    description:
+      'Stand with soft knees. Step one foot sideways, then bring the other foot beside it without crossing your legs. Stay upright and move slowly. Each step-together is one rep; change direction halfway through.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'supine-figure-four-stretch',
+    name: 'Supine figure-four stretch',
+    description:
+      'Lie on your back and rest one ankle across the opposite thigh. Hold behind the supporting thigh and draw it toward you gently, keeping your head relaxed. Choose one side for the interval and breathe steadily.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'side-lying-quad-stretch',
+    name: 'Side-lying quadriceps stretch',
+    description:
+      'Lie on your side with knees together. Bend the top knee and hold the top of that foot, bringing the heel gently toward your hips without arching your back. Choose one side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'cross-body-shoulder-stretch',
+    name: 'Cross-body shoulder stretch',
+    description:
+      'Bring one arm across your chest. Support it above the elbow with your other hand and draw it gently closer, keeping the shoulder relaxed. Avoid pressure on the elbow joint. Choose one side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'overhead-triceps-stretch',
+    name: 'Overhead triceps stretch',
+    description:
+      'Raise one arm and bend its elbow so the hand rests behind your head. Use the other hand above the elbow for gentle support, keeping your ribs settled. Choose one side for the interval and breathe steadily.',
+    supportedUnits: ['seconds'],
+  },
 ];
+
 export async function listExercises() {
   return exercises;
 }
