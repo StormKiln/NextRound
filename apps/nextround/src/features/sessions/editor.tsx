@@ -1,7 +1,7 @@
 import { validateConfig } from '@nextround/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { create } from 'zustand';
 import { Button } from '@/components/ui/button';
 import { readTemplates } from '@/features/templates/repository';
@@ -118,6 +118,15 @@ export function BlockCapture() {
 export function SessionEditor() {
   const { draft, source, undo } = useSessionEditor();
   const dragging = useRef<string | null>(null);
+  const editButtons = useRef(new Map<string, HTMLButtonElement>());
+  const addButton = useRef<HTMLButtonElement>(null);
+  const [focusBlock, setFocusBlock] = useState<string | null>(null);
+  const removedBlock = useRef<string | null>(null);
+  useEffect(() => {
+    if (focusBlock === null) return;
+    (editButtons.current.get(focusBlock) ?? addButton.current)?.focus();
+    setFocusBlock(null);
+  }, [focusBlock]);
   const focusInvalid = () => {
     const input = document.querySelector<HTMLInputElement>(
       '.session-editor input[aria-invalid="true"]',
@@ -234,7 +243,14 @@ export function SessionEditor() {
               <WorkoutDetails config={b.config} />
             </details>
             <div className="dialog-actions">
-              <Button variant="secondary" onClick={() => edit(b.config.type ?? 'emom', b)}>
+              <Button
+                ref={(node) => {
+                  if (node) editButtons.current.set(b.id, node);
+                  else editButtons.current.delete(b.id);
+                }}
+                variant="secondary"
+                onClick={() => edit(b.config.type ?? 'emom', b)}
+              >
                 Edit block {i + 1}
               </Button>
               <Button
@@ -270,11 +286,16 @@ export function SessionEditor() {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() =>
+                className="destructive-action"
+                onClick={() => {
+                  const next = draft.blocks[i + 1]?.id ?? draft.blocks[i - 1]?.id ?? '';
+                  removedBlock.current = b.id;
                   change((d) => {
                     d.blocks.splice(i, 1);
-                  })
-                }
+                  });
+                  setNotice(`Removed ${b.name}. Undo last edit is available.`);
+                  setFocusBlock(next);
+                }}
               >
                 Remove block {i + 1}
               </Button>
@@ -325,6 +346,7 @@ export function SessionEditor() {
           {modes.map((m) => (
             <Button
               key={m.mode}
+              ref={m.mode === 'emom' ? addButton : undefined}
               variant="secondary"
               disabled={draft.blocks.length >= 20}
               onClick={() => edit(m.mode)}
@@ -382,7 +404,17 @@ export function SessionEditor() {
           <Button
             variant="ghost"
             disabled={!undo}
-            onClick={() => useSessionEditor.setState({ draft: undo!, undo: null })}
+            onClick={() => {
+              const restored = undo!;
+              useSessionEditor.setState({ draft: restored, undo: null });
+              setFocusBlock(
+                restored.blocks.find((b) => b.id === removedBlock.current)?.id ??
+                  restored.blocks[0]?.id ??
+                  '',
+              );
+              setNotice('Last edit undone.');
+              removedBlock.current = null;
+            }}
           >
             Undo last edit
           </Button>

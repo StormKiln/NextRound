@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { useTemplateFilters } from '@/features/templates/filter-state';
+import { sortLibrary } from '@/features/templates/library-sort';
 import { availableTransferName } from '@/features/templates/portable-collection';
 import { readTemplates } from '@/features/templates/repository';
 import { normalizeSearch } from '@/lib/search';
@@ -32,6 +33,10 @@ export function SessionLibrary() {
   const fresh = query.isSuccess && !query.isFetching;
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const affectedMutation = useRef<string | null>(null);
+  const [affectedId, setAffectedId] = useState<string | null>(null);
+  const [revealId, setRevealId] = useState<string | null>(null);
+  const cards = useRef(new Map<string, HTMLElement>());
   const [busy, setBusy] = useState(false);
   const [action, setAction] = useState<{
     kind: 'rename' | 'delete' | 'collections';
@@ -43,31 +48,46 @@ export function SessionLibrary() {
   const [preview, setPreview] = useState<TrainingSession | null>(null);
   const collectionsReady = templates.isSuccess && !templates.isFetching;
   const all = query.data?.sessions ?? [];
-  const sessions = all.filter((s) => {
-    const seconds = sessionSeconds(s);
-    return (
-      (!filters.favouritesOnly || s.favourite) &&
-      (!filters.search ||
-        normalizeSearch(
-          [
-            s.name,
-            ...s.blocks.flatMap((b) => [
-              b.name,
-              ...(b.config.exercises ?? []).map((e) => e.name + ' ' + (e.description ?? '')),
-            ]),
-          ].join(' '),
-        ).includes(normalizeSearch(filters.search))) &&
-      (filters.workoutType === 'all' ||
-        s.blocks.some((b) => (b.config.type ?? 'emom') === filters.workoutType)) &&
-      (filters.collection === 'all' ||
-        (filters.collection === 'unfiled'
-          ? collectionsReady &&
-            !s.collections?.some((id) => templates.data?.collections.some((c) => c.id === id))
-          : s.collections?.includes(filters.collection))) &&
-      (filters.budgetMinutes === null ||
-        (seconds !== null && seconds <= filters.budgetMinutes * 60))
-    );
-  });
+  const sessions = sortLibrary(
+    all.filter((s) => {
+      const seconds = sessionSeconds(s);
+      return (
+        (!filters.favouritesOnly || s.favourite) &&
+        (!filters.search ||
+          normalizeSearch(
+            [
+              s.name,
+              ...s.blocks.flatMap((b) => [
+                b.name,
+                ...(b.config.exercises ?? []).map((e) => e.name + ' ' + (e.description ?? '')),
+              ]),
+            ].join(' '),
+          ).includes(normalizeSearch(filters.search))) &&
+        (filters.workoutType === 'all' ||
+          s.blocks.some((b) => (b.config.type ?? 'emom') === filters.workoutType)) &&
+        (filters.collection === 'all' ||
+          (filters.collection === 'unfiled'
+            ? collectionsReady &&
+              !s.collections?.some((id) => templates.data?.collections.some((c) => c.id === id))
+            : s.collections?.includes(filters.collection))) &&
+        (filters.budgetMinutes === null ||
+          (seconds !== null && seconds <= filters.budgetMinutes * 60))
+      );
+    }),
+    filters.sort,
+    sessionSeconds,
+  );
+  const affected = all.find((s) => s.id === affectedId);
+  const hidden = !!affected && !sessions.some((s) => s.id === affected.id);
+  useEffect(() => {
+    if (!revealId || !fresh) return;
+    const card = cards.current.get(revealId);
+    if (card) {
+      card.focus();
+      card.scrollIntoView({ block: 'nearest' });
+      setRevealId(null);
+    }
+  }, [revealId, fresh]);
   function remember(event: React.MouseEvent<HTMLButtonElement>) {
     origin.current = event.currentTarget;
     event.currentTarget.focus();
@@ -80,9 +100,12 @@ export function SessionLibrary() {
     setBusy(true);
     setError('');
     setNotice('');
+    setAffectedId(null);
+    affectedMutation.current = null;
     try {
       if ((await fn()) === false) return false;
       await client.invalidateQueries({ queryKey: trainingKey });
+      setAffectedId(affectedMutation.current);
       setNotice(message);
       setAction(null);
       return true;
@@ -100,6 +123,7 @@ export function SessionLibrary() {
         throw new Error('This session changed. Refresh and try again.');
       change(current);
     });
+    affectedMutation.current = session.id;
   }
   return (
     <section className="session-library" aria-label="Saved training sessions">
@@ -135,7 +159,7 @@ export function SessionLibrary() {
           filters.budgetDraft ||
           filters.budgetError) && (
           <Button variant="secondary" onClick={filters.reset}>
-            Clear session filters
+            Clear library filters
           </Button>
         )}
       </div>
@@ -154,7 +178,26 @@ export function SessionLibrary() {
         </p>
       )}
       {error && !action && !importing && <p role="alert">{error}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {notice && (
+        <div className="library-filter-summary">
+          <p role="status">
+            {notice}
+            {affected ? ` “${affected.name}”` : ''}
+            {fresh && hidden ? ' is hidden by your current library filters.' : ''}
+          </p>
+          {fresh && hidden && (filters.collection === 'all' || collectionsReady) && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                filters.reset();
+                setRevealId(affected!.id);
+              }}
+            >
+              Show session — clear library filters
+            </Button>
+          )}
+        </div>
+      )}
       {!collectionsReady && (
         <div role={templates.isError ? 'alert' : 'status'}>
           <p>
@@ -177,7 +220,15 @@ export function SessionLibrary() {
       )}
       <div className="session-cards">
         {sessions.map((s) => (
-          <article key={s.id} className="session-card">
+          <article
+            key={s.id}
+            className="session-card"
+            tabIndex={-1}
+            ref={(node) => {
+              if (node) cards.current.set(s.id, node);
+              else cards.current.delete(s.id);
+            }}
+          >
             <h3>{s.name}</h3>
             <p>
               {s.blocks.length} workout {s.blocks.length === 1 ? 'block' : 'blocks'}
@@ -266,6 +317,7 @@ export function SessionLibrary() {
                           );
                           copy.collections = s.collections;
                           d.sessions.push(copy);
+                          affectedMutation.current = copy.id;
                         }),
                       'Independent session copy saved.',
                     )
@@ -537,7 +589,9 @@ export function SessionLibrary() {
                           d.sessions.some((s) => normalizeSearch(s.name) === normalizeSearch(name))
                         )
                           throw new Error('A session with this name already exists.');
-                        d.sessions.push(independentSession({ ...preview!, name }));
+                        const copy = independentSession({ ...preview!, name });
+                        d.sessions.push(copy);
+                        affectedMutation.current = copy.id;
                       }),
                     'Session imported.',
                   )

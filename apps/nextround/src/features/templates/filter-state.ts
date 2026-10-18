@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { LibrarySort } from './library-sort';
 
 const defaults = () => ({
   search: '',
@@ -10,9 +11,9 @@ const defaults = () => ({
   collection: 'all',
 });
 // Session UI only: independent of persistent templates and workout drafts.
-export const useTemplateFilters = create<ReturnType<typeof defaults> & { reset: () => void }>(
-  (set) => ({ ...defaults(), reset: () => set(defaults()) }),
-);
+export const useTemplateFilters = create<
+  ReturnType<typeof defaults> & { sort: LibrarySort; reset: () => void }
+>((set) => ({ ...defaults(), sort: 'recent', reset: () => set(defaults()) }));
 export function copyName(name: string): string {
   let value = 'Copy of ';
   for (const character of name) {

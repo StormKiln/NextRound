@@ -10,6 +10,7 @@ import { readTraining, trainingKey } from '@/features/sessions/repository';
 import { useTemplateSources } from '@/state/template-source';
 import { CollectionExport, CollectionImport } from './collection-transfer';
 import { CollectionDialog } from './collections';
+import { type LibrarySort, sortLibrary } from './library-sort';
 import { matchesTemplate } from './matching';
 import {
   copyValidatedConfig,
@@ -18,7 +19,7 @@ import {
   type TemplateMutation,
   type WorkoutTemplate,
 } from './repository';
-import { budgetTimeLabel } from './time-budget';
+import { budgetTimeLabel, totalScheduledSeconds } from './time-budget';
 import { TimeBudgetFilter } from './time-budget-filter';
 import './templates.css';
 import { copyName, useTemplateFilters } from './filter-state';
@@ -267,8 +268,12 @@ export function TemplateLibrary({
   const nameId = useId();
   const filters = { search, favouritesOnly, workoutType, collection, budgetMinutes };
   const templateDocument = query.data;
-  const templates =
-    templateDocument?.templates.filter((t) => matchesTemplate(t, filters, templateDocument)) ?? [];
+  const sort = useTemplateFilters((state) => state.sort);
+  const templates = sortLibrary(
+    templateDocument?.templates.filter((t) => matchesTemplate(t, filters, templateDocument)) ?? [],
+    sort,
+    (item) => totalScheduledSeconds(item.config),
+  );
   async function refresh() {
     if (busy || operationLock.current) return;
     operationLock.current = true;
@@ -529,7 +534,20 @@ export function TemplateLibrary({
             budgetMinutes !== null ||
             !!budgetDraft) && (
             <fieldset className="template-search" aria-label="Filter saved workouts">
-              <p>Filter saved workouts and training sessions together.</p>
+              <p>Filter and sort saved workouts and training sessions together.</p>
+              <label>
+                Sort saved library
+                <select
+                  value={sort}
+                  onChange={(event) =>
+                    useTemplateFilters.setState({ sort: event.target.value as LibrarySort })
+                  }
+                >
+                  <option value="recent">Recently added</option>
+                  <option value="name">Name A–Z</option>
+                  <option value="duration">Shortest duration</option>
+                </select>
+              </label>
               <label htmlFor={searchId}>Search saved workouts</label>
               <Input
                 id={searchId}
@@ -600,7 +618,7 @@ export function TemplateLibrary({
                     focusSearch();
                   }}
                 >
-                  Clear filters
+                  Clear library filters
                 </Button>
               </div>
               <TimeBudgetFilter onChange={clearFilterFeedback} />
