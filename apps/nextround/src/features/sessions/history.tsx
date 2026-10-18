@@ -10,6 +10,7 @@ import { dateBounds } from '@/features/history/date-filters';
 import { saveHistoryCsv } from '@/features/history/export-dialog';
 import { useHistoryFilters } from '@/features/history/filter-state';
 import { normalizeSearch } from '@/lib/search';
+import { SessionComparisonDialog } from './comparison-dialog';
 import { openSession } from './editor';
 import { parseResult, type TrainingResult } from './model';
 import { actualHighlights, compareActual, trainingComparisonKey } from './performance';
@@ -88,6 +89,7 @@ export function SessionHistory() {
     search,
     dateBounds(date, now),
   ).sort((a, b) => b.completedAt - a.completedAt);
+  const [comparing, setComparing] = useState(false);
   const [selected, setSelected] = useState<TrainingResult | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -310,6 +312,18 @@ export function SessionHistory() {
                 </section>
               );
             })}
+            <Button
+              variant="secondary"
+              disabled={!canAct || busy}
+              onClick={() =>
+                unsaved.request(() => {
+                  setNote(selected.note);
+                  setComparing(true);
+                })
+              }
+            >
+              Compare session results
+            </Button>
             <label htmlFor="session-result-note">Session note</label>
             <textarea
               id="session-result-note"
@@ -386,6 +400,15 @@ export function SessionHistory() {
               </Button>
             </div>
           </div>
+          {comparing && (
+            <SessionComparisonDialog
+              initialId={selected.id}
+              results={query.data?.results ?? []}
+              fresh={fresh}
+              retry={() => void query.refetch()}
+              onClose={() => setComparing(false)}
+            />
+          )}
           {editing && (
             <PerformanceEditor
               config={selected.session.blocks.find((b) => b.id === editing)!.config}
