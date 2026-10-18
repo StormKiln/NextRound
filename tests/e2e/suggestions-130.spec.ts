@@ -7,7 +7,7 @@ test('saved history drives usage and suggestions across restart and deletion', a
   await page.getByLabel('Lead-in seconds').fill('0');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('pushups');
-  await page.getByRole('button', { name: /^Push-up / }).click();
+  await page.getByRole('button', { name: /^Push-up Keep/ }).click();
   await page.clock.install();
   await page.getByRole('button', { name: 'Start countdown', exact: true }).click();
   await page.clock.runFor(1100);
@@ -35,7 +35,7 @@ test('saved history drives usage and suggestions across restart and deletion', a
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await expect(page.getByText(/No attributed exercise history yet/)).toBeVisible();
   await page.getByLabel('Search exercises').fill('push ups');
-  await expect(page.getByRole('button', { name: /^Push-up / })).toContainText(
+  await expect(page.getByRole('button', { name: /^Push-up Keep/ })).toContainText(
     'Used in 0 saved workouts',
   );
 });
@@ -49,6 +49,6 @@ test('unreadable history allows manual exercise selection without invented count
   await expect(page.getByRole('button', { name: 'Retry exercise usage' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Most used', exact: true })).toHaveCount(0);
   await page.getByLabel('Search exercises').fill('pushup');
-  await page.getByRole('button', { name: /^Push-up / }).click();
+  await page.getByRole('button', { name: /^Push-up Keep/ }).click();
   await expect(page.getByRole('button', { name: 'Remove Push-up', exact: true })).toBeVisible();
 });

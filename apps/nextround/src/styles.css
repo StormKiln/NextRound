@@ -1719,3 +1719,25 @@ textarea {
 .personal-feedback p {
   margin: 0 0 8px;
 }
+
+.exercise-alternatives {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1rem;
+  min-width: 0;
+}
+.alternative-card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.alternative-card h4,
+.alternative-card p {
+  margin: 0;
+}
+.alternative-card button {
+  justify-self: start;
+}

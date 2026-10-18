@@ -11,7 +11,7 @@ test('completed countdown saves checks once, survives reload, repeats and delete
   await page.getByLabel('Lead-in seconds').fill('0');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('Push-up');
-  await page.getByRole('button', { name: /^Push-up / }).click();
+  await page.getByRole('button', { name: /^Push-up Keep/ }).click();
   await page.getByRole('button', { name: 'Start countdown', exact: true }).click();
   await page.getByRole('checkbox').check();
   await page.clock.runFor(4100);

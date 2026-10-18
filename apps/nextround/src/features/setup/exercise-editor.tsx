@@ -15,10 +15,11 @@ import type { PersonalExercise } from '@/features/exercises/repository';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { rotationNotice } from './emom-defaults';
+import { ExerciseAlternatives } from './exercise-alternatives';
 import { ExerciseRecommendations } from './exercise-recommendations';
 import { replaceExercise } from './exercise-replacement';
 import type { SuggestionPreset } from './exercise-suggestions';
-import { normalizeSearch } from './exercise-suggestions';
+import { matchesExercise, normalizeSearch } from './exercise-suggestions';
 import { FocusControls } from './focus-controls';
 import { TargetDialog } from './target-dialog';
 import { WorkoutGenerator } from './workout-generator';
@@ -130,6 +131,19 @@ export function ExerciseEditor({
     setPicker(false);
     if (replaceId) focusReplacement(replaceId);
     setReplaceId(null);
+  };
+  const applyReplacement = (entry: ExerciseEntry) => {
+    const previous = exercises.find((item) => item.id === replaceId);
+    if (!previous) return;
+    const replacement = replaceExercise(previous, entry, mode, workSeconds);
+    setReplacementUndo({
+      before: structuredClone(previous),
+      after: JSON.stringify(replacement.entry),
+    });
+    onChange(exercises.map((item) => (item.id === replaceId ? replacement.entry : item)));
+    setReplacementNotice(replacement.notice);
+    closePicker();
+    setSearch('');
   };
   const [custom, setCustom] = useState(false);
   const [picker, setPicker] = useState(false);
@@ -672,6 +686,22 @@ export function ExerciseEditor({
                 <Button onClick={() => void bundled.refetch()}>Retry loading exercises</Button>
               </div>
             )}
+            {replaceId && exercises.find((entry) => entry.id === replaceId) && (
+              <ExerciseAlternatives
+                key={replaceId}
+                source={exercises.find((entry) => entry.id === replaceId)!}
+                library={availableLibrary.filter(
+                  (entry) =>
+                    matchesFocus(entry, areas) &&
+                    matchesExercise(entry, search) &&
+                    (!favoritesOnly || (favoritesReady && favorites.ids.includes(entry.id))),
+                )}
+                equipment={effectiveSelection}
+                mode={mode}
+                workSeconds={workSeconds}
+                onChoose={applyReplacement}
+              />
+            )}
             <div className="library-list">
               {!bundled.isPending && !bundled.isError && (
                 <ExerciseRecommendations
@@ -742,22 +772,7 @@ export function ExerciseEditor({
                   search={search}
                   onSelect={(entry) => {
                     if (replaceId) {
-                      const previous = exercises.find((item) => item.id === replaceId);
-                      if (previous) {
-                        const replacement = replaceExercise(previous, entry, mode, workSeconds);
-                        setReplacementUndo({
-                          before: structuredClone(previous),
-                          after: JSON.stringify(replacement.entry),
-                        });
-                        onChange(
-                          exercises.map((item) =>
-                            item.id === replaceId ? replacement.entry : item,
-                          ),
-                        );
-                        setReplacementNotice(replacement.notice);
-                      }
-                      closePicker();
-                      setSearch('');
+                      applyReplacement(entry);
                       return;
                     }
                     const snapshot = toWorkoutEntry(entry, mode);

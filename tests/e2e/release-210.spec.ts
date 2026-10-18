@@ -126,3 +126,113 @@ test('native export cancellation is neutral while write errors remain actionable
   await button.click();
   await expect(sessions.getByRole('alert')).toContainText('Export disk full');
 });
+
+test('curated alternatives preview, cancel, confirm and undo independently of other edits', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 620 });
+  await page.goto('/emom');
+  const list = page.getByRole('list', { name: 'Ordered exercises' });
+  await list.getByRole('button', { name: 'Replace Push-up', exact: true }).click();
+  const picker = page.getByRole('dialog', { name: 'Choose an exercise' });
+  await picker
+    .getByRole('button', { name: 'Review alternative: Knee push-up', exact: true })
+    .click();
+  const preview = page.getByRole('dialog', { name: 'Review exercise alternative' });
+  await expect(preview).toContainText('Target kept: 8 reps');
+  await preview.getByRole('button', { name: 'Back to alternatives', exact: true }).click();
+  await expect(list).toContainText('Push-up');
+  await picker
+    .getByRole('button', { name: 'Review alternative: Knee push-up', exact: true })
+    .click();
+  await preview.getByRole('button', { name: 'Use this alternative', exact: true }).click();
+  await expect(list.locator('h3')).toHaveText(['Air squat', 'Knee push-up', 'Sit-up']);
+  await list.getByRole('button', { name: 'Remove Sit-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Undo replacement', exact: true }).click();
+  await expect(list.locator('h3')).toHaveText(['Air squat', 'Push-up']);
+});
+
+for (const mode of ['emom', 'countdown', 'amrap', 'intervals', 'for-time', 'ladder']) {
+  test(`${mode} offers confirmed alternatives with stable slots and timing`, async ({ page }) => {
+    await page.goto(`/${mode}`);
+    const list = page.getByRole('list', { name: 'Ordered exercises' });
+    await expect(list).toBeVisible();
+    if ((await list.getByRole('button', { name: 'Replace Push-up', exact: true }).count()) === 0) {
+      await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
+      await page.getByLabel('Search exercises').fill('push-up');
+      await page.getByRole('button', { name: /^Push-up Keep/ }).click();
+    }
+    const before = await list
+      .locator('li')
+      .evaluateAll((rows) => rows.map((row) => row.getAttribute('data-entry-id')));
+    await page.getByLabel('Lead-in seconds').fill('12');
+    await list.getByRole('button', { name: 'Replace Push-up', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Review alternative: Knee push-up', exact: true })
+      .click();
+    await page.getByRole('button', { name: 'Use this alternative', exact: true }).click();
+    await expect(
+      list.getByRole('button', { name: 'Replace Knee push-up', exact: true }),
+    ).toBeFocused();
+    expect(
+      await list
+        .locator('li')
+        .evaluateAll((rows) => rows.map((row) => row.getAttribute('data-entry-id'))),
+    ).toEqual(before);
+    await expect(page.getByLabel('Lead-in seconds')).toHaveValue('12');
+  });
+}
+test('alternatives respect equipment and search with an explicit override and empty state', async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    localStorage.setItem('nextround.equipment.v1', JSON.stringify({ version: 1, selection: [] })),
+  );
+  await page.goto('/emom');
+  await page.getByRole('button', { name: 'Replace Air squat', exact: true }).click();
+  const alternatives = page.getByRole('region', { name: 'Suggested alternatives' });
+  await expect(alternatives).toContainText('No curated alternatives match');
+  await page.getByLabel('Show all equipment', { exact: true }).check();
+  await expect(alternatives).toContainText('Missing equipment: Kettlebell');
+  await expect(
+    alternatives.getByRole('button', {
+      name: 'Review alternative: Kettlebell goblet squat',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByLabel('Search exercises').fill('nothing-matches');
+  await expect(alternatives).toContainText('No curated alternatives match');
+  await expect(alternatives.getByRole('button')).toHaveCount(0);
+});
+test('session block alternatives save a new snapshot without rewriting the source until saved', async ({
+  page,
+}) => {
+  const data = structuredClone(training);
+  Object.assign(data.sessions[0].blocks[0].config.exercises[0], { catalogId: 'pushup' });
+  await page.addInitScript(
+    (data) => localStorage.setItem('nextround.training.v1', JSON.stringify(data)),
+    data,
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Open Adaptable', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit block 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Replace Push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Review alternative: Knee push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Use this alternative', exact: true }).click();
+  await page.getByRole('button', { name: 'Use this block', exact: true }).click();
+  expect(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem('nextround.training.v1')!).sessions[0].blocks[0].config
+          .exercises[0].name,
+    ),
+  ).toBe('Push-up');
+  await page.getByRole('button', { name: 'Save session', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Session saved');
+  const saved = await page.evaluate(
+    () =>
+      JSON.parse(localStorage.getItem('nextround.training.v1')!).sessions[0].blocks[0].config
+        .exercises[0],
+  );
+  expect(saved).toMatchObject({ id: 'push', catalogId: 'pushup-knee', name: 'Knee push-up' });
+});

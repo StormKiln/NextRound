@@ -118,7 +118,7 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time', 'ladd
     await expect(row.getByRole('button', { name: 'Replace Air squat', exact: true })).toBeFocused();
     await row.getByRole('button', { name: 'Replace Air squat', exact: true }).click();
     await page.getByLabel('Search exercises').fill('push-up');
-    await page.getByRole('button', { name: /^Push-up / }).click();
+    await page.getByRole('button', { name: /^Push-up Keep/ }).click();
     await expect(row.locator('h3')).toHaveText('Push-up');
     expect(await list.locator('h3').allTextContents()).toEqual([...before.slice(0, -1), 'Push-up']);
     await expect(row.getByRole('button', { name: 'Replace Push-up', exact: true })).toBeFocused();
