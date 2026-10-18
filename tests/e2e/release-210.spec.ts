@@ -156,7 +156,7 @@ for (const mode of ['emom', 'countdown', 'amrap', 'intervals', 'for-time', 'ladd
   test(`${mode} offers confirmed alternatives with stable slots and timing`, async ({ page }) => {
     await page.goto(`/${mode}`);
     const list = page.getByRole('list', { name: 'Ordered exercises' });
-    await expect(list).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add exercise', exact: true })).toBeVisible();
     if ((await list.getByRole('button', { name: 'Replace Push-up', exact: true }).count()) === 0) {
       await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
       await page.getByLabel('Search exercises').fill('push-up');
@@ -235,4 +235,61 @@ test('session block alternatives save a new snapshot without rewriting the sourc
         .exercises[0],
   );
   expect(saved).toMatchObject({ id: 'push', catalogId: 'pushup-knee', name: 'Knee push-up' });
+});
+
+test('deleted collection memberships can be explicitly removed without losing valid choices', async ({
+  page,
+}) => {
+  await page.addInitScript((data) => {
+    localStorage.setItem('nextround.training.v1', JSON.stringify(data));
+    localStorage.setItem(
+      'nextround.workout-templates.v1',
+      JSON.stringify({
+        version: 2,
+        templates: [],
+        collections: [{ id: 'b', name: 'Home', workoutIds: [] }],
+      }),
+    );
+  }, training);
+  await page.goto('/');
+  await page
+    .getByRole('region', { name: 'Saved training sessions' })
+    .getByRole('button', { name: 'Collections', exact: true })
+    .click();
+  await page.getByRole('checkbox', { name: 'Home', exact: true }).check();
+  await page.getByRole('button', { name: 'Remove unavailable memberships', exact: true }).click();
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem('nextround.training.v1')!).sessions[0].collections,
+    ),
+  ).toEqual(['b']);
+});
+test('aggregate actual conflicts focus the conflicting movement rather than the last row', async ({
+  page,
+}) => {
+  const data = structuredClone(training);
+  data.sessions[0].blocks[0].config.exercises.push({
+    id: 'squat',
+    name: 'Air squat',
+    supportedUnits: ['reps', 'seconds'],
+  });
+  await page.addInitScript(
+    (data) => localStorage.setItem('nextround.training.v1', JSON.stringify(data)),
+    data,
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Open Adaptable', exact: true }).click();
+  await page.getByRole('button', { name: 'Start session', exact: true }).click();
+  await page.getByRole('button', { name: 'Record actuals for Work', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Movement', exact: true }).nth(1).selectOption('push');
+  const rows = page.locator('.actual-row');
+  await rows.nth(0).getByLabel('Reps', { exact: true }).fill('10');
+  await rows.nth(1).getByLabel('Reps', { exact: true }).fill('5');
+  await rows.nth(2).getByLabel('Reps', { exact: true }).fill('8');
+  await page.getByRole('button', { name: 'Save actual performance', exact: true }).click();
+  await expect(rows.nth(0).getByRole('alert')).toBeVisible();
+  await expect(rows.nth(0).getByRole('combobox', { name: 'Movement', exact: true })).toBeFocused();
+  await expect(rows.nth(2).getByRole('alert')).toHaveCount(0);
 });

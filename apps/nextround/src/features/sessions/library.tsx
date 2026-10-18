@@ -307,6 +307,27 @@ export function SessionLibrary() {
               )}
             </>
           )}
+          {action.kind === 'collections' &&
+            collectionsReady &&
+            groups.some((id) => !templates.data?.collections.some((c) => c.id === id)) && (
+              <div role="alert">
+                <p>
+                  Some saved collections no longer exist. Remove their unavailable memberships
+                  before saving.
+                </p>
+                <Button
+                  disabled={busy}
+                  variant="secondary"
+                  onClick={() =>
+                    setGroups(
+                      groups.filter((id) => templates.data?.collections.some((c) => c.id === id)),
+                    )
+                  }
+                >
+                  Remove unavailable memberships
+                </Button>
+              </div>
+            )}
           {error && <p role="alert">{error}</p>}
           <div className="dialog-actions">
             <Button variant="ghost" disabled={busy} onClick={() => setAction(null)}>

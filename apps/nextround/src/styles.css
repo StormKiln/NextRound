@@ -1730,7 +1730,7 @@ textarea {
   display: grid;
   gap: 0.6rem;
   padding: 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid #514b43;
   border-radius: 0.75rem;
   overflow-wrap: anywhere;
 }

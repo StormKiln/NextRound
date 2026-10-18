@@ -227,37 +227,33 @@ export function PerformanceEditor({
                 setInvalidRow(null);
                 let failingKey: string | null = null;
                 try {
-                  const values = validateActualsForConfig(
-                    config,
-                    rows
-                      .filter((r) => fields.some((f) => r[f].trim() !== ''))
-                      .map((row) => {
-                        failingKey = row.key;
-                        if (!/^\d+$/.test(row.occurrence))
-                          throw new Error('Use a whole occurrence number.');
-                        const a: Actual = {
-                          exerciseId: row.exerciseId,
-                          occurrence: Number(row.occurrence),
-                        };
-                        for (const f of fields)
-                          if (row[f].trim() !== '') {
-                            if (!/^\d+(\.\d+)?$/.test(row[f].trim()))
-                              throw new Error('Enter nonnegative numbers without symbols.');
-                            a[f] = Number(row[f]);
-                          }
-                        if (a.load !== undefined) a.loadUnit = row.loadUnit;
-                        validateActualsForConfig(config, [a]);
-                        return a;
-                      }),
-                  );
+                  const values = rows
+                    .filter((r) => fields.some((f) => r[f].trim() !== ''))
+                    .map((row) => {
+                      failingKey = row.key;
+                      if (!/^\d+$/.test(row.occurrence))
+                        throw new Error('Use a whole occurrence number.');
+                      const a: Actual = {
+                        exerciseId: row.exerciseId,
+                        occurrence: Number(row.occurrence),
+                      };
+                      for (const f of fields)
+                        if (row[f].trim() !== '') {
+                          if (!/^\d+(\.\d+)?$/.test(row[f].trim()))
+                            throw new Error('Enter nonnegative numbers without symbols.');
+                          a[f] = Number(row[f]);
+                        }
+                      if (a.load !== undefined) a.loadUnit = row.loadUnit;
+                      validateActualsForConfig(config, [a]);
+                      return a;
+                    });
                   for (const e of config.exercises ?? []) {
                     const entries = values.filter((a) => a.exerciseId === e.id);
-                    if (entries.some((a) => a.occurrence === 0) && entries.length > 1) {
-                      failingKey = rows.find((r) => r.exerciseId === e.id)?.key ?? null;
-                      throw new Error(
-                        'Use either a block total or separate rounds for each movement.',
-                      );
-                    }
+                    failingKey =
+                      rows.find(
+                        (r) => r.exerciseId === e.id && fields.some((f) => r[f].trim() !== ''),
+                      )?.key ?? null;
+                    validateActualsForConfig(config, entries);
                   }
                   failingKey = null;
                   await onSave(values);
