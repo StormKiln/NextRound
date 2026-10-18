@@ -208,3 +208,83 @@ test('twenty-block preview covers every mode with reachable actions and honest u
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
 });
+
+test('library sections align and management toolbar wraps without wasting desktop rows', async ({
+  page,
+}) => {
+  await seed(page);
+  const library = await page.locator('.template-library').boundingBox();
+  const sessions = await page
+    .getByRole('region', { name: 'Saved training sessions', exact: true })
+    .boundingBox();
+  expect(Math.abs(sessions!.x - library!.x)).toBeLessThanOrEqual(2);
+  expect(sessions!.width).toBeGreaterThanOrEqual(library!.width - 2);
+  const first = await page
+    .getByRole('button', { name: 'Import workout', exact: true })
+    .boundingBox();
+  const second = await page
+    .getByRole('button', { name: 'Manage collections', exact: true })
+    .boundingBox();
+  expect(Math.abs(first!.y - second!.y)).toBeLessThanOrEqual(2);
+  expect(second!.x - first!.x - first!.width).toBeGreaterThanOrEqual(10);
+});
+
+for (const entry of ['Preview', 'Open'])
+  test(`${entry} protects an edited empty session draft`, async ({ page }) => {
+    await seed(page);
+    await page.getByRole('button', { name: 'Open Attempt a', exact: true }).click();
+    await page.getByLabel('Session name', { exact: true }).fill('Unsaved empty plan');
+    await page.getByRole('button', { name: 'Remove block 1', exact: true }).click();
+    await page.getByRole('banner').getByRole('button', { name: 'Home', exact: true }).click();
+    await page.getByRole('button', { name: `${entry} Attempt a`, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Preview saved session', exact: true });
+    await dialog.getByRole('button', { name: 'Open in editor', exact: true }).click();
+    await expect(
+      dialog.getByRole('button', { name: 'Replace current draft', exact: true }),
+    ).toBeVisible();
+    await dialog.getByRole('button', { name: 'Close preview', exact: true }).click();
+    await page
+      .getByRole('button', { name: /^(Build a session|Continue editing session)$/ })
+      .click();
+    await expect(page.getByLabel('Session name', { exact: true })).toHaveValue(
+      'Unsaved empty plan',
+    );
+  });
+test('failed collection dependency does not imply zero matching sessions', async ({ page }) => {
+  await seed(page);
+  await page.getByLabel('Collection', { exact: true }).selectOption('unfiled');
+  const region = page.getByRole('region', { name: 'Saved training sessions', exact: true });
+  await expect(region).toContainText('1 of 1 sessions');
+  await page.evaluate(() => {
+    localStorage.setItem('nextround.workout-templates.v1', 'invalid');
+    window.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(
+    region.getByRole('button', { name: 'Retry collections', exact: true }),
+  ).toBeVisible();
+  await expect(region).not.toContainText('No sessions match your filters');
+  await expect(region).not.toContainText('0 of 1 sessions');
+  await page.evaluate(() => localStorage.removeItem('nextround.workout-templates.v1'));
+  await region.getByRole('button', { name: 'Retry collections', exact: true }).click();
+  await expect(region).toContainText('1 of 1 sessions');
+});
+
+test('preview cancellation preserves an in-progress first block', async ({ page }) => {
+  await seed(page);
+  await page.getByRole('button', { name: 'Build a session', exact: true }).click();
+  await page.getByRole('button', { name: 'Add Countdown block', exact: true }).click();
+  await page.getByRole('banner').getByRole('button', { name: 'Home', exact: true }).click();
+  await page.getByRole('button', { name: 'Preview Attempt a', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Preview saved session', exact: true });
+  await dialog.getByRole('button', { name: 'Open in editor', exact: true }).click();
+  await expect(
+    dialog.getByRole('button', { name: 'Replace current draft', exact: true }),
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close preview', exact: true }).click();
+  await expect(
+    page.getByRole('complementary', { name: 'Session block editor', exact: true }),
+  ).toContainText('Editing a Countdown block');
+  await expect(
+    page.getByRole('button', { name: 'Continue editing session', exact: true }),
+  ).toBeVisible();
+});

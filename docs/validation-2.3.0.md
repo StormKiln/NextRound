@@ -10,6 +10,9 @@ Authoritative completion evidence: [release acceptance #349](https://github.com/
 - Catalog regression failed at 263 versus 283 before additions. The new catalog preserves all 263 prior entry snapshots and validates 10/5/5 equipment split, extra support requirements, metadata, targets, generation and Ladder compatibility.
 - Release artifact contract regression reproduced same-name retry collisions. Diagnostics now retain each attempt; the stable verified artifact can be replaced after successful packaging and remains aligned with its download consumer. TestFlight already uses distinct run/attempt installer names.
 
+- Final independent review reproduced empty edited draft replacement and false zero-match feedback when collection reads fail (#351). Both Open paths and Home now preserve meaningful drafts; collection-dependent result messages wait for successful reads. Geometry checks also reproduce/fix a shrunken session section and excessive toolbar rows.
+- New result counts exposed ambiguous page-wide status selectors in nine older tests; those assertions now select the intended feedback explicitly.
+
 ## Acceptance status
 
 `make check` passes: 314 unit tests, 64 native tests, release tooling, typecheck, lint/clippy and production build. Native media lifecycle, sandbox cues/wake assertions and Apple no-default-features compilation pass. Full browser and production WebKit checks are in progress; final results and immutable commit/run IDs will be recorded in #349.

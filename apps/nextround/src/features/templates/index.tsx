@@ -388,39 +388,48 @@ export function TemplateLibrary({
         </h2>
         <p>Keep your favourites ready for the next round.</p>
       </div>
-      <Button
-        variant="secondary"
-        disabled={busy || query.isPending || query.isError}
-        onClick={(event) => {
-          origin.current = event.currentTarget;
-          clearFilterFeedback();
-          setImporting(true);
-        }}
-      >
-        Import workout
-      </Button>
-      <Button
-        variant="secondary"
-        disabled={busy || query.isPending || query.isError}
-        onClick={(event) => {
-          origin.current = event.currentTarget;
-          clearFilterFeedback();
-          setCollectionDialog('manage');
-        }}
-      >
-        Manage collections
-      </Button>
-      <Button
-        variant="secondary"
-        disabled={busy || query.isPending || query.isError}
-        onClick={(event) => {
-          origin.current = event.currentTarget;
-          clearFilterFeedback();
-          setImportingCollection(true);
-        }}
-      >
-        Import collection
-      </Button>
+      <div className="library-toolbar">
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending || query.isError}
+          onClick={(event) => {
+            origin.current = event.currentTarget;
+            clearFilterFeedback();
+            setImporting(true);
+          }}
+        >
+          Import workout
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending || query.isError}
+          onClick={(event) => {
+            origin.current = event.currentTarget;
+            clearFilterFeedback();
+            setCollectionDialog('manage');
+          }}
+        >
+          Manage collections
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending || query.isError}
+          onClick={(event) => {
+            origin.current = event.currentTarget;
+            clearFilterFeedback();
+            setImportingCollection(true);
+          }}
+        >
+          Import collection
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending}
+          onClick={() => void refresh()}
+        >
+          Refresh saved workouts
+        </Button>
+      </div>
       {collection !== 'all' && collection !== 'unfiled' && (
         <>
           <Button
@@ -500,9 +509,6 @@ export function TemplateLibrary({
         </Button>
       )}
       {!action && error && <p role="alert">{error}</p>}
-      <Button variant="secondary" disabled={busy || query.isPending} onClick={() => void refresh()}>
-        Refresh saved workouts
-      </Button>
       {query.isPending && <p role="status">Loading saved workouts…</p>}
       {query.isError ? (
         <div role="alert">

@@ -35,6 +35,15 @@ export const useSessionEditor = create<{
   source: TrainingSession | null;
   undo: TrainingSession | null;
 }>(() => ({ draft: fresh(), editing: null, source: null, undo: null }));
+export function hasSessionDraft(state = useSessionEditor.getState()) {
+  return !!(
+    state.draft.blocks.length ||
+    state.draft.name !== 'My training session' ||
+    state.editing ||
+    state.source ||
+    state.undo
+  );
+}
 export function openSession(session?: TrainingSession) {
   useTrainingOwnership.setState({ editing: false });
   useSessionEditor.setState({

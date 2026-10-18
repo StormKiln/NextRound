@@ -70,7 +70,7 @@ test('stale rename preserves typed text and requires review of the new name', as
   await dialog.getByRole('button', { name: 'Save name' }).click();
   await expect(page.getByRole('heading', { name: 'My proposal', exact: true })).toBeVisible();
   await expect(page.getByText(/Current saved name:/)).toHaveCount(0);
-  await expect(page.getByRole('status')).toContainText('Workout renamed.');
+  await expect(page.getByRole('status').filter({ hasText: 'Workout renamed.' })).toBeVisible();
 });
 
 for (const name of ['Alpha', 'Beta', 'Gamma']) {

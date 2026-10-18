@@ -6,7 +6,7 @@ Inspect a saved training session before opening the editor. Review every block's
 
 ## A more consistent library
 
-Workout and session cards now separate primary actions from management commands, keep labels compact and distinguish Delete. Shared filters explain their scope, show match counts and can be cleared beside session results. Failed session refreshes label cached data and prevent stale actions. Long session collection lists scroll while Cancel and Save remain reachable.
+Workout and session cards now separate primary actions from management commands, keep labels compact and distinguish Delete. Shared filters explain their scope, show match counts and can be cleared beside session results. Failed session refreshes label cached data and prevent stale actions. Long session collection lists scroll while Cancel and Save remain reachable. Edited empty session drafts and in-progress first blocks are protected from replacement, and unavailable collection data no longer implies zero matching sessions.
 
 ## Twenty new exercises
 

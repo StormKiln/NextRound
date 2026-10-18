@@ -344,3 +344,7 @@
 .session-preview .dialog-actions {
   padding-top: 16px;
 }
+
+.session-library {
+  width: 100%;
+}

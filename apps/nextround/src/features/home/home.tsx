@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { openSession, useSessionEditor } from '@/features/sessions/editor';
+import { hasSessionDraft, openSession, useSessionEditor } from '@/features/sessions/editor';
 import { useTraining } from '@/features/sessions/state';
 import { TemplateLibrary } from '@/features/templates';
 import { useTemplateSources } from '@/state/template-source';
@@ -11,7 +11,7 @@ import artwork from '../../../../../assets/brand/nextround-splash.png';
 export function Home() {
   const navigate = useNavigate();
   const training = useTraining();
-  const draft = useSessionEditor((s) => s.draft);
+  const hasDraft = useSessionEditor(hasSessionDraft);
   return (
     <main className="home page">
       <section className="home-intro">
@@ -29,11 +29,11 @@ export function Home() {
         <Button
           disabled={!training.initialized || !!training.run}
           onClick={() => {
-            if (!draft.blocks.length) openSession();
+            if (!hasDraft) openSession();
             void navigate({ to: '/sessions' });
           }}
         >
-          {draft.blocks.length ? 'Continue editing session' : 'Build a session'}
+          {hasDraft ? 'Continue editing session' : 'Build a session'}
         </Button>
         <span>Combine warm-up, workout and cooldown.</span>
         {training.run && (

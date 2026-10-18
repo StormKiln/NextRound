@@ -1814,3 +1814,10 @@ fieldset.library-secondary-actions {
   border-top: 1px solid #45403a;
   padding-top: 12px;
 }
+
+.library-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}

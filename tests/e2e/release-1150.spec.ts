@@ -27,7 +27,7 @@ test('duplicate preserves source and filters, reports hidden copy and survives r
   await dialog.getByLabel('Workout name').fill('My variant');
   await dialog.getByRole('button', { name: 'Create copy' }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole('status')).toContainText('hidden');
+  await expect(page.getByRole('status').filter({ hasText: 'hidden' })).toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Favourites only' })).toBeChecked();
   const doc = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? 'null'), key);
   expect(doc.templates[0]).toEqual(original);
@@ -51,7 +51,9 @@ test('library filters survive navigation and reset on restart', async ({ page })
 });
 test('failed refresh clears old success feedback', async ({ page }) => {
   await page.getByRole('button', { name: 'Refresh saved workouts', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Saved workouts refreshed.');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Saved workouts refreshed.' }),
+  ).toBeVisible();
   await page.evaluate((key) => localStorage.setItem(key, '{broken'), key);
   await page.getByRole('button', { name: 'Refresh saved workouts', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('preserved');
@@ -99,10 +101,10 @@ test('show copied workout clears filters and obsolete hidden-copy feedback', asy
   await page.getByRole('checkbox', { name: 'Favourites only' }).check();
   await page.getByRole('button', { name: 'Duplicate Alpha', exact: true }).click();
   await page.getByRole('button', { name: 'Create copy', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('hidden');
+  await expect(page.getByRole('status').filter({ hasText: 'hidden' })).toBeVisible();
   await page.getByRole('button', { name: 'Show copied workout' }).click();
   await expect(page.getByRole('heading', { name: 'Copy of Alpha', exact: true })).toBeVisible();
-  await expect(page.getByRole('status')).not.toContainText('hidden');
+  await expect(page.getByRole('status').filter({ hasText: 'hidden' })).toHaveCount(0);
 });
 test('duplication retries a failed write and rejects blank names at minimum window size', async ({
   page,

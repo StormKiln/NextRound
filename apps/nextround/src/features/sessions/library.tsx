@@ -8,7 +8,7 @@ import { availableTransferName } from '@/features/templates/portable-collection'
 import { readTemplates } from '@/features/templates/repository';
 import { normalizeSearch } from '@/lib/search';
 import { useWorkout } from '@/state/workout';
-import { openSession, useSessionEditor } from './editor';
+import { hasSessionDraft, openSession } from './editor';
 import { JsonPicker, saveJson } from './files';
 import { parseSession, sessionSeconds, sessionTimeLabel, type TrainingSession } from './model';
 import { encodeSession, independentSession, parseSessionFile } from './portable';
@@ -168,7 +168,7 @@ export function SessionLibrary() {
           )}
         </div>
       )}
-      {!query.isPending && !query.error && !sessions.length && (
+      {fresh && (filters.collection === 'all' || collectionsReady) && !sessions.length && (
         <p>
           {all.length
             ? 'No sessions match your filters.'
@@ -216,7 +216,7 @@ export function SessionLibrary() {
                       const current = await readSavedSession(s.id, s);
                       if (useTraining.getState().run || useWorkout.getState().snapshot)
                         throw new Error('Finish the active workout before opening a session.');
-                      if (useSessionEditor.getState().draft.blocks.length) setPreviewId(s.id);
+                      if (hasSessionDraft()) setPreviewId(s.id);
                       else {
                         openSession(current);
                         void navigate({ to: '/sessions' });
@@ -314,7 +314,7 @@ export function SessionLibrary() {
                   Export session
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="destructive"
                   disabled={busy || !fresh}
                   onClick={(event) => {
                     remember(event);

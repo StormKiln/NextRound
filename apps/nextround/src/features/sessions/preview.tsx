@@ -3,7 +3,7 @@ import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { WorkoutDetails } from '@/features/templates/workout-details';
 import { useWorkout } from '@/state/workout';
-import { useSessionEditor } from './editor';
+import { hasSessionDraft } from './editor';
 import { sessionTimeLabel, type TrainingSession } from './model';
 import { readTraining } from './repository';
 import { useTraining } from './state';
@@ -77,7 +77,7 @@ export function SessionPreview({
       }
       if (useTraining.getState().run || useWorkout.getState().snapshot)
         throw new Error('Finish the active workout before opening a session.');
-      if (useSessionEditor.getState().draft.blocks.length && !confirm) {
+      if (hasSessionDraft() && !confirm) {
         setConfirm(true);
         return;
       }

@@ -32,7 +32,7 @@ test('renaming a filtered workout explains where it went and offers recovery', a
   await page.getByRole('button', { name: 'Rename Alpha', exact: true }).click();
   await page.getByLabel('Workout name').fill('Beta');
   await page.getByRole('button', { name: 'Save name', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('hidden');
+  await expect(page.getByRole('status').filter({ hasText: 'hidden' })).toBeVisible();
   await page.getByRole('button', { name: 'Show renamed workout' }).click();
   await expect(page.getByRole('heading', { name: 'Beta', exact: true })).toBeVisible();
   await expect(page.getByLabel('Search saved workouts')).toBeFocused();
