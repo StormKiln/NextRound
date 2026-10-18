@@ -1802,3 +1802,15 @@ textarea {
   flex-shrink: 0;
   margin-top: 4px;
 }
+
+fieldset.library-primary-actions,
+fieldset.library-secondary-actions {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+fieldset.library-secondary-actions {
+  border-top: 1px solid #45403a;
+  padding-top: 12px;
+}

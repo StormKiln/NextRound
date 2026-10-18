@@ -637,11 +637,7 @@ export function TemplateLibrary({
                   </p>
                 </div>
                 <div className="library-card-actions">
-                  <div
-                    className="library-primary-actions"
-                    role="group"
-                    aria-label={`Use ${template.name}`}
-                  >
+                  <fieldset className="library-primary-actions" aria-label={`Use ${template.name}`}>
                     <Button
                       variant="secondary"
                       disabled={busy}
@@ -684,10 +680,9 @@ export function TemplateLibrary({
                     >
                       {template.favourite ? '★ Favourite' : '☆ Favourite'}
                     </Button>
-                  </div>
-                  <div
+                  </fieldset>
+                  <fieldset
                     className="library-secondary-actions"
-                    role="group"
                     aria-label={`Manage ${template.name}`}
                   >
                     <Button
@@ -733,7 +728,7 @@ export function TemplateLibrary({
                         {type[0].toUpperCase() + type.slice(1)}
                       </Button>
                     ))}
-                  </div>
+                  </fieldset>
                 </div>
               </li>
             ))}

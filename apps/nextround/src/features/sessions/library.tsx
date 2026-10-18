@@ -195,7 +195,7 @@ export function SessionLibrary() {
                     .join(', ') || 'Unfiled'}
             </p>
             <div className="library-card-actions">
-              <div className="library-primary-actions" role="group" aria-label={`Use ${s.name}`}>
+              <fieldset className="library-primary-actions" aria-label={`Use ${s.name}`}>
                 <Button
                   variant="secondary"
                   disabled={busy || !fresh}
@@ -242,12 +242,8 @@ export function SessionLibrary() {
                 >
                   {s.favourite ? '★ Favourite' : '☆ Favourite'}
                 </Button>
-              </div>
-              <div
-                className="library-secondary-actions"
-                role="group"
-                aria-label={`Manage ${s.name}`}
-              >
+              </fieldset>
+              <fieldset className="library-secondary-actions" aria-label={`Manage ${s.name}`}>
                 <Button
                   variant="ghost"
                   disabled={busy || !fresh}
@@ -328,7 +324,7 @@ export function SessionLibrary() {
                 >
                   Delete
                 </Button>
-              </div>
+              </fieldset>
             </div>
           </article>
         ))}
