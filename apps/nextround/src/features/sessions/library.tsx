@@ -33,6 +33,7 @@ export function SessionLibrary() {
   const [groups, setGroups] = useState<string[]>([]);
   const [importing, setImporting] = useState(false);
   const [preview, setPreview] = useState<TrainingSession | null>(null);
+  const collectionsReady = templates.isSuccess && !templates.isFetching;
   const all = query.data?.sessions ?? [];
   const sessions = all.filter((s) => {
     const seconds = sessionSeconds(s);
@@ -52,7 +53,8 @@ export function SessionLibrary() {
         s.blocks.some((b) => (b.config.type ?? 'emom') === filters.workoutType)) &&
       (filters.collection === 'all' ||
         (filters.collection === 'unfiled'
-          ? !s.collections?.some((id) => templates.data?.collections.some((c) => c.id === id))
+          ? collectionsReady &&
+            !s.collections?.some((id) => templates.data?.collections.some((c) => c.id === id))
           : s.collections?.includes(filters.collection))) &&
       (filters.budgetMinutes === null ||
         (seconds !== null && seconds <= filters.budgetMinutes * 60))
@@ -61,8 +63,9 @@ export function SessionLibrary() {
   async function perform(fn: () => Promise<unknown>, message: string) {
     setBusy(true);
     setError('');
+    setNotice('');
     try {
-      await fn();
+      if ((await fn()) === false) return false;
       await client.invalidateQueries({ queryKey: trainingKey });
       setNotice(message);
       setAction(null);
@@ -113,6 +116,19 @@ export function SessionLibrary() {
       )}
       {error && !action && !importing && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
+      {!collectionsReady && (
+        <div role={templates.isError ? 'alert' : 'status'}>
+          <p>
+            {templates.isError
+              ? 'Collection information could not be loaded.'
+              : 'Loading collections…'}{' '}
+            Collection filters and editing need a successful read.
+          </p>
+          {templates.isError && (
+            <Button onClick={() => void templates.refetch()}>Retry collections</Button>
+          )}
+        </div>
+      )}
       {!query.isPending && !query.error && !sessions.length && (
         <p>
           {all.length
@@ -128,10 +144,14 @@ export function SessionLibrary() {
             <p>{sessionTimeLabel(s)}</p>
             <p>{s.blocks.map((b) => b.name).join(' → ')}</p>
             <p>
-              {s.collections
-                ?.map((id) => templates.data?.collections.find((c) => c.id === id)?.name)
-                .filter(Boolean)
-                .join(', ') || 'Unfiled'}
+              {!collectionsReady
+                ? templates.isError
+                  ? 'Collections unavailable'
+                  : 'Loading collections…'
+                : s.collections
+                    ?.map((id) => templates.data?.collections.find((c) => c.id === id)?.name)
+                    .filter(Boolean)
+                    .join(', ') || 'Unfiled'}
             </p>
             <div className="dialog-actions">
               <Button
@@ -209,7 +229,7 @@ export function SessionLibrary() {
                 onClick={() =>
                   void perform(async () => {
                     const saved = await saveJson(encodeSession(s), 'NextRound-session.json');
-                    if (!saved) throw new Error('Export cancelled. Your session is unchanged.');
+                    return saved;
                   }, 'Session exported.')
                 }
               >
@@ -256,7 +276,18 @@ export function SessionLibrary() {
             </label>
           ) : (
             <>
-              {templates.data?.collections.length ? (
+              {!collectionsReady ? (
+                <div role={templates.isError ? 'alert' : 'status'}>
+                  <p>
+                    {templates.isError
+                      ? 'Collections unavailable. Retry before editing membership.'
+                      : 'Loading collections…'}
+                  </p>
+                  {templates.isError && (
+                    <Button onClick={() => void templates.refetch()}>Retry collections</Button>
+                  )}
+                </div>
+              ) : templates.data?.collections.length ? (
                 templates.data.collections.map((c) => (
                   <label key={c.id}>
                     <input
@@ -282,10 +313,24 @@ export function SessionLibrary() {
               Cancel
             </Button>
             <Button
-              disabled={busy}
+              disabled={busy || (action.kind === 'collections' && !collectionsReady)}
               onClick={() =>
                 void perform(
                   async () => {
+                    if (action.kind === 'collections') {
+                      const latest = await readTemplates();
+                      if (
+                        !collectionsReady ||
+                        JSON.stringify(latest.collections) !==
+                          JSON.stringify(templates.data?.collections) ||
+                        groups.some((id) => !latest.collections.some((c) => c.id === id))
+                      ) {
+                        await client.invalidateQueries({ queryKey: ['workout-templates'] });
+                        throw new Error(
+                          'Collections changed. Review the current choices and retry.',
+                        );
+                      }
+                    }
                     if (action.kind === 'delete')
                       await mutateTraining((d) => {
                         const current = d.sessions.find((s) => s.id === action.session.id);

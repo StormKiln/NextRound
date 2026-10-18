@@ -611,7 +611,11 @@ export function TemplateLibrary({
                 : 'Save a workout from any workout setup to see it here.'}
             </p>
           )}
-          <SessionLibrary />
+        </>
+      )}
+      <SessionLibrary />
+      {!query.isError && (
+        <>
           <ul className="template-list">
             {templates.map((template) => (
               <li key={template.id}>
