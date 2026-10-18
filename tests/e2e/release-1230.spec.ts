@@ -118,7 +118,7 @@ test('duplicate collection names can be corrected without closing or discarding 
   await expect(page.getByLabel('Collection name', { exact: true })).toBeFocused();
   await page.getByLabel('Collection name', { exact: true }).fill('Fresh training');
   await page.getByRole('button', { name: 'Create collection', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('created');
+  await expect(page.getByRole('status').filter({ hasText: 'created' })).toBeVisible();
 });
 
 test('stale collection edits require explicit reload and retain drafts until then', async ({
@@ -157,7 +157,7 @@ test('storage failure preserves collection draft for retry', async ({ page }) =>
   await expect(page.getByRole('alert')).toContainText('Storage unavailable');
   await expect(page.getByLabel('Collection name', { exact: true })).toHaveValue('Retry this');
   await page.getByRole('button', { name: 'Create collection', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('created');
+  await expect(page.getByRole('status').filter({ hasText: 'created' })).toBeVisible();
 });
 
 test('collection preview scrolls with fixed actions at a narrow size', async ({

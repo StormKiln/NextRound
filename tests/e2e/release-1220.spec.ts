@@ -27,7 +27,7 @@ test('saved search finds exercise snapshots and collection membership survives f
   await page.getByRole('button', { name: 'Manage collections', exact: true }).click();
   await page.getByLabel('Collection name', { exact: true }).fill('Quick sessions');
   await page.getByRole('button', { name: 'Create collection', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Quick sessions');
+  await expect(page.getByRole('status').filter({ hasText: 'Quick sessions' })).toBeVisible();
   await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.getByRole('button', { name: 'Collections for Morning', exact: true }).click();
   await page.getByLabel('Quick sessions', { exact: true }).check();
@@ -119,5 +119,5 @@ test('many collections scroll independently of their fixed modal actions', async
   });
   await dialog.screenshot({ path: testInfo.outputPath('workout-collections.png') });
   await save.click();
-  await expect(page.getByRole('status')).toContainText('Collections saved');
+  await expect(page.getByRole('status').filter({ hasText: 'Collections saved' })).toBeVisible();
 });

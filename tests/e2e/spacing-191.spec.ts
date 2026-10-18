@@ -74,6 +74,7 @@ test('personal editor separates category selection from equipment fields', async
 
 test('equipment error footer keeps recovery and dismissal reachable by keyboard', async ({
   page,
+  browserName,
 }) => {
   const raw = '{"version":99,"selection":[]}';
   await page.setViewportSize({ width: 760, height: 620 });
@@ -87,12 +88,14 @@ test('equipment error footer keeps recovery and dismissal reachable by keyboard'
   await expect(retry).toBeInViewport({ ratio: 1 });
   await page.keyboard.press('Enter');
   const override = page.getByRole('checkbox', { name: 'Show all equipment', exact: true });
-  await page.keyboard.press('Tab');
+  // macOS WebKit uses Option-Tab to include non-text controls.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
   await expect(override).toBeFocused();
   await expect(override).toBeInViewport({ ratio: 1 });
   await page.keyboard.press('Space');
   await expect(override).toBeChecked();
-  await page.keyboard.press('Tab');
+  // macOS WebKit uses Option-Tab to include non-text controls.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
   await expect(
     page.getByRole('button', { name: 'Change equipment settings', exact: true }),
   ).toBeFocused();

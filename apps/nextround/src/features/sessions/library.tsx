@@ -1,17 +1,20 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { useTemplateFilters } from '@/features/templates/filter-state';
 import { availableTransferName } from '@/features/templates/portable-collection';
 import { readTemplates } from '@/features/templates/repository';
 import { normalizeSearch } from '@/lib/search';
-import { openSession } from './editor';
+import { useWorkout } from '@/state/workout';
+import { hasSessionDraft, openSession } from './editor';
 import { JsonPicker, saveJson } from './files';
 import { parseSession, sessionSeconds, sessionTimeLabel, type TrainingSession } from './model';
 import { encodeSession, independentSession, parseSessionFile } from './portable';
+import { readSavedSession, SessionPreview } from './preview';
 import { mutateTraining, readTraining, trainingKey } from './repository';
+import { useTraining } from './state';
 export function SessionLibrary() {
   const query = useQuery({ queryKey: trainingKey, queryFn: readTraining, retry: false });
   const templates = useQuery({
@@ -22,6 +25,11 @@ export function SessionLibrary() {
   const client = useQueryClient();
   const navigate = useNavigate();
   const filters = useTemplateFilters();
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const origin = useRef<HTMLElement | null>(null);
+  const activeRun = useTraining((s) => s.run);
+  const activeWorkout = useWorkout((s) => s.snapshot);
+  const fresh = query.isSuccess && !query.isFetching;
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -60,6 +68,14 @@ export function SessionLibrary() {
         (seconds !== null && seconds <= filters.budgetMinutes * 60))
     );
   });
+  function remember(event: React.MouseEvent<HTMLButtonElement>) {
+    origin.current = event.currentTarget;
+    event.currentTarget.focus();
+  }
+  function closePreview() {
+    setPreviewId(null);
+    origin.current?.focus();
+  }
   async function perform(fn: () => Promise<unknown>, message: string) {
     setBusy(true);
     setError('');
@@ -91,7 +107,7 @@ export function SessionLibrary() {
         <h2>Saved training sessions</h2>
         <Button
           variant="secondary"
-          disabled={busy}
+          disabled={busy || !fresh}
           onClick={() => {
             setImporting(true);
             setError('');
@@ -102,10 +118,33 @@ export function SessionLibrary() {
         </Button>
       </div>
       <p className="muted">
-        Sessions follow the saved-workout filters above. A workout type matches sessions containing
+        Filters above apply to workouts and sessions. A workout type matches sessions containing
         that type.
       </p>
+      <div className="library-filter-summary">
+        {fresh && (filters.collection === 'all' || collectionsReady) && (
+          <p role="status">
+            {sessions.length} of {all.length} sessions
+          </p>
+        )}
+        {(filters.search ||
+          filters.favouritesOnly ||
+          filters.workoutType !== 'all' ||
+          filters.collection !== 'all' ||
+          filters.budgetMinutes !== null ||
+          filters.budgetDraft ||
+          filters.budgetError) && (
+          <Button variant="secondary" onClick={filters.reset}>
+            Clear session filters
+          </Button>
+        )}
+      </div>
       {query.isPending && <p role="status">Loading sessions…</p>}
+      {!fresh && all.length > 0 && (
+        <p role="status">
+          Cached sessions may be out of date. Refresh successfully before using library actions.
+        </p>
+      )}
       {query.error && (
         <p role="alert">
           {String(query.error)}
@@ -129,7 +168,7 @@ export function SessionLibrary() {
           )}
         </div>
       )}
-      {!query.isPending && !query.error && !sessions.length && (
+      {fresh && (filters.collection === 'all' || collectionsReady) && !sessions.length && (
         <p>
           {all.length
             ? 'No sessions match your filters.'
@@ -155,102 +194,151 @@ export function SessionLibrary() {
                     .filter(Boolean)
                     .join(', ') || 'Unfiled'}
             </p>
-            <div className="dialog-actions">
-              <Button
-                disabled={busy}
-                onClick={() => {
-                  openSession(s);
-                  void navigate({ to: '/sessions' });
-                }}
-              >
-                Open {s.name}
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={busy}
-                aria-pressed={!!s.favourite}
-                onClick={() =>
-                  void perform(
-                    () =>
-                      mutate(s, (current) => {
-                        current.favourite = !current.favourite;
-                      }),
-                    'Session favourite updated.',
-                  )
-                }
-              >
-                {s.favourite ? '★ Favourite' : '☆ Favourite'}
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() =>
-                  void perform(
-                    () =>
-                      mutateTraining((d) => {
-                        const copy = independentSession(s);
-                        copy.name = availableTransferName(
-                          s.name,
-                          d.sessions.map((s) => s.name),
-                          120,
-                        );
-                        copy.collections = s.collections;
-                        d.sessions.push(copy);
-                      }),
-                    'Independent session copy saved.',
-                  )
-                }
-              >
-                Duplicate
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() => {
-                  setAction({ kind: 'rename', session: s });
-                  setName(s.name);
-                  setError('');
-                }}
-              >
-                Rename
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() => {
-                  setAction({ kind: 'collections', session: s });
-                  setGroups(s.collections ?? []);
-                  setError('');
-                }}
-              >
-                Collections
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() =>
-                  void perform(async () => {
-                    const saved = await saveJson(encodeSession(s), 'NextRound-session.json');
-                    return saved;
-                  }, 'Session exported.')
-                }
-              >
-                Export session
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() => {
-                  setAction({ kind: 'delete', session: s });
-                  setError('');
-                }}
-              >
-                Delete
-              </Button>
+            <div className="library-card-actions">
+              <fieldset className="library-primary-actions" aria-label={`Use ${s.name}`}>
+                <Button
+                  variant="secondary"
+                  disabled={busy || !fresh}
+                  onClick={(event) => {
+                    remember(event);
+                    setPreviewId(s.id);
+                  }}
+                  aria-label={`Preview ${s.name}`}
+                >
+                  Preview
+                </Button>
+                <Button
+                  aria-label={`Open ${s.name}`}
+                  disabled={busy || !fresh || !!activeRun || !!activeWorkout}
+                  onClick={(event) => {
+                    remember(event);
+                    void perform(async () => {
+                      const current = await readSavedSession(s.id, s);
+                      if (useTraining.getState().run || useWorkout.getState().snapshot)
+                        throw new Error('Finish the active workout before opening a session.');
+                      if (hasSessionDraft()) setPreviewId(s.id);
+                      else {
+                        openSession(current);
+                        void navigate({ to: '/sessions' });
+                      }
+                    }, '');
+                  }}
+                >
+                  Open
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={busy || !fresh}
+                  aria-pressed={!!s.favourite}
+                  onClick={() =>
+                    void perform(
+                      () =>
+                        mutate(s, (current) => {
+                          current.favourite = !current.favourite;
+                        }),
+                      'Session favourite updated.',
+                    )
+                  }
+                >
+                  {s.favourite ? '★ Favourite' : '☆ Favourite'}
+                </Button>
+              </fieldset>
+              <fieldset className="library-secondary-actions" aria-label={`Manage ${s.name}`}>
+                <Button
+                  variant="ghost"
+                  disabled={busy || !fresh}
+                  onClick={() =>
+                    void perform(
+                      () =>
+                        mutateTraining((d) => {
+                          const current = d.sessions.find((item) => item.id === s.id);
+                          if (!current)
+                            throw new Error('This session no longer exists. Refresh the library.');
+                          if (JSON.stringify(current) !== JSON.stringify(s))
+                            throw new Error(
+                              'This session changed. Refresh and review it before trying again.',
+                            );
+                          const copy = independentSession(current);
+                          copy.name = availableTransferName(
+                            s.name,
+                            d.sessions.map((s) => s.name),
+                            120,
+                          );
+                          copy.collections = s.collections;
+                          d.sessions.push(copy);
+                        }),
+                      'Independent session copy saved.',
+                    )
+                  }
+                >
+                  Duplicate
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={busy || !fresh}
+                  onClick={(event) => {
+                    remember(event);
+                    setAction({ kind: 'rename', session: s });
+                    setName(s.name);
+                    setError('');
+                  }}
+                >
+                  Rename
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={busy || !fresh}
+                  onClick={(event) => {
+                    remember(event);
+                    setAction({ kind: 'collections', session: s });
+                    setGroups(s.collections ?? []);
+                    setError('');
+                  }}
+                >
+                  Collections
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={busy || !fresh}
+                  onClick={() =>
+                    void perform(async () => {
+                      const current = await readSavedSession(s.id, s);
+                      const saved = await saveJson(
+                        encodeSession(current),
+                        'NextRound-session.json',
+                      );
+                      return saved;
+                    }, 'Session exported.')
+                  }
+                >
+                  Export session
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={busy || !fresh}
+                  onClick={(event) => {
+                    remember(event);
+                    setAction({ kind: 'delete', session: s });
+                    setError('');
+                  }}
+                >
+                  Delete
+                </Button>
+              </fieldset>
             </div>
           </article>
         ))}
       </div>
+      {previewId && (
+        <SessionPreview
+          id={previewId}
+          onClose={closePreview}
+          onLoad={(current) => {
+            openSession(current);
+            void navigate({ to: '/sessions' });
+          }}
+        />
+      )}
       {action && (
         <Dialog
           title={
@@ -260,77 +348,82 @@ export function SessionLibrary() {
                 ? 'Rename session'
                 : 'Session collections'
           }
+          className="session-management"
           onClose={() => {
             if (!busy) setAction(null);
           }}
         >
-          {action.kind === 'delete' ? (
-            <p>Remove {action.session.name} from the saved library? Saved results are kept.</p>
-          ) : action.kind === 'rename' ? (
-            <label>
-              Session name
-              <input
-                className="input"
-                value={name}
-                maxLength={120}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-          ) : (
-            <>
-              {!collectionsReady ? (
-                <div role={templates.isError ? 'alert' : 'status'}>
-                  <p>
-                    {templates.isError
-                      ? 'Collections unavailable. Retry before editing membership.'
-                      : 'Loading collections…'}
-                  </p>
-                  {templates.isError && (
-                    <Button onClick={() => void templates.refetch()}>Retry collections</Button>
-                  )}
-                </div>
-              ) : templates.data?.collections.length ? (
-                templates.data.collections.map((c) => (
-                  <label key={c.id}>
-                    <input
-                      type="checkbox"
-                      checked={groups.includes(c.id)}
-                      onChange={(e) =>
-                        setGroups(
-                          e.target.checked ? [...groups, c.id] : groups.filter((id) => id !== c.id),
-                        )
-                      }
-                    />
-                    {c.name}
-                  </label>
-                ))
-              ) : (
-                <p>Create a collection using Manage collections in the saved-workout library.</p>
-              )}
-            </>
-          )}
-          {action.kind === 'collections' &&
-            collectionsReady &&
-            groups.some((id) => !templates.data?.collections.some((c) => c.id === id)) && (
-              <div role="alert">
-                <p>
-                  Some saved collections no longer exist. Remove their unavailable memberships
-                  before saving.
-                </p>
-                <Button
-                  disabled={busy}
-                  variant="secondary"
-                  onClick={() =>
-                    setGroups(
-                      groups.filter((id) => templates.data?.collections.some((c) => c.id === id)),
-                    )
-                  }
-                >
-                  Remove unavailable memberships
-                </Button>
-              </div>
+          <div className="dialog-scroll-body">
+            {action.kind === 'delete' ? (
+              <p>Remove {action.session.name} from the saved library? Saved results are kept.</p>
+            ) : action.kind === 'rename' ? (
+              <label>
+                Session name
+                <input
+                  className="input"
+                  value={name}
+                  maxLength={120}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+            ) : (
+              <>
+                {!collectionsReady ? (
+                  <div role={templates.isError ? 'alert' : 'status'}>
+                    <p>
+                      {templates.isError
+                        ? 'Collections unavailable. Retry before editing membership.'
+                        : 'Loading collections…'}
+                    </p>
+                    {templates.isError && (
+                      <Button onClick={() => void templates.refetch()}>Retry collections</Button>
+                    )}
+                  </div>
+                ) : templates.data?.collections.length ? (
+                  templates.data.collections.map((c) => (
+                    <label className="membership-option" key={c.id}>
+                      <input
+                        type="checkbox"
+                        checked={groups.includes(c.id)}
+                        onChange={(e) =>
+                          setGroups(
+                            e.target.checked
+                              ? [...groups, c.id]
+                              : groups.filter((id) => id !== c.id),
+                          )
+                        }
+                      />
+                      {c.name}
+                    </label>
+                  ))
+                ) : (
+                  <p>Create a collection using Manage collections in the saved-workout library.</p>
+                )}
+              </>
             )}
-          {error && <p role="alert">{error}</p>}
+            {action.kind === 'collections' &&
+              collectionsReady &&
+              groups.some((id) => !templates.data?.collections.some((c) => c.id === id)) && (
+                <div role="alert">
+                  <p>
+                    Some saved collections no longer exist. Remove their unavailable memberships
+                    before saving.
+                  </p>
+                  <Button
+                    disabled={busy}
+                    variant="secondary"
+                    onClick={() =>
+                      setGroups(
+                        groups.filter((id) => templates.data?.collections.some((c) => c.id === id)),
+                      )
+                    }
+                  >
+                    Remove unavailable memberships
+                  </Button>
+                </div>
+              )}
+            {error && <p role="alert">{error}</p>}
+          </div>
           <div className="dialog-actions">
             <Button variant="ghost" disabled={busy} onClick={() => setAction(null)}>
               Cancel

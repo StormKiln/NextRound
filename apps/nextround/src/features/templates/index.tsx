@@ -388,39 +388,48 @@ export function TemplateLibrary({
         </h2>
         <p>Keep your favourites ready for the next round.</p>
       </div>
-      <Button
-        variant="secondary"
-        disabled={busy || query.isPending || query.isError}
-        onClick={(event) => {
-          origin.current = event.currentTarget;
-          clearFilterFeedback();
-          setImporting(true);
-        }}
-      >
-        Import workout
-      </Button>
-      <Button
-        variant="secondary"
-        disabled={busy || query.isPending || query.isError}
-        onClick={(event) => {
-          origin.current = event.currentTarget;
-          clearFilterFeedback();
-          setCollectionDialog('manage');
-        }}
-      >
-        Manage collections
-      </Button>
-      <Button
-        variant="secondary"
-        disabled={busy || query.isPending || query.isError}
-        onClick={(event) => {
-          origin.current = event.currentTarget;
-          clearFilterFeedback();
-          setImportingCollection(true);
-        }}
-      >
-        Import collection
-      </Button>
+      <div className="library-toolbar">
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending || query.isError}
+          onClick={(event) => {
+            origin.current = event.currentTarget;
+            clearFilterFeedback();
+            setImporting(true);
+          }}
+        >
+          Import workout
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending || query.isError}
+          onClick={(event) => {
+            origin.current = event.currentTarget;
+            clearFilterFeedback();
+            setCollectionDialog('manage');
+          }}
+        >
+          Manage collections
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending || query.isError}
+          onClick={(event) => {
+            origin.current = event.currentTarget;
+            clearFilterFeedback();
+            setImportingCollection(true);
+          }}
+        >
+          Import collection
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || query.isPending}
+          onClick={() => void refresh()}
+        >
+          Refresh saved workouts
+        </Button>
+      </div>
       {collection !== 'all' && collection !== 'unfiled' && (
         <>
           <Button
@@ -500,9 +509,6 @@ export function TemplateLibrary({
         </Button>
       )}
       {!action && error && <p role="alert">{error}</p>}
-      <Button variant="secondary" disabled={busy || query.isPending} onClick={() => void refresh()}>
-        Refresh saved workouts
-      </Button>
       {query.isPending && <p role="status">Loading saved workouts…</p>}
       {query.isError ? (
         <div role="alert">
@@ -523,6 +529,7 @@ export function TemplateLibrary({
             budgetMinutes !== null ||
             !!budgetDraft) && (
             <fieldset className="template-search" aria-label="Filter saved workouts">
+              <p>Filter saved workouts and training sessions together.</p>
               <label htmlFor={searchId}>Search saved workouts</label>
               <Input
                 id={searchId}
@@ -616,6 +623,11 @@ export function TemplateLibrary({
       <SessionLibrary />
       {!query.isError && (
         <>
+          {query.isSuccess && !query.isFetching && (
+            <p role="status">
+              {templates.length} of {query.data.templates.length} saved workouts
+            </p>
+          )}
           <ul className="template-list">
             {templates.map((template) => (
               <li key={template.id}>
@@ -630,72 +642,99 @@ export function TemplateLibrary({
                       .join(' · ') || 'Unfiled'}
                   </p>
                 </div>
-                <div className="template-actions">
-                  <Button
-                    variant="secondary"
-                    disabled={busy}
-                    aria-label={`Collections for ${template.name}`}
-                    onClick={(event) => {
-                      origin.current = event.currentTarget;
-                      clearFilterFeedback();
-                      setCollectionDialog(template);
-                    }}
-                  >
-                    Collections
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={busy}
-                    aria-pressed={!!template.favourite}
-                    aria-label={`${template.favourite ? 'Unfavourite' : 'Favourite'} ${template.name}`}
-                    onClick={(event) => void favourite(template, event.currentTarget)}
-                  >
-                    {template.favourite ? '★ Favourite' : '☆ Favourite'}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={busy}
-                    aria-label={`Preview ${template.name}`}
-                    onClick={(event) => {
-                      origin.current = event.currentTarget;
-                      clearFilterFeedback();
-                      setError(null);
-                      setPreviewId(template.id);
-                    }}
-                  >
-                    Preview
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={busy}
-                    aria-label={`Export ${template.name}`}
-                    onClick={(event) => {
-                      origin.current = event.currentTarget;
-                      clearFilterFeedback();
-                      setExportId(template.id);
-                    }}
-                  >
-                    Export
-                  </Button>
-                  {(['load', 'duplicate', 'rename', 'delete'] as const).map((type) => (
+                <div className="library-card-actions">
+                  <fieldset className="library-primary-actions" aria-label={`Use ${template.name}`}>
                     <Button
-                      key={type}
-                      variant={type === 'load' ? 'default' : 'secondary'}
+                      variant="secondary"
                       disabled={busy}
-                      aria-label={`${type[0].toUpperCase() + type.slice(1)} ${template.name}`}
+                      aria-label={`Preview ${template.name}`}
                       onClick={(event) => {
                         origin.current = event.currentTarget;
-                        setNotice('');
-                        setHiddenCopy(false);
-                        setHiddenRename(false);
-                        setAction({ type, template });
-                        setName(type === 'duplicate' ? copyName(template.name) : template.name);
+                        clearFilterFeedback();
                         setError(null);
+                        setPreviewId(template.id);
                       }}
                     >
-                      {type[0].toUpperCase() + type.slice(1)}
+                      Preview
                     </Button>
-                  ))}
+                    {(['load'] as const).map((type) => (
+                      <Button
+                        key={type}
+                        variant={type === 'load' ? 'default' : 'secondary'}
+                        disabled={busy}
+                        aria-label={`${type[0].toUpperCase() + type.slice(1)} ${template.name}`}
+                        onClick={(event) => {
+                          origin.current = event.currentTarget;
+                          setNotice('');
+                          setHiddenCopy(false);
+                          setHiddenRename(false);
+                          setAction({ type, template });
+                          setName(template.name);
+                          setError(null);
+                        }}
+                      >
+                        {type[0].toUpperCase() + type.slice(1)}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="secondary"
+                      disabled={busy}
+                      aria-pressed={!!template.favourite}
+                      aria-label={`${template.favourite ? 'Unfavourite' : 'Favourite'} ${template.name}`}
+                      onClick={(event) => void favourite(template, event.currentTarget)}
+                    >
+                      {template.favourite ? '★ Favourite' : '☆ Favourite'}
+                    </Button>
+                  </fieldset>
+                  <fieldset
+                    className="library-secondary-actions"
+                    aria-label={`Manage ${template.name}`}
+                  >
+                    <Button
+                      variant="secondary"
+                      disabled={busy}
+                      aria-label={`Collections for ${template.name}`}
+                      onClick={(event) => {
+                        origin.current = event.currentTarget;
+                        clearFilterFeedback();
+                        setCollectionDialog(template);
+                      }}
+                    >
+                      Collections
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      disabled={busy}
+                      aria-label={`Export ${template.name}`}
+                      onClick={(event) => {
+                        origin.current = event.currentTarget;
+                        clearFilterFeedback();
+                        setExportId(template.id);
+                      }}
+                    >
+                      Export
+                    </Button>
+                    {(['duplicate', 'rename', 'delete'] as const).map((type) => (
+                      <Button
+                        key={type}
+                        variant={type === 'delete' ? 'destructive' : 'ghost'}
+                        disabled={busy}
+                        aria-label={`${type[0].toUpperCase() + type.slice(1)} ${template.name}`}
+                        onClick={(event) => {
+                          origin.current = event.currentTarget;
+                          setNotice('');
+                          setHiddenCopy(false);
+                          setHiddenRename(false);
+                          setAction({ type, template });
+                          setName(type === 'duplicate' ? copyName(template.name) : template.name);
+                          setError(null);
+                        }}
+                      >
+                        {type[0].toUpperCase() + type.slice(1)}
+                      </Button>
+                    ))}
+                  </fieldset>
                 </div>
               </li>
             ))}

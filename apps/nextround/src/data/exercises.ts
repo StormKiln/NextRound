@@ -1916,6 +1916,146 @@ export const exercises: ExerciseEntry[] = [
       'Hold a kettlebell at your side. Step the same-side leg back into a lunge and pass the bell beneath the front thigh to the other hand. Stand under control, then alternate legs. Each lunge, hand transfer and return is one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'dolphin-pose',
+    name: 'Dolphin pose',
+    description:
+      'Press your forearms down and lift your hips with knees soft. Keep your head clear of the floor and breathe steadily. Lower your knees to finish.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'extended-puppy-pose',
+    name: 'Extended puppy pose',
+    description:
+      'From hands and knees, walk the hands forward and ease the chest toward the floor while keeping hips lifted. Rest the forehead only if comfortable; keep the neck relaxed.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'gate-pose',
+    name: 'Gate pose',
+    description:
+      'Kneel on one knee and extend the other leg sideways. Rest one hand lightly on that leg and reach the opposite arm overhead into a gentle side bend. Hold one side, then switch.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'camel-pose',
+    name: 'Camel pose',
+    description:
+      'Kneel tall with hands supporting the back of the pelvis. Lift the chest into a small backbend without collapsing the lower back. Keep the neck comfortable and return upright slowly.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'fish-pose',
+    name: 'Fish pose',
+    description:
+      'Lie on your back with legs extended. Press the forearms down to lift the chest; let the head tip back only comfortably, keeping weight through the arms rather than the neck.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'bow-pose',
+    name: 'Bow pose',
+    description:
+      'Lie face down, bend the knees and hold the ankles. Gently press the feet back to lift the chest and thighs. Breathe without forcing the backbend, then release slowly.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'wide-standing-forward-bend',
+    name: 'Wide-legged standing forward bend',
+    description:
+      'Stand with feet wide and hinge forward from the hips. Place hands on the floor only as far as comfortable, keeping knees soft and weight balanced through both feet.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'standing-forward-bend',
+    name: 'Standing forward bend',
+    description:
+      'Stand with feet hip-width, soften the knees and fold from the hips. Let the arms hang and keep the neck relaxed. Return slowly without forcing the hands toward the floor.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'warrior-three',
+    name: 'Warrior III',
+    description:
+      'Balance on one leg as the other reaches back and the torso hinges forward. Reach the arms ahead, keep hips level and soften the standing knee. Hold one side, then switch.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'reclining-bound-angle',
+    name: 'Reclining bound angle',
+    description:
+      'Lie on your back, bring the soles of the feet together and let the knees open comfortably. Keep the arms relaxed and breathe; do not press the knees toward the floor.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'dumbbell-bench-press',
+    name: 'Dumbbell bench press',
+    description:
+      'Lie on a stable weight bench with feet planted. Lower both dumbbells beside the chest within a comfortable range, then press upward without bouncing. One press and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-bench-fly',
+    name: 'Dumbbell bench fly',
+    description:
+      'Lie on a stable weight bench with dumbbells above the chest and elbows softly bent. Open the arms only as far as comfortable, then bring them together. One open-and-close cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-concentration-curl',
+    name: 'Dumbbell seated concentration curl',
+    description:
+      'Sit on a stable seat with feet wide. Brace the working upper arm against the inner thigh; curl the dumbbell and lower slowly without swinging. Count reps on one side, then switch.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-drag-curl',
+    name: 'Dumbbell drag curl',
+    description:
+      'Stand tall with palms forward. Draw the elbows back while curling the dumbbells close to your torso, then lower under control. Avoid leaning back. Both arms together count as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-floor-triceps-extension',
+    name: 'Dumbbell single-arm floor triceps extension',
+    description:
+      'Lie on your back and point one upper arm toward the ceiling. Bend the elbow, then straighten it smoothly while keeping the upper arm steady. Count reps on one side, then switch.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-bottoms-up-clean',
+    name: 'Kettlebell bottoms-up clean',
+    description:
+      'Clean a light bell into a balanced bottoms-up rack with elbow close. Pause with a firm grip, then lower under control. Learn the regular clean first. Count one side, then switch.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-good-morning',
+    name: 'Kettlebell good morning',
+    description:
+      'Hold the bell securely against the chest. With soft knees, hinge the hips back and keep the back neutral, then stand tall. One hinge and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-side-stepping-swing',
+    name: 'Kettlebell side-stepping swing',
+    description:
+      'With a mastered two-hand swing, step sideways as the bell rises and bring the feet back under you as it falls. Keep room to move and count each swing, not each step.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-side-lunge-clean',
+    name: 'Kettlebell side lunge and clean',
+    description:
+      'Step into a side lunge, then drive back to standing and clean the bell into the rack. Keep the bell close and control the return. Count one lunge-and-clean cycle on the chosen side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-deck-squat',
+    name: 'Kettlebell deck squat',
+    description:
+      'Hold a light bell at the chest, squat down and roll onto the back without loading the neck. Rock forward onto the feet and stand. Requires a controlled floor-to-stand transition; one cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {

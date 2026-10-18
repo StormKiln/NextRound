@@ -6,7 +6,7 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 2.2.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.2.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 2.3.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.3.0.md) · [Privacy policy](PRIVACY.md)
 
 ## What you can do
 
@@ -16,7 +16,7 @@ NextRound is an offline workout timer and planner for **Apple Silicon Macs runni
 - **Protect your local data:** export a full backup in Settings, preview a restore before replacing data, and keep a rollback copy. Backups include private history and notes and are not encrypted. [Data and recovery details](docs/training-storage.md).
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
-- **Build your exercise order:** browse 263 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, preview explained alternatives, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
+- **Build your exercise order:** browse 283 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, preview explained alternatives, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
 - **Generate a workout:** choose My favorites for explicitly starred movements, Most used for history-ranked movements, Try something new or Mix It Up, then choose the exercise count. Choose optional focus areas; any selected area can match. Focus, equipment preferences and workout compatibility apply together; review and adjust targets before starting.
 - **Star exercises:** mark bundled or personal movements in the picker and combine Favourites only with search, equipment and focus filters. Exercise stars stay on your Mac, separate from saved-workout favourites and usage history.
 - **Reuse your favourites:** save named workouts for all six modes, update, duplicate directly from Home, mark favourites, and filter by name and workout type.
@@ -24,6 +24,16 @@ NextRound is an offline workout timer and planner for **Apple Silicon Macs runni
 - **Organise your routines:** create local saved-workout collections, assign a workout to multiple groups, and combine collection, type, favourite and exercise-detail search filters. Removing a collection keeps its workouts.
 - **Take a workout with you:** export a saved workout to a JSON file, preview an imported file, and add an independent copy. Timing, movements and targets travel together; history, notes, preferences and favourites stay local. Export a complete named collection to transfer a routine with several workouts.
 - **Review your training:** explicitly save completed results, review the performed workout, compare matching attempts, add searchable notes, or repeat a result from setup. Later exercise/template edits never rewrite historical snapshots.
+
+### Preview before opening a session
+
+Choose **Preview** on a saved training session to inspect all blocks, movements, targets and transitions without replacing your draft. Opening the editor checks the latest saved version and asks before replacing an existing session draft. Manual waits and uncapped work are labelled honestly.
+
+![Saved-session preview with block details and fixed actions](docs/screenshots/session-preview.png)
+
+Workout and session cards share consistent action groups and filters. These 2.3.0 production WebKit captures use sample data; installed-app acceptance is tracked separately.
+
+![Consistent saved-session actions and filter feedback](docs/screenshots/session-library.png)
 
 ### Compare two session attempts
 
