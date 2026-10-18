@@ -1776,6 +1776,146 @@ export const exercises: ExerciseEntry[] = [
       'Lie on your back with a light bell held vertically. Roll slowly toward your free arm, keeping the loaded arm stacked above the shoulder. Hold without forcing the rotation, then return under control. Choose a side for the interval.',
     supportedUnits: ['seconds'],
   },
+  {
+    id: 'boat-pose',
+    name: 'Boat pose',
+    description:
+      'Sit tall with bent knees, then lift your feet while balancing on your sitting bones. Keep your chest lifted and shins roughly level. Hold behind your thighs or reach your arms forward without rounding your back. Hold and breathe.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'chair-pose',
+    name: 'Chair pose',
+    description:
+      'Stand with feet together or hip-width apart. Bend your knees and sit your hips back while reaching your arms overhead. Keep your heels grounded and ribs controlled. Hold a comfortable depth, then straighten your legs to stand.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'eagle-pose',
+    name: 'Eagle pose',
+    description:
+      'Bend your standing knee and cross the other thigh over it. Cross your arms in front with forearms raised. Keep your trunk upright; the crossed foot may touch the floor for balance. Hold on one chosen side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'happy-baby-pose',
+    name: 'Happy baby pose',
+    description:
+      'Lie on your back and draw bent knees toward the sides of your chest. Hold the outer feet or lower legs, keeping ankles above knees. Let your head and back rest on the floor and breathe without pulling forcefully.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'sphinx-pose',
+    name: 'Sphinx pose',
+    description:
+      'Lie face down with legs extended. Place elbows under shoulders and forearms parallel on the floor. Lift your chest gently with pelvis and legs grounded. Keep your neck long and hold a comfortable position without forcing your lower back.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'locust-pose',
+    name: 'Locust pose',
+    description:
+      'Lie face down with arms alongside your body, reaching toward feet. Gently lift your chest, arms and legs with your neck long. Reach backward rather than upward with your hands. Hold without forcing the arch, then lower with control.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'extended-side-angle',
+    name: 'Extended side angle',
+    description:
+      'Take a wide stance and turn one foot outward. Bend that knee over its ankle, resting the same-side forearm lightly on your thigh. Reach the other arm over your ear while keeping your chest open. Hold on one chosen side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'half-moon-pose',
+    name: 'Half moon pose',
+    description:
+      'Balance on one leg and lift the other behind you toward hip height. Place lower fingertips on the floor and open your hips and chest sideways, reaching the upper arm upward. Avoid locking the standing knee. Choose one side per interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'dumbbell-zottman-curl',
+    name: 'Dumbbell Zottman curl',
+    description:
+      'Stand with a dumbbell in each hand. Curl both weights with palms upward, then rotate your forearms so palms face down before lowering slowly. Turn palms forward again at the bottom. Keep elbows close; one curl and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-arnold-press',
+    name: 'Dumbbell standing Arnold press',
+    description:
+      'Stand with two dumbbells at shoulder height and palms facing you. Press overhead while turning your palms forward. Reverse the rotation as you lower to the start. Keep your trunk still and ribs down; one press and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-reverse-curl',
+    name: 'Dumbbell standing reverse curl',
+    description:
+      'Stand holding two dumbbells with palms facing backward. Bend your elbows to raise the weights while keeping palms down and wrists steady. Lower slowly without swinging your torso. One simultaneous curl and lower of both arms is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-alternating-floor-press',
+    name: 'Dumbbell alternating floor press',
+    description:
+      'Lie on your back with knees bent and a dumbbell in each hand. Keep one upper arm resting on the floor while pressing the other weight above your chest. Lower under control, then alternate arms. Each press and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-kickstand-rdl',
+    name: 'Dumbbell kickstand Romanian deadlift',
+    description:
+      'Hold two dumbbells in a staggered stance, rear heel raised. Keep most weight on the front leg. Hinge your hips back with a soft front knee, lowering weights near your legs, then stand. Choose one front leg; each hinge and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-overhead-carry',
+    name: 'Dumbbell single-arm overhead carry',
+    description:
+      'Lift one dumbbell overhead with a steady wrist and extended arm. Walk with controlled steps while keeping the weight stacked above the shoulder and your trunk upright. Lower under control. Choose one arm for the interval or distance.',
+    supportedUnits: ['seconds', 'metres'],
+  },
+  {
+    id: 'kettlebell-double-clean',
+    name: 'Kettlebell double clean',
+    description:
+      'Use two kettlebells. Hinge to hike them between your legs, then drive your hips to guide both bells into the rack beside your chest. Keep bells close; avoid flipping them over your wrists. Return under control; each double clean is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-double-front-squat',
+    name: 'Kettlebell double front squat',
+    description:
+      'Rack two kettlebells at your chest with wrists steady. Keep your torso braced as you bend hips and knees into a comfortable squat. Keep heels grounded and knees tracking with toes, then stand. Each squat and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-double-jerk',
+    name: 'Kettlebell double jerk',
+    description:
+      'Rack two kettlebells. Dip your knees with an upright torso, drive through your legs, then bend your knees again to receive both bells overhead with straight arms. Stand tall before lowering to the rack. Each dip, catch and stand is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-seesaw-press',
+    name: 'Kettlebell seesaw press',
+    description:
+      'Rack two kettlebells. Press one overhead, then press the other as you lower the first. Continue the reciprocal motion without leaning or using a knee dip. Each individual arm reaching overhead counts as one rep; alternate evenly.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-hand-to-hand-swing',
+    name: 'Kettlebell hand-to-hand swing',
+    description:
+      'Start a controlled single-arm swing using a hip hinge. As the bell floats near chest height, transfer the handle to the other hand before the next backswing. Keep your torso facing forward and the area clear. Each swing counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-tactical-lunge',
+    name: 'Kettlebell tactical lunge',
+    description:
+      'Hold a kettlebell at your side. Step the same-side leg back into a lunge and pass the bell beneath the front thigh to the other hand. Stand under control, then alternate legs. Each lunge, hand transfer and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {

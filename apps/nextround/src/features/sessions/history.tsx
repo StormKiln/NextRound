@@ -10,6 +10,7 @@ import { dateBounds } from '@/features/history/date-filters';
 import { saveHistoryCsv } from '@/features/history/export-dialog';
 import { useHistoryFilters } from '@/features/history/filter-state';
 import { normalizeSearch } from '@/lib/search';
+import { SessionComparisonDialog } from './comparison-dialog';
 import { openSession } from './editor';
 import { parseResult, type TrainingResult } from './model';
 import { actualHighlights, compareActual, trainingComparisonKey } from './performance';
@@ -88,6 +89,7 @@ export function SessionHistory() {
     search,
     dateBounds(date, now),
   ).sort((a, b) => b.completedAt - a.completedAt);
+  const [comparing, setComparing] = useState(false);
   const [selected, setSelected] = useState<TrainingResult | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -95,6 +97,12 @@ export function SessionHistory() {
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [notes, setNotes] = useState(false);
+  const fresh = query.isSuccess && !query.isFetching;
+  const selectionCurrent =
+    !selected ||
+    JSON.stringify(query.data?.results.find((r) => r.id === selected.id)) ===
+      JSON.stringify(selected);
+  const canAct = fresh && selectionCurrent;
   const unsaved = useUnsavedChanges(!!selected && note !== selected.note, busy);
   const closeResult = () =>
     unsaved.request(() => {
@@ -102,6 +110,7 @@ export function SessionHistory() {
       setDeleting(false);
     });
   async function update(next: TrainingResult) {
+    if (!canAct) throw new Error('Refresh and reopen this result before saving.');
     await mutateTraining((d) => {
       const i = d.results.findIndex((r) => r.id === next.id);
       if (i < 0 || JSON.stringify(d.results[i]) !== JSON.stringify(selected))
@@ -119,8 +128,12 @@ export function SessionHistory() {
         Uses the date, type and search filters above. Each full session counts once; partial work
         stays labelled.
       </p>
+      {query.isPending && <p role="status">Loading session history…</p>}
+      {query.isFetching && !query.isPending && <p role="status">Refreshing session history…</p>}
       {query.error && (
         <p role="alert">
+          {query.data &&
+            'Cached session history may be out of date. Current-data actions are unavailable. '}
           {String(query.error)}
           <Button onClick={() => void query.refetch()}>Retry session history</Button>
         </p>
@@ -135,11 +148,12 @@ export function SessionHistory() {
             <p>{new Date(r.completedAt).toLocaleString()}</p>
             <p>
               {r.blocks.every((b) => b.status === 'complete') ? 'Complete' : 'Partial'} ·{' '}
-              {r.blocks.length} blocks ·{' '}
+              {r.blocks.length} {r.blocks.length === 1 ? 'block' : 'blocks'} ·{' '}
               {formatElapsed(r.blocks.reduce((sum, b) => sum + b.elapsedMs, 0))} workout time
             </p>
             <Button
               variant="secondary"
+              disabled={!fresh}
               onClick={() => {
                 setSelected(r);
                 setNote(r.note);
@@ -160,6 +174,7 @@ export function SessionHistory() {
           </label>
           <Button
             variant="secondary"
+            disabled={!fresh}
             onClick={() => {
               const headers = [
                 'session_id',
@@ -218,6 +233,16 @@ export function SessionHistory() {
       {selected && (
         <Dialog title={selected.session.name} className="session-dialog" onClose={closeResult}>
           <div className="actual-editor">
+            {!canAct && (
+              <p role="alert">
+                {!fresh
+                  ? 'Session history is unavailable or refreshing. Retry before changing this result.'
+                  : 'This result changed or was deleted. Close and reopen it before continuing.'}
+                <Button disabled={query.isFetching} onClick={() => void query.refetch()}>
+                  Retry result history
+                </Button>
+              </p>
+            )}
             {selected.blocks.map((b, index) => {
               const block = selected.session.blocks.find((block) => block.id === b.blockId)!;
               const comparable = (query.data?.results ?? [])
@@ -237,21 +262,22 @@ export function SessionHistory() {
                     {b.status} · {formatElapsed(b.elapsedMs)} workout time
                   </p>
                   <ActualSummary config={block.config} values={b.actuals} />
-                  {actualHighlights(selected, query.data?.results ?? [], b.blockId).map(
-                    (message) => (
-                      <p key={message} role="status">
-                        {message}
-                      </p>
-                    ),
-                  )}
+                  {(canAct
+                    ? actualHighlights(selected, query.data?.results ?? [], b.blockId)
+                    : []
+                  ).map((message) => (
+                    <p key={message} role="status">
+                      {message}
+                    </p>
+                  ))}
                   <Button
                     variant="secondary"
-                    disabled={!block.config.exercises?.length}
+                    disabled={!canAct || !block.config.exercises?.length}
                     onClick={() => setEditing(block.id)}
                   >
                     Edit actuals for {block.name}
                   </Button>
-                  {previous && selected.blocks.every((b) => b.status === 'complete') ? (
+                  {canAct && previous && selected.blocks.every((b) => b.status === 'complete') ? (
                     <div>
                       <h4>
                         Previous matching attempt:{' '}
@@ -276,8 +302,8 @@ export function SessionHistory() {
                         );
                       })}
                       <p>
-                        Changed prescriptions, incomplete sessions and missing values are not
-                        ranked.
+                        Unrecorded load is unknown, not zero. Changed prescriptions, incomplete
+                        sessions and missing values are not ranked.
                       </p>
                     </div>
                   ) : (
@@ -286,6 +312,20 @@ export function SessionHistory() {
                 </section>
               );
             })}
+            <Button
+              variant="secondary"
+              disabled={!canAct || busy}
+              onClick={(event) => {
+                // WebKit does not focus buttons on pointer activation by default.
+                event.currentTarget.focus();
+                unsaved.request(() => {
+                  setNote(selected.note);
+                  setComparing(true);
+                });
+              }}
+            >
+              Compare session results
+            </Button>
             <label htmlFor="session-result-note">Session note</label>
             <textarea
               id="session-result-note"
@@ -306,7 +346,7 @@ export function SessionHistory() {
               </Button>
               <Button
                 variant="secondary"
-                disabled={busy}
+                disabled={busy || !canAct}
                 onClick={async () => {
                   setBusy(true);
                   setError('');
@@ -322,7 +362,7 @@ export function SessionHistory() {
                 Save session note
               </Button>
               <Button
-                disabled={busy}
+                disabled={busy || !canAct}
                 onClick={() =>
                   unsaved.request(() => {
                     openSession({ ...selected.session, id: crypto.randomUUID() });
@@ -335,7 +375,7 @@ export function SessionHistory() {
               </Button>
               <Button
                 variant="destructive"
-                disabled={busy}
+                disabled={busy || !canAct}
                 onClick={async () => {
                   if (!deleting) {
                     setDeleting(true);
@@ -362,6 +402,15 @@ export function SessionHistory() {
               </Button>
             </div>
           </div>
+          {comparing && (
+            <SessionComparisonDialog
+              initialId={selected.id}
+              results={query.data?.results ?? []}
+              fresh={fresh}
+              retry={() => void query.refetch()}
+              onClose={() => setComparing(false)}
+            />
+          )}
           {editing && (
             <PerformanceEditor
               config={selected.session.blocks.find((b) => b.id === editing)!.config}

@@ -207,6 +207,17 @@ const reps: Record<string, number> = {
   'squat-single-leg': 4,
   'squat-split': 6,
   'squat-bulgarian': 6,
+  'dumbbell-zottman-curl': 6,
+  'dumbbell-arnold-press': 6,
+  'dumbbell-reverse-curl': 8,
+  'dumbbell-alternating-floor-press': 10,
+  'dumbbell-kickstand-rdl': 6,
+  'kettlebell-double-clean': 5,
+  'kettlebell-double-front-squat': 6,
+  'kettlebell-double-jerk': 4,
+  'kettlebell-seesaw-press': 8,
+  'kettlebell-hand-to-hand-swing': 10,
+  'kettlebell-tactical-lunge': 6,
 };
 export function defaultEmomTarget(entry: ExerciseEntry): ExerciseTarget {
   const count = reps[entry.catalogId ?? entry.id];

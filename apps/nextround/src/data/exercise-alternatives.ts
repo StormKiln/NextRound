@@ -3,6 +3,27 @@ import type { ExerciseEntry } from '@nextround/core';
 // Directed editorial suggestions, not effort equivalences or injury-specific advice.
 // Technique references and pairing decisions: docs/exercise-sources.md.
 export const alternatives: Record<string, readonly { id: string; reason: string }[]> = {
+  'dumbbell-overhead-carry': [
+    {
+      id: 'kettlebell-overhead-carry',
+      reason:
+        'Changes the overhead implement to a kettlebell; grip and load need independent review.',
+    },
+  ],
+  'kettlebell-double-front-squat': [
+    {
+      id: 'kettlebell-goblet-squat',
+      reason:
+        'Uses one front-held bell instead of two racked bells; choose the load independently.',
+    },
+  ],
+  'kettlebell-hand-to-hand-swing': [
+    {
+      id: 'swing',
+      reason: 'Removes the hand transfer and uses two hands on the handle.',
+    },
+  ],
+
   pushup: [
     {
       id: 'pushup-knee',
