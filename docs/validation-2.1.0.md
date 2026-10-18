@@ -6,6 +6,7 @@ Source: release/2.1.0. Final full-suite, merge/tag, downloadable artifact, Apple
 
 - `make check` passes release tooling, TypeScript, 303 unit tests, native tests, lint/format/clippy and production frontend build.
 - Catalog checks preserve all 223 prior snapshots and verify 20 additions, metadata, supported targets, equipment and identity uniqueness. Directed alternative references are checked for dangling, self and duplicate relationships.
+- Production WebKit: all 14 release regressions pass.
 - Browser regressions cover confirmation/cancel/Undo, all six builders, session-block snapshot persistence, equipment override/search, incompatible actual metrics, collection failure/retry, neutral export cancellation and genuine write failures.
 - Independent review found orphan collection memberships and aggregate performance errors focusing an unrelated row. Both were reproduced with failing regressions, fixed and re-reviewed with no remaining findings.
 - Native opt-in audio/keep-awake lifecycle and sandbox media checks pass; the Apple configuration compiles without default features.
