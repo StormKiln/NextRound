@@ -150,3 +150,61 @@ test('session filters report matches and can be cleared beside session results',
   await expect(page.getByLabel('Search saved workouts', { exact: true })).toHaveValue('');
   await expect(section).toContainText('1 of 1 sessions');
 });
+
+test('twenty-block preview covers every mode with reachable actions and honest unknown duration', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 620 });
+  await seed(page);
+  await page.evaluate((s) => {
+    const common = { leadInSeconds: 5, warningSeconds: 3, exercises: s.blocks[0].config.exercises };
+    const configs = [
+      { ...common, type: 'emom', minutes: 3 },
+      { ...common, type: 'countdown', durationSeconds: 90 },
+      { ...common, type: 'intervals', rounds: 3, workSeconds: 20, restSeconds: 10 },
+      { ...common, type: 'amrap', durationSeconds: 180 },
+      { ...common, type: 'forTime' },
+      {
+        ...common,
+        type: 'ladder',
+        exercises: common.exercises?.map(({ target, ...e }) => e),
+        ladder: { direction: 'ascending', startReps: 2, increment: 2, rungs: 3 },
+      },
+    ];
+    const data = JSON.parse(localStorage.getItem('nextround.training.v1')!);
+    data.sessions[0].blocks = Array.from({ length: 20 }, (_, i) => ({
+      id: `b${i}`,
+      name: `Block ${i + 1} with a descriptive title`,
+      config: configs[i % 6],
+      restSeconds: 10,
+      advance: i === 0 ? 'ready' : 'automatic',
+    }));
+    localStorage.setItem('nextround.training.v1', JSON.stringify(data));
+  }, session);
+  await page.reload();
+  const trigger = page.getByRole('button', { name: 'Preview Attempt a', exact: true });
+  await trigger.click();
+  await page.addStyleTag({ content: '::-webkit-scrollbar { width: 18px; }' });
+  const dialog = page.getByRole('dialog', { name: 'Preview saved session', exact: true });
+  await expect(dialog).toContainText('Duration unknown');
+  for (const text of [
+    'EMOM',
+    'Countdown',
+    'Intervals',
+    'AMRAP',
+    'For Time',
+    'Ladder',
+    'Wait until ready',
+  ])
+    await expect(dialog).toContainText(text);
+  const close = dialog.getByRole('button', { name: 'Close preview', exact: true });
+  await expect(close).toBeInViewport({ ratio: 1 });
+  await page.locator('.session-preview-body').evaluate((el) => (el.scrollTop = el.scrollHeight));
+  await expect(dialog.getByText('Final block — no transition recovery.')).toBeInViewport({
+    ratio: 1,
+  });
+  await expect(close).toBeInViewport({ ratio: 1 });
+  expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+});
