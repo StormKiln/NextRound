@@ -321,3 +321,26 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.session-preview[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: min(820px, calc(100vw - 40px));
+}
+.session-preview > :not(.session-preview-body) {
+  flex-shrink: 0;
+}
+.session-preview-body {
+  overflow: auto;
+  min-height: 0;
+  padding: 4px 14px 12px 4px;
+  scrollbar-gutter: stable;
+}
+.session-preview-block {
+  border-top: 1px solid #625a50;
+  padding: 16px 0;
+}
+.session-preview .dialog-actions {
+  padding-top: 16px;
+}
