@@ -140,7 +140,9 @@ export function SessionLibrary() {
         {sessions.map((s) => (
           <article key={s.id} className="session-card">
             <h3>{s.name}</h3>
-            <p>{s.blocks.length} workout blocks</p>
+            <p>
+              {s.blocks.length} workout {s.blocks.length === 1 ? 'block' : 'blocks'}
+            </p>
             <p>{sessionTimeLabel(s)}</p>
             <p>{s.blocks.map((b) => b.name).join(' → ')}</p>
             <p>

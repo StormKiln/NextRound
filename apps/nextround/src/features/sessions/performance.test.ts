@@ -122,7 +122,7 @@ it('only awards a recorded rep best with a prior comparable complete attempt', a
         blockId: 'b',
         status: 'complete' as const,
         elapsedMs: 30000,
-        actuals: [{ exerciseId: 'e', occurrence: 0, reps: 12 }],
+        actuals: [{ exerciseId: 'e', occurrence: 0, reps: 12, load: 0, loadUnit: 'kg' as const }],
         checkedIds: [],
         completedMovements: 0,
         partialValue: 0,
@@ -168,4 +168,22 @@ it('rejects double-counted totals and out-of-range or unsupported occurrence ent
   expect(
     validateActualsForConfig(emom, [{ exerciseId: 'e', occurrence: 3, reps: 0 }]),
   ).toHaveLength(1);
+});
+
+it('does not claim comparable load when neither attempt recorded it', () => {
+  const a = { exerciseId: 'e', occurrence: 0, reps: 12 };
+  expect(compareActual(a, { ...a, reps: 10 }, 'reps')).toBeNull();
+  expect(compareActual({ ...a, load: 0, loadUnit: 'kg' }, a, 'reps')).toBeNull();
+  expect(
+    compareActual(
+      { ...a, load: 0, loadUnit: 'kg' },
+      { ...a, reps: 0, load: 0, loadUnit: 'kg' },
+      'reps',
+    ),
+  ).toBe(12);
+});
+it('uses milligram-independent gram precision for recorded kg and lb', () => {
+  const a = { exerciseId: 'e', occurrence: 0, reps: 12, load: 10, loadUnit: 'kg' as const };
+  expect(compareActual(a, { ...a, reps: 10, load: 22.0462262, loadUnit: 'lb' }, 'reps')).toBe(2);
+  expect(compareActual(a, { ...a, load: 22.0462262, loadUnit: 'lb' }, 'load')).toBe(0);
 });

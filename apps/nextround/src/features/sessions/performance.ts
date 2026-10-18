@@ -10,6 +10,15 @@ export function trainingComparisonKey(session: TrainingSession): string {
     ]),
   );
 }
+// Compare only recorded loads, normalized to the nearest gram. Never infer bodyweight.
+export function recordedLoadKg(value: Actual): number | null {
+  if (value.load === undefined || !value.loadUnit) return null;
+  return Math.round(value.load * (value.loadUnit === 'lb' ? 0.45359237 : 1) * 1000) / 1000;
+}
+export function hasMatchingRecordedLoad(a: Actual, b: Actual): boolean {
+  const kg = recordedLoadKg(a);
+  return kg !== null && kg === recordedLoadKg(b);
+}
 export function compareActual(
   a: Actual,
   b: Actual,
@@ -17,10 +26,13 @@ export function compareActual(
 ): number | null {
   if (a.occurrence !== b.occurrence || a[metric] === undefined || b[metric] === undefined)
     return null;
-  const kg = (v: Actual) =>
-    v.load === undefined ? null : v.load * (v.loadUnit === 'lb' ? 0.45359237 : 1);
-  if (metric !== 'load' && kg(a) !== kg(b)) return null;
-  return metric === 'load' ? kg(a)! - kg(b)! : a[metric]! - b[metric]!;
+  if (metric !== 'load' && !hasMatchingRecordedLoad(a, b)) return null;
+  if (metric === 'load') {
+    const left = recordedLoadKg(a),
+      right = recordedLoadKg(b);
+    return left === null || right === null ? null : Math.round((left - right) * 1000) / 1000;
+  }
+  return a[metric]! - b[metric]!;
 }
 
 export function actualHighlights(
