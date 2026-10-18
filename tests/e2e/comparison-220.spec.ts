@@ -143,3 +143,43 @@ test('unknown load, equal timestamps, refreshed edits and restart retain truthfu
     page.getByRole('button', { name: 'Compare session results', exact: true }),
   ).toBeFocused();
 });
+
+test('twenty-block comparisons retain the close action and scroll without horizontal clipping', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 620 });
+  await page.goto('/history');
+  await page.evaluate(() => {
+    const data = JSON.parse(localStorage.getItem('nextround.training.v1')!);
+    for (const r of data.results) {
+      const block = r.session.blocks[0],
+        outcome = r.blocks[0];
+      r.session.blocks = Array.from({ length: 20 }, (_, i) => ({
+        ...structuredClone(block),
+        id: `${r.id}-${i}`,
+        name: `Block ${i + 1}: repeated movement with a deliberately descriptive name`,
+      }));
+      r.blocks = r.session.blocks.map((b: { id: string }) => ({
+        ...structuredClone(outcome),
+        blockId: b.id,
+      }));
+    }
+    localStorage.setItem('nextround.training.v1', JSON.stringify(data));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'View session result' }).first().click();
+  await page.getByRole('button', { name: 'Compare session results', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Compare session results', exact: true });
+  await expect(dialog.getByRole('button', { name: 'Close comparison' })).toBeInViewport();
+  expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  const body = dialog.locator('.comparison-body');
+  expect(await body.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+  await body.evaluate((el) => (el.scrollTop = el.scrollHeight));
+  await expect(dialog.getByRole('button', { name: 'Close comparison' })).toBeInViewport();
+  const lastHeading = dialog
+    .getByRole('region', { name: 'Attempt B snapshot' })
+    .getByRole('heading', { name: /20\. Block 20/ });
+  await lastHeading.scrollIntoViewIfNeeded();
+  await expect(lastHeading).toBeInViewport();
+  await expect(dialog.getByRole('button', { name: 'Close comparison' })).toBeInViewport();
+});

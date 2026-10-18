@@ -315,12 +315,14 @@ export function SessionHistory() {
             <Button
               variant="secondary"
               disabled={!canAct || busy}
-              onClick={() =>
+              onClick={(event) => {
+                // WebKit does not focus buttons on pointer activation by default.
+                event.currentTarget.focus();
                 unsaved.request(() => {
                   setNote(selected.note);
                   setComparing(true);
-                })
-              }
+                });
+              }}
             >
               Compare session results
             </Button>
