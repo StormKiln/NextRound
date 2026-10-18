@@ -535,7 +535,7 @@ export function TemplateLibrary({
             !!budgetDraft) && (
             <fieldset className="template-search" aria-label="Filter saved workouts">
               <p>Filter and sort saved workouts and training sessions together.</p>
-              <label>
+              <label className="library-sort">
                 Sort saved library
                 <select
                   value={sort}

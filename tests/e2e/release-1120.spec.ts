@@ -26,7 +26,7 @@ test('favourites persist and combine with mode and normalized name filters', asy
   await expect(page.locator('.template-list > li')).toHaveCount(1);
   await page.getByLabel('Workout type', { exact: true }).selectOption('countdown');
   await expect(page.getByText('No saved workouts match your filters.')).toBeVisible();
-  await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear library filters', exact: true }).first().click();
   await page.getByLabel('Search saved workouts').fill('ALPHA');
   await expect(page.locator('.template-list > li')).toHaveCount(1);
   await page.reload();

@@ -285,8 +285,7 @@ export function SessionEditor() {
                 Duplicate block {i + 1}
               </Button>
               <Button
-                variant="ghost"
-                className="destructive-action"
+                variant="destructive"
                 onClick={() => {
                   const next = draft.blocks[i + 1]?.id ?? draft.blocks[i - 1]?.id ?? '';
                   removedBlock.current = b.id;

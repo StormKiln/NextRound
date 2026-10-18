@@ -39,7 +39,7 @@ test('renaming a filtered workout explains where it went and offers recovery', a
 });
 test('keyboard clear filters restores search focus', async ({ page }) => {
   await page.getByLabel('Search saved workouts').fill('No match');
-  const clear = page.getByRole('button', { name: 'Clear filters', exact: true });
+  const clear = page.getByRole('button', { name: 'Clear library filters', exact: true }).first();
   await clear.focus();
   await page.keyboard.press('Enter');
   await expect(page.getByLabel('Search saved workouts')).toBeFocused();
@@ -223,7 +223,7 @@ test('clearing filters after the last saved entry disappears focuses the library
     key,
   );
   await page.getByRole('button', { name: 'Refresh saved workouts', exact: true }).click();
-  await page.getByRole('button', { name: 'Clear filters', exact: true }).focus();
+  await page.getByRole('button', { name: 'Clear library filters', exact: true }).first().focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Saved workouts', exact: true })).toBeFocused();
 });

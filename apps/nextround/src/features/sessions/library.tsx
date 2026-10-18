@@ -183,7 +183,9 @@ export function SessionLibrary() {
           <p role="status">
             {notice}
             {affected ? ` “${affected.name}”` : ''}
-            {fresh && hidden ? ' is hidden by your current library filters.' : ''}
+            {fresh && (filters.collection === 'all' || collectionsReady) && hidden
+              ? ' is hidden by your current library filters.'
+              : ''}
           </p>
           {fresh && hidden && (filters.collection === 'all' || collectionsReady) && (
             <Button

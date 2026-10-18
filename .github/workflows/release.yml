@@ -53,7 +53,16 @@ jobs:
           RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.release_tag }}
         run: make release-metadata
       - name: Set up Rust
-        run: make setup-rust
+        env:
+          RUST_TOOLING_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Older immutable tags do not contain the retry helper or Make target.
+          tooling_dir="$RUNNER_TEMP/nextround-rust"
+          mkdir -p "$tooling_dir"
+          git show "$RUST_TOOLING_COMMIT:scripts/setup-rust.sh" > "$tooling_dir/setup-rust.sh"
+          echo "Rust tooling commit: $RUST_TOOLING_COMMIT"
+          bash "$tooling_dir/setup-rust.sh"
       - name: Install locked dependencies
         run: make install
       - name: Validate tagged sources
