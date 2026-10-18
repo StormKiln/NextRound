@@ -2056,6 +2056,146 @@ export const exercises: ExerciseEntry[] = [
       'Hold a light bell at the chest, squat down and roll onto the back without loading the neck. Rock forward onto the feet and stand. Requires a controlled floor-to-stand transition; one cycle is one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'reverse-warrior',
+    supportedUnits: ['seconds'],
+    name: 'Reverse warrior',
+    description:
+      'From Warrior II, keep the front knee bent as the front arm arcs overhead and the rear hand rests lightly on the back leg. Lengthen the side body without leaning on the knee. Repeat on the other side.',
+  },
+  {
+    id: 'staff-pose',
+    supportedUnits: ['seconds'],
+    name: 'Staff pose',
+    description:
+      'Sit with legs extended and feet flexed. Place hands beside the hips and lift through the crown without arching the back. Soften the knees if needed to sit upright; breathe evenly.',
+  },
+  {
+    id: 'garland-pose',
+    supportedUnits: ['seconds'],
+    name: 'Garland pose',
+    description:
+      'Take a comfortable wide squat with toes slightly out. Bring palms together and keep the chest lifted. Hold only as low as you can balance with heels grounded; rise slowly to finish.',
+  },
+  {
+    id: 'hero-pose',
+    supportedUnits: ['seconds'],
+    name: 'Hero pose',
+    description:
+      'Kneel with feet slightly wider than hips and sit between the heels only if comfortable. Keep the torso upright and breathe. Stay higher or choose another seated position if knees or ankles feel strained.',
+  },
+  {
+    id: 'half-lord-fishes',
+    supportedUnits: ['seconds'],
+    name: 'Half lord of the fishes',
+    description:
+      'Sit tall with one foot crossed over the opposite leg. Turn gently toward the bent knee without pulling on it. Keep both sitting bones grounded; leave the lower leg straight to scale. Repeat both sides.',
+  },
+  {
+    id: 'cow-face-legs',
+    supportedUnits: ['seconds'],
+    name: 'Cow face pose — legs',
+    description:
+      'Sit with bent knees stacked loosely and feet outside the opposite hips. Keep hands resting comfortably and torso upright. Uncross the lower leg if needed; do not force the knees together. Switch sides.',
+  },
+  {
+    id: 'half-splits',
+    supportedUnits: ['seconds'],
+    name: 'Half splits',
+    description:
+      'From a kneeling lunge, shift hips back and lengthen the front leg with toes up. Hinge gently over it while keeping hips square. Keep a slight knee bend and a comfortable reach. Repeat on the other side.',
+  },
+  {
+    id: 'crocodile-pose',
+    supportedUnits: ['seconds'],
+    name: 'Crocodile pose',
+    description:
+      'Lie face down with legs comfortably apart and forehead resting on folded forearms. Relax the shoulders and let the abdomen move with easy breaths. Adjust the arms to keep the neck comfortable.',
+  },
+  {
+    id: 'mountain-pose',
+    supportedUnits: ['seconds'],
+    name: 'Mountain pose',
+    description:
+      'Stand with feet comfortably together or hip-width apart. Spread weight across both feet, soften the knees and stack ribs over pelvis. Let arms rest by your sides and breathe without stiffening.',
+  },
+  {
+    id: 'dancer-pose',
+    supportedUnits: ['seconds'],
+    name: 'Dancer pose',
+    description:
+      'Stand on one leg and hold the other foot behind you with the same-side hand. Reach the free arm forward as the foot presses gently back. Keep hips level; use a small range and release slowly. Switch sides.',
+  },
+  {
+    id: 'dumbbell-incline-press',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell incline bench press',
+    description:
+      'On a stable incline bench, keep feet planted and press dumbbells from chest height upward. Lower under control with elbows slightly tucked. Use a light load and a comfortable shoulder range. Requires an incline bench.',
+  },
+  {
+    id: 'dumbbell-incline-fly',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell incline fly',
+    description:
+      'Lie on a stable incline bench with dumbbells above the chest. With softly bent elbows, open the arms to a comfortable depth and bring them together. Avoid overstretching; use light weights. Requires an incline bench.',
+  },
+  {
+    id: 'dumbbell-chest-supported-row',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell chest-supported row',
+    description:
+      'Rest the chest on a stable incline bench, feet planted and palms facing inward. Row both dumbbells toward the hips without lifting the chest, then lower slowly. Use lighter weights to scale. Requires an incline bench.',
+  },
+  {
+    id: 'dumbbell-seated-calf-raise',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell seated calf raise',
+    description:
+      'Sit on a stable bench with knees bent and feet flat. Steady light dumbbells on the thighs above the knees. Lift the heels, pause and lower slowly without bouncing. Keep the balls of the feet planted.',
+  },
+  {
+    id: 'dumbbell-cross-body-curl',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell cross-body hammer curl',
+    description:
+      'Stand tall with palms facing inward. Curl one dumbbell across toward the opposite shoulder without swinging the torso. Lower slowly and alternate arms. Count each curl as one repetition; use a lighter load to scale.',
+  },
+  {
+    id: 'kettlebell-single-leg-clean',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell single-leg clean',
+    description:
+      'Advanced: balance on one leg and clean a light bell to the opposite-side rack. Keep the bell close and pelvis controlled. Lower carefully. Practise a two-foot clean first; counts apply to one side.',
+  },
+  {
+    id: 'kettlebell-single-leg-row',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell single-leg row',
+    description:
+      'Hinge on one leg, holding a light bell in the opposite hand. Row toward the hip without twisting; lower slowly. Keep hips level. Use a two-foot row if balance limits control; counts apply to one side.',
+  },
+  {
+    id: 'kettlebell-pistol-squat',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell pistol squat',
+    description:
+      'Advanced: hold a light bell in front as a counterbalance. Squat on one leg with the other extended, then stand with control. Use a smaller depth or bodyweight first. Counts apply to one side.',
+  },
+  {
+    id: 'kettlebell-bulgarian-split-squat',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell Bulgarian split squat',
+    description:
+      'Rest the rear foot on a low stable bench and hold a bell at your side. Bend both knees, keeping the front foot planted, then stand. Start without weight to find balance. Counts apply to one side.',
+  },
+  {
+    id: 'kettlebell-renegade-row',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell renegade row',
+    description:
+      'Use two stable, flat-base bells under the hands in a wide-foot plank. Row one bell toward the hip without rotating, lower and alternate. Count each row. If the bells tip, stop and choose a floor-supported row.',
+  },
 ];
 
 export async function listExercises() {
