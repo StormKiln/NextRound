@@ -47,11 +47,11 @@ test('future saved template schema reports an error and cannot be overwritten by
   const raw = JSON.stringify({ version: 99, templates: [] });
   await page.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key, raw });
   await page.reload();
-  await expect(page.getByRole('alert')).toContainText('version is unsupported');
+  await expect(page.getByRole('alert').filter({ hasText: 'version is unsupported' })).toBeVisible();
   await page.goto('/countdown');
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await page.getByLabel('Workout name').fill('New');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('version is unsupported');
+  await expect(page.getByRole('alert').filter({ hasText: 'version is unsupported' })).toBeVisible();
   expect(await page.evaluate((key) => localStorage.getItem(key), key)).toBe(raw);
 });

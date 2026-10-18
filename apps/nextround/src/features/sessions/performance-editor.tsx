@@ -48,6 +48,35 @@ export function PerformanceEditor({
       : (config.exercises ?? []).map((e) => draft({ exerciseId: e.id, occurrence: 0 })),
   );
   const initial = useRef(JSON.stringify(rows));
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [movementChange, setMovementChange] = useState<{ key: string; exerciseId: string } | null>(
+    null,
+  );
+  const [invalidRow, setInvalidRow] = useState<string | null>(null);
+  const changeMovement = (key: string, exerciseId: string) => {
+    const exercise = config.exercises?.find((e) => e.id === exerciseId);
+    setRows((current) =>
+      current.map((row) => {
+        if (row.key !== key) return row;
+        const next = { ...row, exerciseId };
+        for (const field of fields) {
+          if (
+            field !== 'load' &&
+            exercise?.supportedUnits &&
+            !exercise.supportedUnits.includes(field)
+          )
+            next[field] = '';
+        }
+        const limit = actualOccurrenceLimit(config, exerciseId);
+        if (!/^\d+$/.test(next.occurrence) || Number(next.occurrence) > limit)
+          next.occurrence = '0';
+        return next;
+      }),
+    );
+    setError('');
+    setInvalidRow(null);
+    setMovementChange(null);
+  };
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const unsaved = useUnsavedChanges(JSON.stringify(rows) !== initial.current, busy);
@@ -57,7 +86,7 @@ export function PerformanceEditor({
   return (
     <>
       <Dialog title="Record actual performance" className="session-dialog" onClose={close}>
-        <div className="actual-editor">
+        <div className="actual-editor" ref={editorRef}>
           <p>
             Enter what you did. Blank means not recorded; zero means none completed. These values do
             not change your targets.
@@ -69,13 +98,20 @@ export function PerformanceEditor({
           {rows.map((row, i) => {
             const exercise = config.exercises?.find((e) => e.id === row.exerciseId);
             return (
-              <section className="actual-row" key={row.key}>
+              <section className="actual-row" key={row.key} data-actual-key={row.key}>
                 <div className="actual-fields">
                   <label>
                     Movement
                     <select
                       value={row.exerciseId}
-                      onChange={(e) => patch(i, { exerciseId: e.target.value })}
+                      disabled={busy}
+                      aria-label="Movement"
+                      onChange={(e) => {
+                        const exerciseId = e.target.value;
+                        if (fields.some((f) => row[f].trim() !== '') || row.occurrence !== '0')
+                          setMovementChange({ key: row.key, exerciseId });
+                        else changeMovement(row.key, exerciseId);
+                      }}
                     >
                       {config.exercises?.map((e) => (
                         <option key={e.id} value={e.id}>
@@ -151,7 +187,9 @@ export function PerformanceEditor({
                     </select>
                   </label>
                 </div>
+                {invalidRow === row.key && error && <p role="alert">{error}</p>}
                 <Button
+                  disabled={busy}
                   variant="ghost"
                   onClick={() => setRows((rows) => rows.filter((_, j) => j !== i))}
                 >
@@ -176,7 +214,7 @@ export function PerformanceEditor({
               Add performance entry
             </Button>
           )}
-          {error && <p role="alert">{error}</p>}
+          {error && !invalidRow && <p role="alert">{error}</p>}
           <div className="dialog-actions">
             <Button variant="ghost" disabled={busy} onClick={close}>
               Cancel
@@ -186,39 +224,50 @@ export function PerformanceEditor({
               onClick={async () => {
                 setBusy(true);
                 setError('');
+                setInvalidRow(null);
+                let failingKey: string | null = null;
                 try {
-                  const values = validateActualsForConfig(
-                    config,
-                    rows
-                      .filter((r) => fields.some((f) => r[f].trim() !== ''))
-                      .map((row) => {
-                        if (!/^\d+$/.test(row.occurrence))
-                          throw new Error('Use a whole occurrence number.');
-                        const a: Actual = {
-                          exerciseId: row.exerciseId,
-                          occurrence: Number(row.occurrence),
-                        };
-                        for (const f of fields)
-                          if (row[f].trim() !== '') {
-                            if (!/^\d+(\.\d+)?$/.test(row[f].trim()))
-                              throw new Error('Enter nonnegative numbers without symbols.');
-                            a[f] = Number(row[f]);
-                          }
-                        if (a.load !== undefined) a.loadUnit = row.loadUnit;
-                        return a;
-                      }),
-                  );
+                  const values = rows
+                    .filter((r) => fields.some((f) => r[f].trim() !== ''))
+                    .map((row) => {
+                      failingKey = row.key;
+                      if (!/^\d+$/.test(row.occurrence))
+                        throw new Error('Use a whole occurrence number.');
+                      const a: Actual = {
+                        exerciseId: row.exerciseId,
+                        occurrence: Number(row.occurrence),
+                      };
+                      for (const f of fields)
+                        if (row[f].trim() !== '') {
+                          if (!/^\d+(\.\d+)?$/.test(row[f].trim()))
+                            throw new Error('Enter nonnegative numbers without symbols.');
+                          a[f] = Number(row[f]);
+                        }
+                      if (a.load !== undefined) a.loadUnit = row.loadUnit;
+                      validateActualsForConfig(config, [a]);
+                      return a;
+                    });
                   for (const e of config.exercises ?? []) {
                     const entries = values.filter((a) => a.exerciseId === e.id);
-                    if (entries.some((a) => a.occurrence === 0) && entries.length > 1)
-                      throw new Error(
-                        'Use either a block total or separate rounds for each movement.',
-                      );
+                    failingKey =
+                      rows.find(
+                        (r) => r.exerciseId === e.id && fields.some((f) => r[f].trim() !== ''),
+                      )?.key ?? null;
+                    validateActualsForConfig(config, entries);
                   }
+                  failingKey = null;
                   await onSave(values);
                   onClose();
                 } catch (e) {
                   setError(String(e));
+                  setInvalidRow(failingKey);
+                  const element = failingKey
+                    ? editorRef.current?.querySelector<HTMLElement>(
+                        `[data-actual-key="${CSS.escape(failingKey)}"]`,
+                      )
+                    : editorRef.current;
+                  element?.scrollIntoView({ block: 'center' });
+                  element?.querySelector<HTMLElement>('input, select')?.focus();
                 } finally {
                   setBusy(false);
                 }
@@ -229,6 +278,23 @@ export function PerformanceEditor({
           </div>
         </div>
       </Dialog>
+      {movementChange && (
+        <Dialog title="Change recorded movement?" onClose={() => setMovementChange(null)}>
+          <p>
+            Changing the movement clears values in unsupported units and resets an invalid round to
+            a whole-block total. Compatible values, including load, are kept without conversion.
+            Review them for the new movement before saving.
+          </p>
+          <div className="dialog-actions">
+            <Button variant="secondary" onClick={() => setMovementChange(null)}>
+              Keep movement
+            </Button>
+            <Button onClick={() => changeMovement(movementChange.key, movementChange.exerciseId)}>
+              Change movement
+            </Button>
+          </div>
+        </Dialog>
+      )}
       {unsaved.confirmation}
     </>
   );

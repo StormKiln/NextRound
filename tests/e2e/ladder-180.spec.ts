@@ -52,7 +52,7 @@ test('Ladder filters non-rep exercises and preserves partial progress at the cap
   await page.getByLabel('Search exercises').fill('rowing');
   await expect(page.getByRole('button', { name: /^Rowing machine/ })).toHaveCount(0);
   await page.getByLabel('Search exercises').fill('push-up');
-  await page.getByRole('button', { name: /^Push-up / }).click();
+  await page.getByRole('button', { name: /^Push-up Keep/ }).click();
   await page.getByLabel('Use a time cap').check();
   await page.getByLabel('Minutes', { exact: true }).fill('0');
   await page.getByLabel('Seconds', { exact: true }).fill('3');

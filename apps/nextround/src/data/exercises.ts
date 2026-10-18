@@ -1636,6 +1636,146 @@ export const exercises: ExerciseEntry[] = [
     description:
       'Take a wide stance with the bell between your feet. Drive hips and legs to stand, then guide the bell upward with elbows high. Lower under control before repeating.',
   },
+  {
+    id: 'warrior-one',
+    name: 'Warrior I',
+    description:
+      'Take a long stance with the rear heel grounded and hips facing forward. Bend the front knee over the foot and reach both arms overhead without arching your back. Choose a side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'warrior-two',
+    name: 'Warrior II',
+    description:
+      'Stand wide with the front foot turned out. Bend that knee over the foot, open your torso sideways and reach your arms in opposite directions. Hold without leaning; choose a side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'tree-pose',
+    name: 'Tree pose',
+    description:
+      'Stand on one leg and rest the other sole against the inner calf, away from the knee joint. Keep hips level and gaze at a fixed point. Hold with steady breathing; choose a side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'upward-facing-dog',
+    name: 'Upward-facing dog',
+    description:
+      'Lie face down with palms under shoulders and tops of feet grounded. Press up to lift chest and thighs, keeping the neck long and shoulders away from ears. Hold only a comfortable range.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'quadruped-staggered-hand-hold',
+    name: 'Quadruped staggered-hand hold',
+    description:
+      'On hands and knees, move one hand slightly forward and angle fingertips inward comfortably. Brace and hold with shoulders steady. Choose the forward hand for the interval; avoid sinking into the shoulders.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'prone-i-raise',
+    name: 'Prone I raise',
+    description:
+      'Lie face down with arms straight overhead and palms facing inward. Lift arms gently from the shoulders without lifting your head or arching your back. Lower with control; each lift and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'prone-o-raise',
+    name: 'Prone O raise',
+    description:
+      'Lie face down, reaching hands behind your lower back into an O shape. Gently lift the arms while keeping your neck aligned and torso still. Lower with control; each lift and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pushup-leg-raise',
+    name: 'Push-up with single-leg raise',
+    description:
+      'Lower through a controlled push-up. As you press up, lift one straight leg without twisting your hips. Return the foot and alternate legs. One push-up with a leg lift counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pushup-staggered',
+    name: 'Staggered-hand push-up',
+    description:
+      'Set one hand slightly ahead of the other in a high plank. Lower and press up while keeping hips square and elbows controlled. Choose the forward hand for the interval; each push-up is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-biceps-stretch',
+    name: 'Seated bent-knee biceps stretch',
+    description:
+      'Sit with knees bent and palms behind you, fingers pointing away. Keep hands planted and slide hips forward gently until a comfortable stretch is felt. Hold without bouncing or forcing the shoulders.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'forward-lunge-arm-drivers',
+    name: 'Forward lunge with arm drivers',
+    description:
+      'Reach both arms forward as you step into a lunge. Hinge at the hips and reach toward the floor with a flat back, then push back to standing. Alternate legs; each step out and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-lunge-stretch',
+    name: 'Standing lunge stretch',
+    description:
+      'Take a long split stance and bend the front knee. Hinge forward with a long back while gently engaging the rear glute. Keep balance and hold a comfortable stretch; choose a side for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'dumbbell-rotational-press',
+    name: 'Dumbbell rotational overhead press',
+    description:
+      'Hold two dumbbells at shoulder height. Turn feet and torso together, press the same-side weight overhead and lower before turning the other way. Alternate sides; each press is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-rotational-uppercut',
+    name: 'Dumbbell rotational uppercut',
+    description:
+      'Hold two dumbbells with bent elbows near your ribs. Pivot through hips and feet as you bring the opposite bent arm up in an uppercut. Lower with control and alternate; each uppercut is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-reverse-lunge-rotation',
+    name: 'Dumbbell reverse lunge with rotation',
+    description:
+      'Hold one dumbbell at your chest. Step back into a lunge, rotate gently toward the front leg, then return to centre before standing. Alternate legs; each lunge and return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-side-lying-arm-roll',
+    name: 'Dumbbell side-lying arm roll',
+    description:
+      'Lie on your back with knees bent and one light dumbbell held vertically. Roll slowly toward the free arm while keeping the weight stacked above the shoulder, then return. Choose a side; each roll out and back is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-dead-stop-swing',
+    name: 'Kettlebell dead-stop swing',
+    description:
+      'Hinge to grip a bell in front of your feet. Hike it back, drive hips to swing to chest height, then hinge and park it under control. Reset fully before each rep; each swing and park is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-overhead-carry',
+    name: 'Kettlebell single-arm overhead carry',
+    description:
+      'Press one bell overhead with a steady wrist and arm. Walk with short controlled steps, keeping ribs down and avoiding sideways lean. Lower under control; choose one arm for the interval.',
+    supportedUnits: ['seconds', 'metres'],
+  },
+  {
+    id: 'kettlebell-overhead-hold',
+    name: 'Kettlebell overhead hold',
+    description:
+      'Press one bell overhead and stand still with the wrist stacked above the shoulder. Keep ribs down and breathe without leaning. Lower under control; choose an arm for the interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'kettlebell-arm-bar',
+    name: 'Kettlebell arm bar',
+    description:
+      'Lie on your back with a light bell held vertically. Roll slowly toward your free arm, keeping the loaded arm stacked above the shoulder. Hold without forcing the rotation, then return under control. Choose a side for the interval.',
+    supportedUnits: ['seconds'],
+  },
 ];
 
 export async function listExercises() {

@@ -179,7 +179,7 @@ test('whole-workout presets use saved history rankings', async ({ page }) => {
   await page.getByLabel('Lead-in seconds').fill('0');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('pushup');
-  await page.getByRole('button', { name: /^Push-up / }).click();
+  await page.getByRole('button', { name: /^Push-up Keep/ }).click();
   await page.clock.install();
   await page.getByRole('button', { name: 'Start countdown', exact: true }).click();
   await page.clock.runFor(1100);
