@@ -45,7 +45,7 @@ test('clears a validation-only time filter error', async ({ page }) => {
     'aria-invalid',
     'true',
   );
-  await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear library filters', exact: true }).first().click();
   await expect(page.getByLabel('Available minutes', { exact: true })).toHaveAttribute(
     'aria-invalid',
     'false',

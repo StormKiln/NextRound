@@ -28,3 +28,9 @@ Preserve form state while showing errors. Close/Cancel remain available when a r
 | Settings/backup/import | Minimum window, long content, errors | Navigation separated, Close/recovery reachable, destructive confirmation |
 
 Run at 760×620 and a larger desktop window in Chromium and production WebKit. Record screenshots using sample data. Browser checks do not substitute for physical VoiceOver, audible cues, sleep/wake or installed upgrade observations.
+
+## 2.4.0 library and editor behavior
+
+- One labelled Sort saved library control affects both result lists. Recently added uses reverse saved insertion order (including legacy records); Name A–Z uses stable case-insensitive name ordering; Shortest duration puts unknown/manual-wait/uncapped durations last. Caps are not finish-time predictions. Sorting is transient, non-mutating and survives navigation/filter reset; restarting uses Recently added.
+- Say Clear library filters wherever the shared filters reset. Show session — clear library filters explicitly reveals a result after a successful action; never reset silently. Keep the selected sort and editor draft.
+- Announce block removal and the existing Undo action. Focus the next surviving block's Edit, otherwise the previous block's Edit, otherwise Add EMOM block. Undo focuses the restored block. Use the existing destructive button style for Remove.

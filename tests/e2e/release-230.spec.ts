@@ -146,7 +146,7 @@ test('session filters report matches and can be cleared beside session results',
   await page.getByLabel('Search saved workouts', { exact: true }).fill('not present');
   const section = page.getByRole('region', { name: 'Saved training sessions', exact: true });
   await expect(section).toContainText('0 of 1 sessions');
-  await section.getByRole('button', { name: 'Clear session filters', exact: true }).click();
+  await section.getByRole('button', { name: 'Clear library filters', exact: true }).click();
   await expect(page.getByLabel('Search saved workouts', { exact: true })).toHaveValue('');
   await expect(section).toContainText('1 of 1 sessions');
 });

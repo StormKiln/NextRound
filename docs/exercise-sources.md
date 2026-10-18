@@ -366,3 +366,28 @@ Reviewed October 18, 2026. Ten equipment-free holds, five dumbbell movements and
 | Deck squat | [Greg Brookes](https://kettlebellsworkouts.com/kettlebell-deck-squat/) |
 
 Distinctness audit: Dolphin uses forearm support rather than Downward dog; Puppy keeps the hips elevated rather than resting onto the heels. Gate is a kneeling side bend. Camel, Fish and Bow have different supports and limb positions. Standing folds differ from seated stretches and dynamic good mornings; the wide stance changes the hip position. Warrior III is a held forward-reaching balance rather than a repeated single-leg hinge; reclining bound angle is supine rather than seated butterfly. Bench press/fly remove the floor's upper-arm stop and require a stable weight bench, represented by the existing raised-surface requirement plus an explicit bench instruction. Concentration curls brace the upper arm; drag curls move the elbows backward. Floor triceps extension uses elbow extension with the upper arm upright rather than overhead standing or kickback. The five kettlebell additions change rack balance, load position, stepping, combination or floor transition. They are not new names for old entries. No additional curated alternative relationships are introduced.
+
+## 2.4.0 additions (303 movements total)
+
+Twenty distinct entries were checked against the prior 283 names, aliases and movement descriptions. Instructions are original summaries; no photographs or source prose are redistributed. Targets are editable starting suggestions, not measured performance or medical guidance.
+
+| Added movements | Technique reference |
+| --- | --- |
+| Reverse warrior, Half splits | [Yoga With Kassandra: side-stretch practice](https://www.yogajournal.com/practice/20-minute-yoga-side-stretch/?scope=anon) |
+| Staff pose | [Yoga Journal: Dandasana](https://www.yogajournal.com/poses/staff-pose/?scope=anon) |
+| Garland pose | [Yoga Journal: Malasana](https://www.yogajournal.com/poses/garland-pose/?scope=anon) |
+| Hero pose | [Yoga Journal: Virasana](https://www.yogajournal.com/poses/hero-pose/?scope=anon) |
+| Half lord of the fishes | [Yoga Journal: Ardha Matsyendrasana](https://www.yogajournal.com/poses/half-lord-of-the-fishes-pose/?scope=anon) |
+| Cow face pose — legs | [Yoga Journal: Gomukhasana](https://www.yogajournal.com/poses/cow-face-pose/?scope=anon) (leg position only; no arm bind required) |
+| Crocodile pose | [Yoga International: practice instructions](https://yogainternational.com/article/view/take-a-yoga-break-a-simple-stress-busting-pose/) (breathing/rest position only; health claims not adopted) |
+| Mountain pose | [Yoga Journal: Tadasana](https://www.yogajournal.com/poses/mountain-pose/?scope=anon) |
+| Dancer pose | [Yoga Journal: Natarajasana](https://www.yogajournal.com/poses/lord-of-the-dance-pose?scope=anon) (single-hand foot hold, no overhead bind/strap required) |
+| Dumbbell incline bench press | [Muscle & Strength](https://www.muscleandstrength.com/exercises/incline-dumbbell-bench-press.html) |
+| Dumbbell incline fly | [Muscle & Strength](https://www.muscleandstrength.com/exercises/incline-dumbbell-flys.html) |
+| Dumbbell chest-supported row | [Muscle & Strength](https://www.muscleandstrength.com/node/48713), [Muscle & Fitness](https://www.muscleandfitness.com/exercise/workouts/chest-supported-dumbbell-row/) |
+| Dumbbell seated calf raise | [Muscle & Strength](https://www.muscleandstrength.com/exercises/seated-dumbbell-calf-raise.html) (floor-foot variation; additional step is optional, not required) |
+| Dumbbell cross-body hammer curl | [Muscle & Fitness](https://www.muscleandfitness.com/exercise/workouts/arm-exercises/cross-body-dumbbell-hammer-curl/) |
+| Kettlebell single-leg clean, single-leg row, pistol squat, Bulgarian split squat | [Greg Brookes: single-leg exercises](https://kettlebellsworkouts.com/single-leg-kettlebell-exercises/) |
+| Kettlebell renegade row | [Greg Brookes: row variations](https://kettlebellsworkouts.com/kettlebell-row-variations/) |
+
+The ten no-equipment holds use seconds. Weighted movements support reps/time and conservative EMOM counts (3–10); one-sided counts apply to the chosen side, while alternating curls/rows count each repetition. Incline press/fly/chest-supported row require an incline bench, represented by the existing stable-raised-surface category and stated explicitly in descriptions. Seated calf raises and rear-foot-elevated kettlebell squats also require a stable support. Renegade rows require two stable-base bells. Balance/loaded variants are distinct from existing unweighted or two-foot movements, not renamed duplicates. All previous exercise IDs and descriptions are preserved by a baseline regression test.

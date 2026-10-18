@@ -100,3 +100,7 @@ testflight-status:
 .PHONY: verify-updater
 verify-updater:
 	cargo test --manifest-path $(NATIVE) verify_signed_updater_archive -- --ignored --nocapture
+
+.PHONY: setup-rust
+setup-rust:
+	bash scripts/setup-rust.sh
