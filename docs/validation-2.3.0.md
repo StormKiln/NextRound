@@ -15,8 +15,14 @@ Authoritative completion evidence: [release acceptance #349](https://github.com/
 
 ## Acceptance status
 
-`make check` passes: 314 unit tests, 64 native tests, release tooling, typecheck, lint/clippy and production build. Native media lifecycle, sandbox cues/wake assertions and Apple no-default-features compilation pass. Full browser and production WebKit checks are in progress; final results and immutable commit/run IDs will be recorded in #349.
+`make check` passes: 314 unit tests, 64 native tests, release tooling, typecheck, lint/clippy and production build. Native media lifecycle, sandbox cues/wake assertions and Apple no-default-features compilation pass. Production WebKit passes all 31 scoped cases. The complete Chromium rerun is in progress; final results and immutable commit/run IDs are recorded in #349.
 
 The equipment-footer keyboard check uses Option-Tab for macOS WebKit (plain Tab excludes non-text controls under the platform preference), and Tab for Chromium. Inspection confirmed focus stayed on Retry after activation, then Option-Tab reached the override checkbox; no application focus workaround was required. Workflow syntax validation passed with optional external shellcheck/pyflakes disabled after the local combined checker stalled; shell scripts are also checked by the release suite. Production screenshots use sample data. No storage schema changes are intended.
 
 Computer-use reported the Mac locked during implementation. An unlock request is pending. Physical VoiceOver/keyboard, audible timing/sleep-wake, populated installed upgrade, TestFlight tester access and installed launch/persistence must be recorded separately. Older release acceptance issues are not closed by this release's automated evidence.
+
+## Minimum-window production capture
+
+Sample data in production WebKit at 760×620, with the overflowing session preview scrolled to its final block. Close/Open remain outside the scroll body.
+
+![Session preview at minimum window size](screenshots/session-preview-minimum.png)
