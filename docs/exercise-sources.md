@@ -287,3 +287,31 @@ Reviewed 2026-10-17 against the preceding 203 IDs/names and aliases. Original co
 - Power versus squat cleans differ in receiving depth; push versus split jerks differ in receiving stance. Neither is a renamed push press. The overhead squat/lunge adds an overhead stabilization task to existing rack/goblet variants.
 - The sumo deadlift high pull starts from the floor with a two-handed wide stance, distinct from the existing single-arm swing-based kettlebell high pull. Crush curls hold a squat while the elbows flex.
 - The hundred is timed; other additions support reps and seconds. Defaults are 4–8 controlled repetitions (30 seconds for the hundred). Jumps and ballistic lifts are labelled high intensity; users can edit or replace them.
+
+## 2.1.0: twenty alternatives and mobility additions
+
+The catalog grows from 223 to 243: twelve equipment-free, four dumbbell and four kettlebell movements. Prior snapshots are preserved. Descriptions are original summaries of technique references checked 18 October 2026. Defaults are editable suggestions, not pace or effort equivalence. Static poses and holds use seconds; the overhead carry also supports metres. Dynamic additions use 4–8 reps or seconds, with counting and side conventions in their descriptions.
+
+| Movements | Primary technique reference |
+| --- | --- |
+| Warrior I | [ACE Warrior I](https://www.acefitness.org/resources/everyone/exercise-library/228/warrior-i/) |
+| Warrior II, Tree pose, Upward-facing dog | [ACE yoga poses](https://www.acefitness.org/resources/everyone/blog/5295/a-beginner-s-guide-to-yoga-5-widely-practiced-poses/) |
+| Quadruped staggered-hand hold | [ACE CKC parascapular exercise](https://www.acefitness.org/resources/everyone/exercise-library/259/ckc-parascapular-exercises/) |
+| Prone I raise, Prone O raise | [ACE prone scapular series](https://www.acefitness.org/resources/everyone/exercise-library/249/prone-scapular-shoulder-stabilization-series-i-y-t-w-o-formation/) |
+| Push-up with single-leg raise | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/42/push-up-with-single-leg-raise/) |
+| Staggered-hand push-up | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/327/push-up-with-staggered-hands/) |
+| Seated bent-knee biceps stretch | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/208/seated-bent-knee-biceps-stretch/) |
+| Forward lunge with arm drivers | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/95/forward-lunge-with-arm-drivers/) |
+| Standing lunge stretch | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/137/standing-lunge-stretch/) |
+| Dumbbell rotational overhead press | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/368/rotational-overhead-press/) |
+| Dumbbell rotational uppercut | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/369/rotational-uppercut/) |
+| Dumbbell reverse lunge with rotation | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/360/reverse-lunge-with-rotation/) |
+| Dumbbell side-lying arm roll; Kettlebell arm bar | [ACE weighted arm-roll mechanics and kettlebell variant](https://www.acefitness.org/resources/everyone/exercise-library/223/side-lying-arm-rolls/), [StrongFirst arm-bar demonstration](https://www.youtube.com/watch?v=k7qyA5bMYRA) |
+| Kettlebell dead-stop swing | [Andrea DuCane: single-rep dead-stop swing](https://kettlebellfitness.com/2015/07/the-single-rep-dead-stop-swing-clean-snatch-workout/) |
+| Kettlebell single-arm overhead carry; Kettlebell overhead hold | [Greg Brookes: overhead carry and static hold](https://kettlebellsworkouts.com/kettlebell-overhead-carry/) |
+
+Variant audit: I and O use different shoulder positions from existing Y/T/W raises. Upward dog lifts the thighs rather than the floor-supported cobra. Tree pose uses external hip rotation and foot-to-calf contact. Arm drivers add a forward reach and hinge to a lunge. The dumbbell roll is dynamic; the kettlebell arm bar is a timed side-lying hold. The overhead hold stays stationary while the carry walks. A dead-stop swing parks and resets between repetitions. No new equipment categories or rehabilitation claims are introduced.
+
+### Curated alternative decisions
+
+Relationships are editorial choices based on the technique references above and the earlier catalog sources on this page, not claims endorsed by those sources. Pressing variants change support/lever or implement; squat and lunge variants change load or stepping; plank variants change support; swing variants change reset or ballistic movement; carries change load position or remove walking. Cardio options offer rhythmic movement with different mechanics, not rowing-distance or calorie equivalents. Directed rationales explicitly describe these differences. Targets use existing compatible-unit rules, never physiological or numeric load conversion. New poses and raises are related only where the movement change can be clearly explained.
