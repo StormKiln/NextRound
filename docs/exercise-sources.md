@@ -315,3 +315,26 @@ Variant audit: I and O use different shoulder positions from existing Y/T/W rais
 ### Curated alternative decisions
 
 Relationships are editorial choices based on the technique references above and the earlier catalog sources on this page, not claims endorsed by those sources. Pressing variants change support/lever or implement; squat and lunge variants change load or stepping; plank variants change support; swing variants change reset or ballistic movement; carries change load position or remove walking. Cardio options offer rhythmic movement with different mechanics, not rowing-distance or calorie equivalents. Directed rationales explicitly describe these differences. Targets use existing compatible-unit rules, never physiological or numeric load conversion. New poses and raises are related only where the movement change can be clearly explained.
+
+## 2.2.0 additions (20; catalog total 263)
+
+Reviewed October 18, 2026. Eight equipment-free, six dumbbell and six kettlebell movements. These are original short technique summaries, not copied source text or medical advice. Prior 243 IDs/descriptions remain unchanged. Holds use seconds; the overhead carry uses seconds/metres; dynamic movements use reps/seconds. Suggested EMOM counts are editable planning defaults, not prescribed loads or effort equivalences. Unilateral holds/carries use a chosen side; alternating movements count each individual press/swing/lunge; simultaneous two-arm lifts count one completed cycle.
+
+| Movements | Primary technique references |
+| --- | --- |
+| Bent-knee Boat, Chair, Eagle | Yoga Journal: [Boat](https://www.yogajournal.com/poses/boat-pose/?scope=anon), [Chair](https://www.yogajournal.com/poses/chair-pose-2/?scope=anon), [Eagle](https://www.yogajournal.com/poses/eagle-pose/?scope=anon) |
+| Happy baby, Sphinx, Locust | Yoga Journal: [Happy baby](https://www.yogajournal.com/poses/happy-baby-pose/?scope=anon), [Sphinx](https://www.yogajournal.com/poses/sphinx-pose/?scope=anon), [Locust](https://www.yogajournal.com/poses/locust-pose/?scope=anon) |
+| Extended side angle | [Sally Parkes: anatomy and technique](https://sallyparkesyoga.com/wp-content/uploads/2017/06/ANATOMY-OF-POSE-EX-SIDE-ANGLE-PAGE-1-ultraFit_P84_yoga-1.pdf), using the forearm-on-thigh variation |
+| Half moon | [Erin Sampson, Five Parks Yoga](https://fiveparksyoga.com/yoga-poses/half-moon/), floor-supported variation |
+| Zottman curl, standing Arnold press, standing reverse curl | Muscle & Strength: [Zottman](https://www.muscleandstrength.com/exercises/zottman-curl.html), [Arnold](https://www.muscleandstrength.com/exercises/standing-arnold-press.html), [reverse curl](https://www.muscleandstrength.com/exercises/standing-dumbbell-reverse-curl.html) |
+| Alternating dumbbell floor press | [OPEX Fitness technique demonstration](https://www.youtube.com/watch?v=5t9ggij1eXk) |
+| Dumbbell kickstand Romanian deadlift | [PureGym B-stance deadlift](https://www.puregym.com/exercises/legs/hamstring-exercises/deadlifts/b-stance-deadlift/) |
+| Dumbbell single-arm overhead carry | [Catalyst Athletics](https://www.catalystathletics.com/exercise/888/Single-Arm-Dumbbell-Overhead-Carry/) |
+| Double kettlebell clean, double front squat | StrongFirst: [the three cleans](https://www.strongfirst.com/3-cleans-relationship-form-function/), [double-bell patterns](https://www.strongfirst.com/get-stronger-with-odd-load-kettlebell-training/) |
+| Double kettlebell jerk | [StrongFirst: kettlebell jerk](https://www.strongfirst.com/go-ballistic-the-jerk-for-barbell-and-kettlebell/) |
+| Kettlebell seesaw press | StrongFirst: [press variations](https://www.strongfirst.com/get-stronger-with-odd-load-kettlebell-training/), [practitioner description of reciprocal pressing](https://www.strongfirst.com/community/threads/see-saw-press-programming.22629/) |
+| Hand-to-hand swing, tactical lunge | Greg Brookes: [changing hands](https://kettlebellsworkouts.com/changing-hands/), [tactical lunge](https://kettlebellsworkouts.com/kettlebell-tactical-lunge/) |
+
+Distinctness audit: Boat is a static bent-knee balance, not the existing dynamic seated knee tuck. Sphinx rests on forearms rather than pressing into Cobra. Locust reaches arms backward rather than Superman's forward reach. Arnold press rotates the arms without the existing rotational press's trunk pivot. Alternating floor press works one arm at a time. Kickstand RDL retains rear-foot support. Double clean/front squat require two bells; double jerk adds a second knee dip absent from push press. Seesaw pressing moves arms reciprocally, hand-to-hand swings add a transfer, and tactical lunges add an under-leg pass.
+
+Curated alternatives were added only where justified: dumbbell to kettlebell overhead carry changes the implement; double front squat to goblet squat changes rack/load setup; hand-to-hand to two-handed swing removes the hand transfer. Targets and equipment are reviewed in the existing confirmation; no load conversion is inferred.
