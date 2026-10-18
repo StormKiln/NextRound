@@ -338,3 +338,31 @@ Reviewed October 18, 2026. Eight equipment-free, six dumbbell and six kettlebell
 Distinctness audit: Boat is a static bent-knee balance, not the existing dynamic seated knee tuck. Sphinx rests on forearms rather than pressing into Cobra. Locust reaches arms backward rather than Superman's forward reach. Arnold press rotates the arms without the existing rotational press's trunk pivot. Alternating floor press works one arm at a time. Kickstand RDL retains rear-foot support. Double clean/front squat require two bells; double jerk adds a second knee dip absent from push press. Seesaw pressing moves arms reciprocally, hand-to-hand swings add a transfer, and tactical lunges add an under-leg pass.
 
 Curated alternatives were added only where justified: dumbbell to kettlebell overhead carry changes the implement; double front squat to goblet squat changes rack/load setup; hand-to-hand to two-handed swing removes the hand transfer. Targets and equipment are reviewed in the existing confirmation; no load conversion is inferred.
+
+## 2.3.0 additions (20; catalog total 283)
+
+Reviewed October 18, 2026. Ten equipment-free holds, five dumbbell movements and five kettlebell movements. Descriptions are original concise technique summaries. Prior 263 entries are unchanged. Static holds use seconds; dynamic movements support reps/seconds with editable defaults. Unilateral movements count the chosen side; simultaneous two-arm lifts count one full cycle. No clinical benefits or load equivalences are claimed.
+
+| Movement | Instructional reference |
+| --- | --- |
+| Dolphin | [Yoga Journal](https://www.yogajournal.com/poses/dolphin-pose-2/?scope=anon) |
+| Extended puppy | [Yoga Journal](https://www.yogajournal.com/poses/extended-puppy-pose/?scope=anon) |
+| Gate | [YogaEasy / Ekhart Yoga](https://www.yogaeasy.com/artikel/gate-pose) |
+| Camel, hands at pelvis variation | [Yoga Journal](https://www.yogajournal.com/poses/camel-pose/?scope=anon) |
+| Fish | [Yoga Journal](https://www.yogajournal.com/poses/fish-pose/?scope=anon) |
+| Bow | [Yoga Journal](https://www.yogajournal.com/poses/bow-pose/?scope=anon) |
+| Wide-legged standing forward bend | [Yoga Journal](https://www.yogajournal.com/poses/wide-legged-forward-bend/?scope=anon) |
+| Standing forward bend | [YogaEasy / Ekhart Yoga](https://www.yogaeasy.com/artikel/standing-forward-bend) |
+| Warrior III | [Yoga Journal](https://www.yogajournal.com/poses/warrior-iii-pose/?scope=anon) |
+| Reclining bound angle | [Yoga Journal](https://www.yogajournal.com/poses/reclining-bound-angle-pose/?scope=anon) |
+| Dumbbell bench press and bench fly | Muscle & Strength: [press](https://www.muscleandstrength.com/exercises/dumbbell-bench-press.html), [fly](https://www.muscleandstrength.com/exercises/dumbbell-flys.html) |
+| Seated concentration curl | [Ironmaster](https://www.ironmaster.com/blog/2021/03/29/the-lowdown-on-dumbbell-concentration-curls/) |
+| Dumbbell drag curl | [Trainer Shane McLean, Muscle & Fitness](https://www.muscleandfitness.com/workouts/arm-exercises/drag-curl-exercise-how-to-benefits-variations/) |
+| Single-arm floor triceps extension | [Mayo Clinic technique demonstration](https://www.mayoclinic.org/healthy-lifestyle/fitness/multimedia/triceps-extension/vid-20084676) |
+| Bottoms-up clean | [Greg Brookes](https://kettlebellsworkouts.com/bottoms-kettlebell-clean/) |
+| Kettlebell good morning | [Greg Brookes](https://kettlebellsworkouts.com/kettlebell-good-morning/) |
+| Side-stepping swing | [Greg Brookes exercise library](https://kettlebellsworkouts.com/kettlebell-exercises/) |
+| Side lunge and clean | [Greg Brookes](https://kettlebellsworkouts.com/kettlebell-side-lunge-clean/) |
+| Deck squat | [Greg Brookes](https://kettlebellsworkouts.com/kettlebell-deck-squat/) |
+
+Distinctness audit: Dolphin uses forearm support rather than Downward dog; Puppy keeps the hips elevated rather than resting onto the heels. Gate is a kneeling side bend. Camel, Fish and Bow have different supports and limb positions. Standing folds differ from seated stretches and dynamic good mornings; the wide stance changes the hip position. Warrior III is a held forward-reaching balance rather than a repeated single-leg hinge; reclining bound angle is supine rather than seated butterfly. Bench press/fly remove the floor's upper-arm stop and require a stable weight bench, represented by the existing raised-surface requirement plus an explicit bench instruction. Concentration curls brace the upper arm; drag curls move the elbows backward. Floor triceps extension uses elbow extension with the upper arm upright rather than overhead standing or kickback. The five kettlebell additions change rack balance, load position, stepping, combination or floor transition. They are not new names for old entries. No additional curated alternative relationships are introduced.

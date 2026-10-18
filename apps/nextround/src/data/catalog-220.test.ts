@@ -4,8 +4,8 @@ import { catalogMetadata, eligibleExercise } from './equipment';
 import { exercises } from './exercises';
 
 it('adds exactly twenty distinct, classified movements with compatible targets', () => {
-  expect(exercises).toHaveLength(263);
-  const added = exercises.slice(243);
+  expect(exercises).toHaveLength(283);
+  const added = exercises.slice(243, 263);
   expect(added.filter((e) => eligibleExercise(e, []))).toHaveLength(8);
   expect(added.filter((e) => catalogMetadata[e.id].equipment.includes('dumbbell'))).toHaveLength(6);
   expect(added.filter((e) => catalogMetadata[e.id].equipment.includes('kettlebell'))).toHaveLength(
@@ -35,7 +35,7 @@ import { matchesExercise } from '../features/setup/exercise-suggestions';
 import { generatedEntry } from '../features/setup/workout-generator';
 
 it('keeps new entries searchable, equipment-aware and valid for every supported workout', () => {
-  for (const entry of exercises.slice(243)) {
+  for (const entry of exercises.slice(243, 263)) {
     for (const alias of catalogMetadata[entry.id].aliases)
       expect(matchesExercise(entry, alias)).toBe(true);
     expect(eligibleExercise(entry, catalogMetadata[entry.id].equipment)).toBe(true);
