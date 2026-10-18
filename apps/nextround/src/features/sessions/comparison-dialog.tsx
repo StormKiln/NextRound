@@ -1,4 +1,4 @@
-import { formatElapsed } from '@nextround/core';
+import { formatAmrapProgress, formatElapsed, formatLadderProgress } from '@nextround/core';
 import { useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,31 @@ function Snapshot({ result, side }: { result: TrainingResult; side: string }) {
               <WorkoutDetails config={block.config} />
             </details>
             <h4>Recorded performance</h4>
+            {outcome.status !== 'skipped' && block.config.type === 'amrap' && (
+              <p>Recorded circuit progress: {formatAmrapProgress(block.config, outcome)}</p>
+            )}
+            {outcome.status !== 'skipped' && block.config.type === 'ladder' && (
+              <p>
+                Recorded ladder progress:{' '}
+                {formatLadderProgress(block.config, outcome.completedMovements)}
+              </p>
+            )}
+            {outcome.status !== 'skipped' &&
+              (block.config.type === 'countdown' || block.config.type === 'forTime') &&
+              block.config.showChecklist !== false &&
+              !!block.config.exercises?.length && (
+                <div>
+                  <p>Recorded checklist</p>
+                  <ul>
+                    {block.config.exercises.map((exercise) => (
+                      <li key={exercise.id}>
+                        {outcome.checkedIds.includes(exercise.id) ? 'Checked' : 'Not checked'}:{' '}
+                        {exercise.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             <ActualSummary config={block.config} values={outcome.actuals} />
           </section>
         );

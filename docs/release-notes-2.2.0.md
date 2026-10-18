@@ -2,7 +2,7 @@
 
 ## Compare two session attempts
 
-Choose two saved session results and inspect planned work and recorded performance side by side. Matching complete prescriptions show neutral differences for matching movements and occurrences. Changed or partial sessions can be inspected without deltas. Missing values remain unrecorded; explicit zero stays visible. Recorded loads are compared consistently across kg and lb, with the normalization explained in the view.
+Choose two saved session results and inspect planned work and recorded performance side by side, including saved AMRAP/Ladder progress and checklist ticks. Matching complete prescriptions show neutral differences for matching movements and occurrences. Changed or partial sessions can be inspected without deltas. Missing values remain unrecorded; explicit zero stays visible. Recorded loads are compared consistently across kg and lb, with the normalization explained in the view.
 
 ## Twenty more movements
 

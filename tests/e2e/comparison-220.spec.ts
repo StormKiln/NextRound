@@ -183,3 +183,64 @@ test('twenty-block comparisons retain the close action and scroll without horizo
   await expect(lastHeading).toBeInViewport();
   await expect(dialog.getByRole('button', { name: 'Close comparison' })).toBeInViewport();
 });
+
+test('snapshots show saved AMRAP, Ladder and checklist progress without manual actuals', async ({
+  page,
+}) => {
+  await page.goto('/history');
+  await page.evaluate(() => {
+    const data = JSON.parse(localStorage.getItem('nextround.training.v1')!);
+    for (const [i, r] of data.results.entries()) {
+      const block = r.session.blocks[0],
+        outcome = r.blocks[0];
+      const base = { leadInSeconds: 0, warningSeconds: 3, exercises: block.config.exercises };
+      r.session.blocks = [
+        {
+          ...structuredClone(block),
+          id: r.id + '-amrap',
+          name: 'Circuit',
+          config: { ...base, type: 'amrap', durationSeconds: 60 },
+        },
+        {
+          ...structuredClone(block),
+          id: r.id + '-ladder',
+          name: 'Ladder',
+          config: {
+            ...base,
+            exercises: base.exercises.map(
+              ({ target, ...e }: { target?: unknown; id: string }) => e,
+            ),
+            type: 'ladder',
+            ladder: { direction: 'ascending', startReps: 2, increment: 2, rungs: 3 },
+          },
+        },
+        {
+          ...structuredClone(block),
+          id: r.id + '-check',
+          name: 'Checklist',
+          config: { ...base, type: 'countdown', durationSeconds: 60, showChecklist: true },
+        },
+      ];
+      r.blocks = r.session.blocks.map((b: { id: string }, index: number) => ({
+        ...structuredClone(outcome),
+        blockId: b.id,
+        actuals: [],
+        completedMovements: index === 0 ? 2 - i : index === 1 ? 1 - i : 0,
+        partialValue: index === 0 ? 3 - i : 0,
+        checkedIds: index === 2 && i === 0 ? [base.exercises[0].id] : [],
+      }));
+    }
+    localStorage.setItem('nextround.training.v1', JSON.stringify(data));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'View session result' }).first().click();
+  await page.getByRole('button', { name: 'Compare session results', exact: true }).click();
+  const a = page.getByRole('region', { name: 'Attempt A snapshot' }),
+    b = page.getByRole('region', { name: 'Attempt B snapshot' });
+  await expect(a).toContainText('2 completed rounds + 0 completed movements + 3 reps of Push-up');
+  await expect(b).toContainText('1 completed round + 0 completed movements + 2 reps of Push-up');
+  await expect(a).toContainText('1 of 3 rungs');
+  await expect(b).toContainText('0 of 3 rungs');
+  await expect(a).toContainText('Checked: Push-up');
+  await expect(b).toContainText('Not checked: Push-up');
+});
