@@ -39,7 +39,7 @@ test('shared sorting and filter reset preserve data and chosen order', async ({ 
   await sort.selectOption('name');
   await expect(page.locator('.session-card h3')).toHaveText(['Attempt a', 'Zulu']);
   await sort.selectOption('duration');
-  await page.getByLabel('Search saved workouts', { exact: true }).fill('Attempt');
+  await page.getByLabel('Search saved library', { exact: true }).fill('Attempt');
   await page.getByRole('button', { name: 'Clear library filters', exact: true }).last().click();
   await expect(sort).toHaveValue('duration');
   await expect(page.locator('.session-card h3')).toHaveText(['Attempt a', 'Zulu']);
@@ -91,7 +91,7 @@ for (const action of ['Rename', 'Collections'] as const) {
       });
       await page.reload();
       await page.getByLabel('Collection', { exact: true }).selectOption('group');
-    } else await page.getByLabel('Search saved workouts', { exact: true }).fill('Attempt');
+    } else await page.getByLabel('Search saved library', { exact: true }).fill('Attempt');
     await page.locator('.session-card').getByRole('button', { name: action, exact: true }).click();
     const dialog = page.getByRole('dialog');
     if (action === 'Rename') await dialog.getByRole('textbox').fill('Morning flow');

@@ -10,7 +10,7 @@ test('builds a mixed session with editable blocks and keeps existing workout acc
   await page.getByLabel('Minutes', { exact: true }).fill('0');
   await page.getByLabel('Seconds', { exact: true }).fill('5');
   await page.getByLabel('Lead-in seconds', { exact: true }).fill('0');
-  await page.getByRole('button', { name: 'Use this block', exact: true }).click();
+  await page.getByRole('button', { name: 'Add block to session', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Countdown', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Save session', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Session saved');

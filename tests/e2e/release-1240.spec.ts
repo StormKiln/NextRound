@@ -46,7 +46,7 @@ test('applies time explicitly, retains valid filter on invalid draft, combines a
   await page.getByRole('button', { name: 'Apply time', exact: true }).click();
   await expect(budget).toHaveAttribute('aria-invalid', 'true');
   await expect(page.getByRole('heading', { name: 'Long session', exact: true })).toHaveCount(0);
-  await page.getByLabel('Search saved workouts').fill('missing');
+  await page.getByLabel('Search saved library').fill('missing');
   await expect(
     page.getByText('No saved workouts match your filters.', { exact: true }),
   ).toBeVisible();

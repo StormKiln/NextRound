@@ -2196,6 +2196,146 @@ export const exercises: ExerciseEntry[] = [
     description:
       'Use two stable, flat-base bells under the hands in a wide-foot plank. Row one bell toward the hip without rotating, lower and alternate. Count each row. If the bells tip, stop and choose a floor-supported row.',
   },
+  {
+    id: 'knees-to-chest-hold',
+    supportedUnits: ['seconds'],
+    name: 'Knees-to-chest hold',
+    description:
+      'Lie on your back and draw both knees gently toward your chest, holding behind the thighs or around the shins. Keep your head resting down and breathe without pulling into discomfort.',
+  },
+  {
+    id: 'supine-spinal-twist',
+    supportedUnits: ['seconds'],
+    name: 'Supine spinal twist',
+    description:
+      'Lie on your back with arms open. Draw one knee toward your chest, then guide it across your body while keeping both shoulders relaxed toward the floor. Stay in a comfortable range. Time applies to one side.',
+  },
+  {
+    id: 'reclining-hand-to-big-toe',
+    supportedUnits: ['seconds'],
+    name: 'Reclining hand-to-big-toe',
+    description:
+      'Lie on your back and lift one leg. Hold the big toe if comfortable, or support behind the thigh with the knee bent. Gently lengthen the leg without lifting your head or forcing the stretch. Time applies to one side.',
+  },
+  {
+    id: 'seated-forward-bend',
+    supportedUnits: ['seconds'],
+    name: 'Seated forward bend',
+    description:
+      'Sit with both legs forward and knees slightly bent. Lengthen your back and hinge forward from the hips, resting your hands on your legs. Stop before the stretch becomes painful and breathe gently.',
+  },
+  {
+    id: 'wide-angle-seated-forward-bend',
+    supportedUnits: ['seconds'],
+    name: 'Wide-angle seated forward bend',
+    description:
+      'Sit with legs spread comfortably wide and toes pointing up. Keep your back long and walk your hands forward, folding from the hips. Bend the knees slightly if needed; avoid forcing your chest toward the floor.',
+  },
+  {
+    id: 'pyramid-pose',
+    supportedUnits: ['seconds'],
+    name: 'Pyramid pose',
+    description:
+      'Take a short staggered stance with the back toes angled out. Face your hips forward and hinge over the front leg with a long back, hands resting on the hips or shin. Keep a soft front knee. Time applies to one side.',
+  },
+  {
+    id: 'lizard-pose',
+    supportedUnits: ['seconds'],
+    name: 'Lizard pose',
+    description:
+      'From a low lunge, lower the back knee and place both hands inside the front foot. Keep the front knee tracking with the toes and breathe into a comfortable hip stretch. Stay on your hands. Time applies to one side.',
+  },
+  {
+    id: 'revolved-low-lunge',
+    supportedUnits: ['seconds'],
+    name: 'Revolved low lunge',
+    description:
+      'From a low lunge with the back knee down, place the opposite hand inside the front foot. Turn your chest gently toward the front leg and reach the other arm up if comfortable. Time applies to one side.',
+  },
+  {
+    id: 'reverse-tabletop-hold',
+    supportedUnits: ['seconds'],
+    name: 'Reverse tabletop hold',
+    description:
+      'Sit with knees bent and feet flat. Place hands behind you and press through hands and feet to lift the hips toward knee height. Keep your neck long and shoulders comfortable; lower the hips to ease the effort.',
+  },
+  {
+    id: 'pilates-rolling-like-a-ball',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Pilates rolling like a ball',
+    description:
+      'Balance seated with knees tucked and hands on shins. Round your back, roll only to the shoulder blades, then return to balance. Keep head and neck off the floor. Use a small controlled roll; skip with spinal problems.',
+  },
+  {
+    id: 'dumbbell-alternating-incline-curl',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell alternating incline curl',
+    description:
+      'Sit against an incline bench with a dumbbell in each hand and arms hanging down. Curl one weight without moving the upper arm, lower slowly, then alternate. Count each curl; keep shoulders against the bench.',
+  },
+  {
+    id: 'dumbbell-spider-curl',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell spider curl',
+    description:
+      'Lie chest-down on an incline bench with a dumbbell in each hand and arms hanging freely. Curl both weights without swinging the elbows, then lower slowly. Keep your chest supported and choose a light load.',
+  },
+  {
+    id: 'dumbbell-squeeze-press',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell squeeze press',
+    description:
+      'Lie on a stable bench and hold two dumbbells together above your chest, palms facing. Maintain gentle inward pressure as you lower toward the chest, then press up. Use weights you can keep aligned and controlled.',
+  },
+  {
+    id: 'dumbbell-sumo-squat',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell sumo squat',
+    description:
+      'Stand wider than hip width with toes slightly out, holding a dumbbell low between your legs. Bend hips and knees to squat while keeping heels down and knees aligned with toes. Stand without rounding your back.',
+  },
+  {
+    id: 'dumbbell-standing-calf-raise',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Dumbbell standing calf raise',
+    description:
+      'Stand on level ground with a light dumbbell at each side. Rise onto the balls of both feet, pause, then lower the heels slowly to the floor. Keep your balance and avoid bouncing; begin without weights if needed.',
+  },
+  {
+    id: 'kettlebell-rotational-lunge',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell rotational lunge',
+    description:
+      'Hold a light bell at chest height and step into a reverse lunge. Rotate your chest gently toward the front leg without twisting the knee, then face forward and stand. Choose one side for the set; count each lunge.',
+  },
+  {
+    id: 'kettlebell-overhead-squat',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell overhead squat',
+    description:
+      'Advanced: hold a light bell overhead with a stable shoulder. Squat only as deep as you can keep the arm upright and heels down, then stand. Scale to a goblet squat if overhead control is lost. Counts apply to one arm.',
+  },
+  {
+    id: 'kettlebell-overhead-reverse-lunge',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell overhead reverse lunge',
+    description:
+      'Advanced: hold a light bell overhead, step one leg back into a controlled lunge, then stand. Keep the bell steady above the shoulder. Use a racked hold if needed. Choose one arm and leg for the set; count each lunge.',
+  },
+  {
+    id: 'kettlebell-overhead-walking-lunge',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Kettlebell overhead walking lunge',
+    description:
+      'Advanced: hold a light bell overhead and step forward into alternating lunges along a clear path. Keep the arm upright and torso controlled. Count each step. Choose one arm for the set; scale to a racked hold if needed.',
+  },
+  {
+    id: 'kettlebell-double-swing',
+    supportedUnits: ['reps', 'seconds'],
+    name: 'Double kettlebell swing',
+    description:
+      'With two bells and a wide stable stance, hinge to swing both between your legs. Drive through the hips to float them forward, then guide them back. Keep the back long and arms relaxed. Practise a single-bell swing first.',
+  },
 ];
 
 export async function listExercises() {

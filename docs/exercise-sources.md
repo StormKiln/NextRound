@@ -391,3 +391,27 @@ Twenty distinct entries were checked against the prior 283 names, aliases and mo
 | Kettlebell renegade row | [Greg Brookes: row variations](https://kettlebellsworkouts.com/kettlebell-row-variations/) |
 
 The ten no-equipment holds use seconds. Weighted movements support reps/time and conservative EMOM counts (3–10); one-sided counts apply to the chosen side, while alternating curls/rows count each repetition. Incline press/fly/chest-supported row require an incline bench, represented by the existing stable-raised-surface category and stated explicitly in descriptions. Seated calf raises and rear-foot-elevated kettlebell squats also require a stable support. Renegade rows require two stable-base bells. Balance/loaded variants are distinct from existing unweighted or two-foot movements, not renamed duplicates. All previous exercise IDs and descriptions are preserved by a baseline regression test.
+
+## 2.5.0: mobility and strength expansion (323 total)
+
+Reviewed 2026-10-19. All 303 previous entries are preserved by a committed baseline test. These 20 additions have original short descriptions, equipment and focus metadata, search aliases, supported units and editable starting targets. No source media is bundled. Holds/stretches use seconds; dynamic movements support reps and seconds. Advanced kettlebell movements include scaling cues. Counts are suggestions, not performance estimates.
+
+| Entries | Technique reference |
+| --- | --- |
+| Knees-to-chest hold | [Yoga Journal: yoga for a bad day](https://www.yogajournal.com/practice/yoga-sequences/yoga-for-a-bad-day/) |
+| Supine spinal twist | [The Yoga Collective: supine spinal twist](https://www.theyogacollective.com/poses/supine-spinal-twist-supta-matsyendrasana) |
+| Reclining hand-to-big-toe | [Yoga Journal: reclining hand-to-big-toe](https://www.yogajournal.com/poses/master-reclining-hand-to-big-toe-pose/) |
+| Seated forward bend; reverse tabletop hold | [Yoga Journal: feel-good flow](https://www.yogajournal.com/practice/feel-good-flow-yoga) |
+| Wide-angle seated forward bend | [Yoga Journal: wide-angle seated forward bend](https://www.yogajournal.com/poses/wide-angle-seated-forward-bend/) |
+| Pyramid pose | [Yoga International: pyramid pose](https://yogainternational.com/article/view/pyramid-pose/) |
+| Lizard pose; revolved low lunge | [Yoga Journal: teacher-led sequence](https://www.yogajournal.com/practice/yoga-sequences/this-months-home-practice-16-poses-to-spark-inspiration/) |
+| Pilates rolling like a ball | [Amy Havens / Pilates Anytime](https://www.pilatesanytime.com/exercise-view/1428/video/Pilates-Rolling-Like-A-Ball-by-Amy-Havens) |
+| Dumbbell alternating incline curl | [Muscle & Strength](https://www.muscleandstrength.com/exercises/alternate-incline-dumbbell-curl.html) |
+| Dumbbell spider curl | [Muscle & Strength: spider curl, including dumbbell alternative](https://www.muscleandstrength.com/exercises/spider-curl.html) |
+| Dumbbell squeeze press | [Muscle & Fitness: squeeze press](https://www.muscleandfitness.com/workouts/chest-exercises/the-dumbbell-squeeze-press-how-to-tips/) |
+| Dumbbell sumo squat | [Weight Training Guide](https://weighttraining.guide/exercises/dumbbell-sumo-squat/) |
+| Dumbbell standing calf raise | [Fitbod technique guide](https://fitbod.me/exercises/standing-dumbbell-calf-raise) — NextRound uses a reduced-range level-floor version, so a step is not required. |
+| Kettlebell rotational lunge; overhead squat; overhead reverse lunge; overhead walking lunge | [Greg Brookes exercise library](https://kettlebellsworkouts.com/kettlebell-exercises/) |
+| Double kettlebell swing | [StrongFirst: double kettlebells](https://www.strongfirst.com/brutally-strong-with-double-kettlebells/) |
+
+The ten no-equipment movements do not require a mat, strap or yoga block. Reclining leg stretches can use a bent knee and hand support behind the thigh. Bench-supported curls and squeeze press require both dumbbells and a stable raised surface; an incline-capable bench is described where needed. Double swings explicitly require two bells. Wide-angle forward bending differs from the existing side-straddle stretch; bent-knee reverse tabletop differs from the straight-leg reverse plank. No existing saved prescription is rewritten.

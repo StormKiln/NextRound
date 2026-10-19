@@ -3,6 +3,18 @@ import { countLabel, type ExerciseEntry, type ExerciseTarget } from '@nextround/
 // Starting suggestions, not pace estimates. Unilateral counts apply to the chosen side;
 // alternating movements count each repetition. Unknown movements default to time.
 const reps: Record<string, number> = {
+  'pilates-rolling-like-a-ball': 4,
+  'dumbbell-alternating-incline-curl': 8,
+  'dumbbell-spider-curl': 6,
+  'dumbbell-squeeze-press': 6,
+  'dumbbell-sumo-squat': 6,
+  'dumbbell-standing-calf-raise': 10,
+  'kettlebell-rotational-lunge': 4,
+  'kettlebell-overhead-squat': 3,
+  'kettlebell-overhead-reverse-lunge': 4,
+  'kettlebell-overhead-walking-lunge': 4,
+  'kettlebell-double-swing': 6,
+
   'dumbbell-incline-press': 6,
   'dumbbell-incline-fly': 6,
   'dumbbell-chest-supported-row': 8,

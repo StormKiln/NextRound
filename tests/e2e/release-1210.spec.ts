@@ -27,7 +27,7 @@ test('import previews, preserves filters and creates an independent snapshot', a
     { key, config },
   );
   await page.goto('/');
-  await page.getByLabel('Search saved workouts').fill('hidden');
+  await page.getByLabel('Search saved library').fill('hidden');
   await page.getByRole('button', { name: 'Import workout', exact: true }).click();
   await page.getByLabel('Workout file').setInputFiles({
     name: 'session.json',
@@ -38,7 +38,7 @@ test('import previews, preserves filters and creates an independent snapshot', a
   await expect(dialog).toContainText('Original cue');
   await expect(dialog.getByLabel('Workout name')).toHaveValue('Travel (copy)');
   await dialog.getByRole('button', { name: 'Add to saved workouts' }).click();
-  await expect(page.getByLabel('Search saved workouts')).toHaveValue('hidden');
+  await expect(page.getByLabel('Search saved library')).toHaveValue('hidden');
   await page.getByRole('button', { name: 'Show imported workout' }).click();
   await expect(page.getByRole('heading', { name: 'Travel (copy)', exact: true })).toBeVisible();
   const entries = await page.evaluate(

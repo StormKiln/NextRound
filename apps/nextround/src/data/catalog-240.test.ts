@@ -7,9 +7,9 @@ import { catalogMetadata, eligibleExercise } from './equipment';
 import { exercises } from './exercises';
 
 it('adds twenty equipment-classified movements without rewriting existing prescriptions', () => {
-  expect(exercises).toHaveLength(303);
+  expect(exercises).toHaveLength(323);
   expect(exercises.slice(0, 283)).toEqual(baseline);
-  const added = exercises.slice(283);
+  const added = exercises.slice(283, 303);
   expect(added.filter((e) => eligibleExercise(e, []))).toHaveLength(10);
   expect(added.filter((e) => catalogMetadata[e.id].equipment.includes('dumbbell'))).toHaveLength(5);
   expect(added.filter((e) => catalogMetadata[e.id].equipment.includes('kettlebell'))).toHaveLength(

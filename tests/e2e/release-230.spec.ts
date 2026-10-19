@@ -143,11 +143,11 @@ test('session filters report matches and can be cleared beside session results',
   page,
 }) => {
   await seed(page);
-  await page.getByLabel('Search saved workouts', { exact: true }).fill('not present');
+  await page.getByLabel('Search saved library', { exact: true }).fill('not present');
   const section = page.getByRole('region', { name: 'Saved training sessions', exact: true });
   await expect(section).toContainText('0 of 1 sessions');
   await section.getByRole('button', { name: 'Clear library filters', exact: true }).click();
-  await expect(page.getByLabel('Search saved workouts', { exact: true })).toHaveValue('');
+  await expect(page.getByLabel('Search saved library', { exact: true })).toHaveValue('');
   await expect(section).toContainText('1 of 1 sessions');
 });
 
@@ -283,7 +283,7 @@ test('preview cancellation preserves an in-progress first block', async ({ page 
   await dialog.getByRole('button', { name: 'Close preview', exact: true }).click();
   await expect(
     page.getByRole('complementary', { name: 'Session block editor', exact: true }),
-  ).toContainText('Editing a Countdown block');
+  ).toContainText('Add a new block · Countdown');
   await expect(
     page.getByRole('button', { name: 'Continue editing session', exact: true }),
   ).toBeVisible();

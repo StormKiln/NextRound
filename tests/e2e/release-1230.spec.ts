@@ -30,7 +30,7 @@ test('exports every collection member despite Home filters and imports independe
   page,
 }) => {
   await page.getByLabel('Collection', { exact: true }).selectOption('c');
-  await page.getByLabel('Search saved workouts').fill('Morning');
+  await page.getByLabel('Search saved library').fill('Morning');
   await page.getByRole('button', { name: 'Export collection', exact: true }).click();
   const pending = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save collection file', exact: true }).click();

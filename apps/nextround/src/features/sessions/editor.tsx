@@ -1,15 +1,15 @@
 import { validateConfig } from '@nextround/core';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { create } from 'zustand';
 import { Button } from '@/components/ui/button';
-import { readTemplates } from '@/features/templates/repository';
 import { WorkoutDetails } from '@/features/templates/workout-details';
 import { useWorkout, type WorkoutMode } from '@/state/workout';
 import { parseSession, sessionTimeLabel, type TrainingBlock, type TrainingSession } from './model';
 import { useTrainingOwnership } from './ownership';
 import { mutateTraining, trainingKey } from './repository';
+import { SavedWorkoutChooser } from './saved-workout-chooser';
 import { useTraining } from './state';
 import './session.css';
 export const modes: {
@@ -34,7 +34,8 @@ export const useSessionEditor = create<{
   editing: { id: string; mode: WorkoutMode } | null;
   source: TrainingSession | null;
   undo: TrainingSession | null;
-}>(() => ({ draft: fresh(), editing: null, source: null, undo: null }));
+  undoFocus: string | null;
+}>(() => ({ draft: fresh(), editing: null, source: null, undo: null, undoFocus: null }));
 export function hasSessionDraft(state = useSessionEditor.getState()) {
   return !!(
     state.draft.blocks.length ||
@@ -51,15 +52,19 @@ export function openSession(session?: TrainingSession) {
     source: session ? structuredClone(session) : null,
     editing: null,
     undo: null,
+    undoFocus: null,
   });
 }
-function change(update: (session: TrainingSession) => void) {
+function change(update: (session: TrainingSession) => void, undoFocus: string | null = null) {
   const draft = structuredClone(useSessionEditor.getState().draft);
   update(draft);
-  useSessionEditor.setState({ undo: useSessionEditor.getState().draft, draft });
+  useSessionEditor.setState({ undo: useSessionEditor.getState().draft, draft, undoFocus });
 }
 export function BlockCapture() {
   const edit = useSessionEditor((s) => s.editing);
+  const existing = useSessionEditor(
+    (s) => !!s.editing && s.draft.blocks.some((b) => b.id === s.editing?.id),
+  );
   const navigate = useNavigate();
   const pathname = useLocation({ select: (l) => l.pathname });
   const [error, setError] = useState('');
@@ -67,8 +72,14 @@ export function BlockCapture() {
   const mode = modes.find((m) => m.mode === edit.mode)!;
   return (
     <aside className="block-capture" aria-label="Session block editor">
-      <strong>Editing a {mode.label} block</strong>
-      <p>Adjust the workout below, then add it to your session.</p>
+      <strong>
+        {existing ? 'Update this block' : 'Add a new block'} · {mode.label}
+      </strong>
+      <p>
+        {existing
+          ? 'Adjust the workout below, then update this block in your session.'
+          : 'Adjust the workout below, then add it to your session.'}
+      </p>
       {error && <p role="alert">{error}</p>}
       <div className="dialog-actions">
         <Button
@@ -109,19 +120,18 @@ export function BlockCapture() {
             }
           }}
         >
-          Use this block
+          {existing ? 'Update block' : 'Add block to session'}
         </Button>
       </div>
     </aside>
   );
 }
 export function SessionEditor() {
-  const { draft, source, undo } = useSessionEditor();
+  const { draft, source, undo, undoFocus } = useSessionEditor();
   const dragging = useRef<string | null>(null);
   const editButtons = useRef(new Map<string, HTMLButtonElement>());
   const addButton = useRef<HTMLButtonElement>(null);
   const [focusBlock, setFocusBlock] = useState<string | null>(null);
-  const removedBlock = useRef<string | null>(null);
   useEffect(() => {
     if (focusBlock === null) return;
     (editButtons.current.get(focusBlock) ?? addButton.current)?.focus();
@@ -140,21 +150,21 @@ export function SessionEditor() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const training = useTraining();
-  const templates = useQuery({
-    queryKey: ['workout-templates'],
-    queryFn: readTemplates,
-    retry: false,
-  });
+  const [chooserDraft, setChooserDraft] = useState<TrainingSession | null>(null);
   const edit = (mode: WorkoutMode, block?: TrainingBlock) => {
     if (block && !useWorkout.getState().loadConfig(block.config)) return;
     useSessionEditor.setState({ editing: { id: block?.id ?? crypto.randomUUID(), mode } });
     useTrainingOwnership.setState({ editing: true });
     void navigate({ to: modes.find((m) => m.mode === mode)!.path });
   };
-  const move = (i: number, delta: number) =>
+  const move = (i: number, delta: number) => {
+    const block = draft.blocks[i];
     change((d) => {
       [d.blocks[i], d.blocks[i + delta]] = [d.blocks[i + delta], d.blocks[i]];
-    });
+    }, block.id);
+    setFocusBlock(block.id);
+    setNotice(`Moved ${block.name} to position ${i + delta + 1} of ${draft.blocks.length}.`);
+  };
   return (
     <main className="page session-editor">
       <div className="page-heading">
@@ -211,8 +221,11 @@ export function SessionEditor() {
                     change((d) => {
                       const [block] = d.blocks.splice(from, 1);
                       d.blocks.splice(i, 0, block);
-                    });
-                    setNotice(`Moved block to position ${i + 1}`);
+                    }, draft.blocks[from].id);
+                    setFocusBlock(draft.blocks[from].id);
+                    setNotice(
+                      `Moved ${draft.blocks[from].name} to position ${i + 1} of ${draft.blocks.length}.`,
+                    );
                   }
                   dragging.current = null;
                 }}
@@ -272,15 +285,20 @@ export function SessionEditor() {
               <Button
                 variant="ghost"
                 disabled={draft.blocks.length >= 20}
-                onClick={() =>
+                onClick={() => {
+                  const id = crypto.randomUUID();
                   change((d) => {
                     d.blocks.splice(i + 1, 0, {
                       ...structuredClone(b),
-                      id: crypto.randomUUID(),
+                      id,
                       name: `${b.name.slice(0, 110)} copy`,
                     });
-                  })
-                }
+                  }, b.id);
+                  setFocusBlock(id);
+                  setNotice(
+                    `Duplicated ${b.name} at position ${i + 2} of ${draft.blocks.length + 1}. Undo last edit is available.`,
+                  );
+                }}
               >
                 Duplicate block {i + 1}
               </Button>
@@ -288,10 +306,9 @@ export function SessionEditor() {
                 variant="destructive"
                 onClick={() => {
                   const next = draft.blocks[i + 1]?.id ?? draft.blocks[i - 1]?.id ?? '';
-                  removedBlock.current = b.id;
                   change((d) => {
                     d.blocks.splice(i, 1);
-                  });
+                  }, b.id);
                   setNotice(`Removed ${b.name}. Undo last edit is available.`);
                   setFocusBlock(next);
                 }}
@@ -354,42 +371,38 @@ export function SessionEditor() {
             </Button>
           ))}
         </div>
-        {templates.error && (
-          <p role="alert">
-            Saved workouts unavailable.{' '}
-            <Button variant="ghost" onClick={() => void templates.refetch()}>
-              Retry saved workouts
-            </Button>
-          </p>
-        )}
-        {!!templates.data?.templates.length && (
-          <label>
-            Or use a saved workout
-            <select
-              value=""
-              disabled={draft.blocks.length >= 20}
-              onChange={(e) => {
-                const t = templates.data.templates.find((t) => t.id === e.target.value);
-                if (t)
-                  change((d) => {
-                    d.blocks.push({
-                      id: crypto.randomUUID(),
-                      name: t.name,
-                      config: structuredClone(t.config),
-                      restSeconds: 0,
-                      advance: 'automatic',
-                    });
-                  });
-              }}
-            >
-              <option value="">Choose a saved workout</option>
-              {templates.data.templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <Button
+          variant="secondary"
+          disabled={draft.blocks.length >= 20}
+          onClick={(event) => {
+            event.currentTarget.focus();
+            setChooserDraft(structuredClone(draft));
+          }}
+        >
+          Choose saved workouts
+        </Button>
+        {chooserDraft && (
+          <SavedWorkoutChooser
+            capacity={20 - draft.blocks.length}
+            onClose={() => setChooserDraft(null)}
+            onAdd={(blocks) => {
+              const current = useSessionEditor.getState();
+              if (useTraining.getState().run || useWorkout.getState().snapshot || current.editing)
+                throw new Error('Finish the active workout or block edit before adding workouts.');
+              if (JSON.stringify(current.draft) !== JSON.stringify(chooserDraft))
+                throw new Error(
+                  'Your session changed. Close the chooser and review the session before trying again.',
+                );
+              if (current.draft.blocks.length + blocks.length > 20)
+                throw new Error('This selection exceeds the remaining session capacity.');
+              change((d) => {
+                d.blocks.push(...blocks);
+              });
+              setChooserDraft(null);
+              setNotice(`Added ${blocks.length} workout blocks. Undo last edit is available.`);
+              setFocusBlock(blocks[0].id);
+            }}
+          />
         )}
         <p className="muted">
           Up to 20 blocks. Saved workouts are copied; editing the original will not change this
@@ -405,14 +418,9 @@ export function SessionEditor() {
             disabled={!undo}
             onClick={() => {
               const restored = undo!;
-              useSessionEditor.setState({ draft: restored, undo: null });
-              setFocusBlock(
-                restored.blocks.find((b) => b.id === removedBlock.current)?.id ??
-                  restored.blocks[0]?.id ??
-                  '',
-              );
+              useSessionEditor.setState({ draft: restored, undo: null, undoFocus: null });
+              setFocusBlock(undoFocus ?? restored.blocks[0]?.id ?? '');
               setNotice('Last edit undone.');
-              removedBlock.current = null;
             }}
           >
             Undo last edit

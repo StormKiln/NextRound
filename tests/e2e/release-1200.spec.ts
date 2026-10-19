@@ -28,21 +28,21 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 test('renaming a filtered workout explains where it went and offers recovery', async ({ page }) => {
-  await page.getByLabel('Search saved workouts').fill('Alpha');
+  await page.getByLabel('Search saved library').fill('Alpha');
   await page.getByRole('button', { name: 'Rename Alpha', exact: true }).click();
   await page.getByLabel('Workout name').fill('Beta');
   await page.getByRole('button', { name: 'Save name', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'hidden' })).toBeVisible();
   await page.getByRole('button', { name: 'Show renamed workout' }).click();
   await expect(page.getByRole('heading', { name: 'Beta', exact: true })).toBeVisible();
-  await expect(page.getByLabel('Search saved workouts')).toBeFocused();
+  await expect(page.getByLabel('Search saved library')).toBeFocused();
 });
 test('keyboard clear filters restores search focus', async ({ page }) => {
-  await page.getByLabel('Search saved workouts').fill('No match');
+  await page.getByLabel('Search saved library').fill('No match');
   const clear = page.getByRole('button', { name: 'Clear library filters', exact: true }).first();
   await clear.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByLabel('Search saved workouts')).toBeFocused();
+  await expect(page.getByLabel('Search saved library')).toBeFocused();
 });
 test('preview is read only and shows saved exercise snapshots', async ({ page }) => {
   const before = await page.evaluate((key) => localStorage.getItem(key), key);
@@ -217,7 +217,7 @@ test('optional empty exercise list has an explicit preview state', async ({ page
 test('clearing filters after the last saved entry disappears focuses the library heading', async ({
   page,
 }) => {
-  await page.getByLabel('Search saved workouts').fill('Alpha');
+  await page.getByLabel('Search saved library').fill('Alpha');
   await page.evaluate(
     (key) => localStorage.setItem(key, JSON.stringify({ version: 1, templates: [] })),
     key,

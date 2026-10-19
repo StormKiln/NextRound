@@ -548,12 +548,12 @@ export function TemplateLibrary({
                   <option value="duration">Shortest duration</option>
                 </select>
               </label>
-              <label htmlFor={searchId}>Search saved workouts</label>
+              <label htmlFor={searchId}>Search saved library</label>
               <Input
                 id={searchId}
                 ref={searchInput}
                 type="search"
-                placeholder="Workout name or exercise details"
+                placeholder="Workout or session name, or exercise details"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -568,7 +568,7 @@ export function TemplateLibrary({
                       useTemplateFilters.setState({ collection: event.target.value });
                     }}
                   >
-                    <option value="all">All workouts</option>
+                    <option value="all">All collections</option>
                     <option value="unfiled">Unfiled</option>
                     {query.data?.collections.map((c) => (
                       <option value={c.id} key={c.id}>
