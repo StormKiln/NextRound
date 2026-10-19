@@ -75,3 +75,39 @@ it('cancellation prevents an outstanding personal-library read from applying rep
   expect(screen.queryByRole('dialog')).toBeNull();
   client.clear();
 });
+it('locks target editing during final validation and unlocks it after a failed read', async () => {
+  mocks.read.mockResolvedValue(data);
+  const apply = vi.fn();
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(
+    h(
+      QueryClientProvider,
+      { client },
+      h(ReplacementDialog, { session: result220().session, onApply: apply, onClose: vi.fn() }),
+    ),
+  );
+  fireEvent.change(screen.getByLabelText('Search replacement exercises'), {
+    target: { value: 'Delayed movement' },
+  });
+  fireEvent.click(await screen.findByRole('button', { name: /Delayed movement/ }));
+  let fail!: (e: Error) => void;
+  mocks.read.mockReturnValueOnce(
+    new Promise((_resolve, reject) => {
+      fail = reject;
+    }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Apply replacement' }));
+  expect(screen.getByRole('button', { name: 'Set target for Work' }).hasAttribute('disabled')).toBe(
+    true,
+  );
+  await act(async () => fail(Error('Read unavailable')));
+  expect(screen.getByRole('button', { name: 'Set target for Work' }).hasAttribute('disabled')).toBe(
+    false,
+  );
+  expect(screen.getByRole('alert').textContent).toContain('Read unavailable');
+  expect(apply).not.toHaveBeenCalled();
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Apply replacement' })));
+  expect(apply).toHaveBeenCalledTimes(1);
+  expect(apply.mock.calls[0][0][0].entry.target).toEqual({ unit: 'reps', value: 8 });
+  client.clear();
+});

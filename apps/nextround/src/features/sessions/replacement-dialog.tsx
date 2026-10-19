@@ -236,7 +236,7 @@ export function ReplacementDialog({
                     </strong>
                   </p>
                   {row.block.config.type !== 'ladder' && (
-                    <Button variant="secondary" onClick={() => setTargetKey(c.key)}>
+                    <Button variant="secondary" disabled={busy} onClick={() => setTargetKey(c.key)}>
                       Set target for {row.block.name}
                     </Button>
                   )}
