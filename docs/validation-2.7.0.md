@@ -13,3 +13,5 @@ Browser captures use isolated sample data and do not establish physical-device a
 ![Save block at minimum window size](screenshots/save-session-block-minimum.png)
 
 Independent review found no blocking issues. Native tests (64), media/power and sandbox lifecycle, local macOS packaging, updater-free Apple compilation, typecheck, lint/clippy and production build pass. Five focused production WebKit cases pass; screenshots were visually inspected at minimum and desktop sizes. The Mac was locked on attempted native UI access; no physical acceptance is claimed.
+
+The full Chromium run initially had 377 passes and one failing drag test. Event instrumentation proved no native dragstart occurred when the test scrolled its target before the first movement. #400 corrects that interaction, tests pointer drag plus keyboard activation at both sizes, and changes no product behavior. Two focused production WebKit cases pass; the full Chromium rerun and final immutable evidence are on #395.
