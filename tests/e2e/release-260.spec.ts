@@ -189,14 +189,12 @@ test('long replacement reviews keep actions reachable with scrollbars and larger
   await d.getByLabel('Search replacement exercises').fill('air squat');
   await d.getByRole('button', { name: /Air squat/ }).click();
   await expect(d.locator('.replacement-review')).toHaveCount(20);
-  const body = await d
-    .locator('.replacement-body')
-    .evaluate((e) => ({
-      height: e.clientHeight,
-      scroll: e.scrollHeight,
-      width: e.clientWidth,
-      scrollWidth: e.scrollWidth,
-    }));
+  const body = await d.locator('.replacement-body').evaluate((e) => ({
+    height: e.clientHeight,
+    scroll: e.scrollHeight,
+    width: e.clientWidth,
+    scrollWidth: e.scrollWidth,
+  }));
   expect(body.scroll).toBeGreaterThan(body.height);
   expect(body.height).toBeGreaterThan(80);
   expect(body.scrollWidth).toBeLessThanOrEqual(body.width);
