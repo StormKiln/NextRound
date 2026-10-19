@@ -50,3 +50,10 @@ Run at 760×620 and a larger desktop window in Chromium and production WebKit. R
 - Clear chooser filters resets search/type/favourite filters without clearing selected order. Matching and hidden-selection counts explain why a selected item is not in the filtered list.
 - Inline previews have Close preview, focus their heading when opened, and restore the preview invoker or search fallback when closed.
 - Comparison and replacement selects share the scoped 44px native-select styling and visible chevron.
+
+## 2.7.0 reusable blocks and equipment
+
+- Separate block Edit/Save actions from arrangement controls. Save opens a named preview with bounded scrolling and fixed actions; save errors retain the entered name.
+- Reveal a saved workout only through an explicit clear-filters action, keeping the session draft.
+- Replacement labels include block and movement positions when names repeat. No selectable candidates appear with zero selected occurrences.
+- Keep equipment status and its settings shortcut in the replacement footer. Nested settings retain search and selection and return focus. Equipment filters check types, not quantities or bench configuration.

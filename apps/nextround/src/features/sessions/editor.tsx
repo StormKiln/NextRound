@@ -6,11 +6,13 @@ import { create } from 'zustand';
 import { Button } from '@/components/ui/button';
 import { WorkoutDetails } from '@/features/templates/workout-details';
 import { useWorkout, type WorkoutMode } from '@/state/workout';
+import { useTemplateFilters } from '../templates/filter-state';
 import { applyReplacements, sessionOccurrences } from './exercise-replacement';
 import { parseSession, sessionTimeLabel, type TrainingBlock, type TrainingSession } from './model';
 import { useTrainingOwnership } from './ownership';
 import { ReplacementDialog } from './replacement-dialog';
 import { mutateTraining, trainingKey } from './repository';
+import { SaveBlockDialog } from './save-block-dialog';
 import { SavedWorkoutChooser } from './saved-workout-chooser';
 import { useTraining } from './state';
 import './session.css';
@@ -152,6 +154,8 @@ export function SessionEditor() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const training = useTraining();
+  const [saveBlock, setSaveBlock] = useState<TrainingBlock | null>(null);
+  const [savedWorkout, setSavedWorkout] = useState('');
   const [replacementDraft, setReplacementDraft] = useState<TrainingSession | null>(null);
   const [chooserDraft, setChooserDraft] = useState<TrainingSession | null>(null);
   const edit = (mode: WorkoutMode, block?: TrainingBlock) => {
@@ -258,7 +262,7 @@ export function SessionEditor() {
               <summary>Preview exercises, targets and timing</summary>
               <WorkoutDetails config={b.config} />
             </details>
-            <div className="dialog-actions">
+            <div className="dialog-actions block-primary-actions">
               <Button
                 ref={(node) => {
                   if (node) editButtons.current.set(b.id, node);
@@ -269,6 +273,21 @@ export function SessionEditor() {
               >
                 Edit block {i + 1}
               </Button>
+              <Button
+                variant="secondary"
+                disabled={busy || !!training.run}
+                onClick={(event) => {
+                  event.currentTarget.focus();
+                  setSaveBlock(structuredClone(b));
+                }}
+              >
+                Save block {i + 1} as workout
+              </Button>
+            </div>
+            <fieldset
+              className="dialog-actions block-arrange"
+              aria-label={`Arrange block ${i + 1}`}
+            >
               <Button
                 variant="ghost"
                 disabled={i === 0}
@@ -318,7 +337,7 @@ export function SessionEditor() {
               >
                 Remove block {i + 1}
               </Button>
-            </div>
+            </fieldset>
             {i < draft.blocks.length - 1 && (
               <div className="block-transition">
                 <label>
@@ -412,6 +431,33 @@ export function SessionEditor() {
           session.
         </p>
       </section>
+      {saveBlock && (
+        <SaveBlockDialog
+          block={saveBlock}
+          onClose={() => setSaveBlock(null)}
+          validateCurrent={() => {
+            const current = useSessionEditor.getState();
+            if (
+              useTraining.getState().run ||
+              useTraining.getState().busy ||
+              useWorkout.getState().snapshot ||
+              useWorkout.getState().pendingResult ||
+              current.editing
+            )
+              throw new Error('Finish the active workout or block edit before saving a workout.');
+            const block = current.draft.blocks.find((b) => b.id === saveBlock.id);
+            if (!block || JSON.stringify(block) !== JSON.stringify(saveBlock))
+              throw new Error(
+                'This block changed or was removed. Close this dialog and review the block again.',
+              );
+          }}
+          onSaved={(name) => {
+            setSaveBlock(null);
+            setSavedWorkout(name);
+            setNotice(`Saved ${name} as an independent workout.`);
+          }}
+        />
+      )}
       {replacementDraft && (
         <ReplacementDialog
           session={replacementDraft}
@@ -443,6 +489,17 @@ export function SessionEditor() {
       <footer className="session-footer">
         {(error || training.error) && <p role="alert">{error || training.error}</p>}
         {notice && <p role="status">{notice}</p>}
+        {savedWorkout && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              useTemplateFilters.getState().reset();
+              void navigate({ to: '/' });
+            }}
+          >
+            Show saved workout — clear library filters
+          </Button>
+        )}
         <div className="dialog-actions">
           <Button
             variant="secondary"

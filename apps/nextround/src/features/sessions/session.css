@@ -468,3 +468,70 @@
 .session-replacement > :not(.replacement-body) {
   flex-shrink: 0;
 }
+
+.save-block-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+.save-block-dialog form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.save-block-body {
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-gutter: stable both-edges;
+  padding: 4px 12px 16px;
+  overflow-wrap: anywhere;
+}
+.save-block-body > label {
+  display: grid;
+  gap: 8px;
+}
+.save-block-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #625a50;
+  padding-top: 12px;
+}
+.save-block-footer .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.block-primary-actions {
+  border-bottom: 1px solid #625a50;
+  padding-bottom: 12px;
+}
+
+.replacement-equipment-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.replacement-footer .equipment-status {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+}
+.replacement-footer .dialog-actions {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 0;
+}
+.replacement-footer > p {
+  margin: 8px 0;
+}
+.replacement-body .membership-option,
+.replacement-review {
+  overflow-wrap: anywhere;
+}
+
+.block-arrange {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
