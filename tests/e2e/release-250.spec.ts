@@ -263,7 +263,9 @@ test('long selected lists keep chooser actions visible and selection order acces
   await expect(
     dialog.getByRole('button', { name: 'Remove selected workout 18', exact: true }),
   ).toBeFocused();
-  await expect(dialog.getByRole('status')).toContainText('position 18 of 19');
+  await expect(dialog.locator('.chooser-footer').getByRole('status')).toContainText(
+    'position 18 of 19',
+  );
   await dialog.getByRole('button', { name: 'Remove selected workout 18', exact: true }).click();
   await expect(
     dialog.getByRole('button', { name: 'Remove selected workout 18', exact: true }),
