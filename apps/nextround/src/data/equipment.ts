@@ -2294,6 +2294,185 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     trainingType: 'strength',
     intensity: 'high',
   },
+  'pilates-swimming': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['back', 'glutes', 'core'],
+    aliases: ['prone swimming'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'pilates-seal': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core'],
+    aliases: ['seal roll'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'pilates-side-kick': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['glutes', 'legs', 'core'],
+    aliases: ['side kick front back'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'pilates-kneeling-side-kick': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core', 'glutes', 'shoulders'],
+    aliases: ['side kick kneeling'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'pilates-mermaid': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core', 'back'],
+    aliases: ['mermaid side bend'],
+    trainingType: 'mobility',
+    intensity: 'low',
+  },
+
+  'pilates-hip-twist': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core', 'legs'],
+    aliases: ['seated hip circles'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
+
+  'pilates-leg-pull-back': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core', 'glutes', 'shoulders'],
+    aliases: ['reverse plank leg lift'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
+
+  'pilates-straight-leg-stretch': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core', 'legs'],
+    aliases: ['pilates scissors stretch'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'pilates-boomerang': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['core', 'whole-body'],
+    aliases: ['boomerang roll'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
+
+  'pilates-rocking': {
+    equipment: [],
+    category: 'Other bodyweight',
+    targetAreas: ['back', 'glutes', 'whole-body'],
+    aliases: ['prone rocking'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
+
+  'dumbbell-incline-hammer-curl': {
+    equipment: ['dumbbell', 'raised-surface'],
+    category: 'Dumbbell',
+    targetAreas: ['arms'],
+    aliases: ['incline neutral grip curl'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'dumbbell-tate-press': {
+    equipment: ['dumbbell', 'raised-surface'],
+    category: 'Dumbbell',
+    targetAreas: ['arms', 'chest'],
+    aliases: ['elbows out triceps extension'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'dumbbell-wrist-rotation': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['arms'],
+    aliases: ['forearm rotation'],
+    trainingType: 'strength',
+    intensity: 'low',
+  },
+
+  'dumbbell-incline-y-raise': {
+    equipment: ['dumbbell', 'raised-surface'],
+    category: 'Dumbbell',
+    targetAreas: ['back', 'shoulders'],
+    aliases: ['chest supported y raise'],
+    trainingType: 'strength',
+    intensity: 'low',
+  },
+
+  'dumbbell-side-external-rotation': {
+    equipment: ['dumbbell'],
+    category: 'Dumbbell',
+    targetAreas: ['shoulders'],
+    aliases: ['side lying shoulder rotation'],
+    trainingType: 'strength',
+    intensity: 'low',
+  },
+
+  'kettlebell-kickstand-deadlift': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['glutes', 'legs', 'back'],
+    aliases: ['kb b stance deadlift'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'kettlebell-z-press': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['shoulders', 'arms', 'core'],
+    aliases: ['kb seated floor press overhead'],
+    trainingType: 'strength',
+    intensity: 'moderate',
+  },
+
+  'kettlebell-bent-press': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['whole-body', 'core', 'shoulders'],
+    aliases: ['kb bent press'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
+
+  'kettlebell-split-jerk': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['whole-body', 'legs', 'shoulders'],
+    aliases: ['kb split jerk'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
+
+  'kettlebell-double-snatch': {
+    equipment: ['kettlebell'],
+    category: 'Kettlebell',
+    targetAreas: ['whole-body', 'back', 'shoulders'],
+    aliases: ['two bell snatch'],
+    trainingType: 'strength',
+    intensity: 'high',
+  },
 };
 export function metadataFor(entry: ExerciseEntry) {
   return (

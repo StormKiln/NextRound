@@ -6,8 +6,10 @@ import { create } from 'zustand';
 import { Button } from '@/components/ui/button';
 import { WorkoutDetails } from '@/features/templates/workout-details';
 import { useWorkout, type WorkoutMode } from '@/state/workout';
+import { applyReplacements, sessionOccurrences } from './exercise-replacement';
 import { parseSession, sessionTimeLabel, type TrainingBlock, type TrainingSession } from './model';
 import { useTrainingOwnership } from './ownership';
+import { ReplacementDialog } from './replacement-dialog';
 import { mutateTraining, trainingKey } from './repository';
 import { SavedWorkoutChooser } from './saved-workout-chooser';
 import { useTraining } from './state';
@@ -150,6 +152,7 @@ export function SessionEditor() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const training = useTraining();
+  const [replacementDraft, setReplacementDraft] = useState<TrainingSession | null>(null);
   const [chooserDraft, setChooserDraft] = useState<TrainingSession | null>(null);
   const edit = (mode: WorkoutMode, block?: TrainingBlock) => {
     if (block && !useWorkout.getState().loadConfig(block.config)) return;
@@ -409,10 +412,48 @@ export function SessionEditor() {
           session.
         </p>
       </section>
+      {replacementDraft && (
+        <ReplacementDialog
+          session={replacementDraft}
+          onClose={() => setReplacementDraft(null)}
+          onApply={(changes) => {
+            const current = useSessionEditor.getState();
+            if (
+              useTraining.getState().run ||
+              useTraining.getState().busy ||
+              useWorkout.getState().snapshot ||
+              useWorkout.getState().pendingResult ||
+              current.editing
+            )
+              throw new Error(
+                'Finish the active workout or block edit before replacing exercises.',
+              );
+            const updated = applyReplacements(replacementDraft, current.draft, changes);
+            const blockId = sessionOccurrences(updated).find((r) => r.key === changes[0].key)!.block
+              .id;
+            useSessionEditor.setState({ draft: updated, undo: current.draft, undoFocus: blockId });
+            setReplacementDraft(null);
+            setFocusBlock(blockId);
+            setNotice(
+              `Replaced ${changes.length} exercise occurrences. Undo last edit is available.`,
+            );
+          }}
+        />
+      )}
       <footer className="session-footer">
         {(error || training.error) && <p role="alert">{error || training.error}</p>}
         {notice && <p role="status">{notice}</p>}
         <div className="dialog-actions">
+          <Button
+            variant="secondary"
+            disabled={busy || !!training.run || !sessionOccurrences(draft).length}
+            onClick={(event) => {
+              event.currentTarget.focus();
+              setReplacementDraft(structuredClone(draft));
+            }}
+          >
+            Replace across session
+          </Button>
           <Button
             variant="ghost"
             disabled={!undo}
