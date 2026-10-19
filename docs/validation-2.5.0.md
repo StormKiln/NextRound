@@ -17,8 +17,10 @@ Release status and immutable distribution evidence: [#373](https://github.com/St
 
 ## Physical acceptance
 
-The physical Mac was locked during the initial UI attempt. Automated checks and production browser screenshots are not evidence of a final installed signed-app upgrade, human-audible timing, VoiceOver or sleep/wake behavior. Remaining physical checks are tracked separately in the linked release follow-up rather than reported as passed.
+The physical Mac was locked during the initial UI attempt. Automated checks and production browser screenshots are not evidence of a final installed signed-app upgrade, human-audible timing, VoiceOver or sleep/wake behavior. Remaining physical checks are tracked in [#376](https://github.com/StormKiln/NextRound/issues/376) rather than reported as passed.
 
 ![Saved-workout batch chooser](screenshots/workout-chooser.png)
 
 ![Minimum-window selected order and fixed actions](screenshots/workout-chooser-minimum.png)
+
+The initial complete Chromium run passed 365 cases and failed one modal-cancellation test: Chromium consumed Escape to clear a nonempty search field, leaving the dialog open. The test now focuses Cancel before Escape and asserts dialog closure before checking return focus, separating native search behavior from modal cancellation. Final full-suite and protected-merge evidence is recorded in #373.

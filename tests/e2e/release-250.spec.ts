@@ -126,7 +126,11 @@ test('chooser filters are independent and cancellation preserves the editor', as
   await expect(dialog.getByRole('list', { name: 'Selected workout order' })).toContainText(
     'Beta strength',
   );
+  // Chromium consumes Escape to clear a nonempty search field. Test modal
+  // cancellation from a control without that native search-field behavior.
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).focus();
   await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Choose saved workouts', exact: true }),
   ).toBeFocused();
