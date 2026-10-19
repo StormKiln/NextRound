@@ -219,7 +219,7 @@ test('session block alternatives save a new snapshot without rewriting the sourc
   await page.getByRole('button', { name: 'Replace Push-up', exact: true }).click();
   await page.getByRole('button', { name: 'Review alternative: Knee push-up', exact: true }).click();
   await page.getByRole('button', { name: 'Use this alternative', exact: true }).click();
-  await page.getByRole('button', { name: 'Use this block', exact: true }).click();
+  await page.getByRole('button', { name: 'Update block', exact: true }).click();
   expect(
     await page.evaluate(
       () =>

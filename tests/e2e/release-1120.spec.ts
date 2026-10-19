@@ -27,7 +27,7 @@ test('favourites persist and combine with mode and normalized name filters', asy
   await page.getByLabel('Workout type', { exact: true }).selectOption('countdown');
   await expect(page.getByText('No saved workouts match your filters.')).toBeVisible();
   await page.getByRole('button', { name: 'Clear library filters', exact: true }).first().click();
-  await page.getByLabel('Search saved workouts').fill('ALPHA');
+  await page.getByLabel('Search saved library').fill('ALPHA');
   await expect(page.locator('.template-list > li')).toHaveCount(1);
   await page.reload();
   await expect(
@@ -112,16 +112,16 @@ test('cancel restores its origin and filtered rename or last deletion falls back
   await origin.click();
   await page.keyboard.press('Escape');
   await expect(origin).toBeFocused();
-  await page.getByLabel('Search saved workouts').fill('Alpha');
+  await page.getByLabel('Search saved library').fill('Alpha');
   await origin.click();
   await page.getByRole('dialog').getByLabel('Workout name').fill('Renamed');
   await page.getByRole('dialog').getByRole('button', { name: 'Save name' }).click();
   await expect(page.getByRole('heading', { name: 'Saved workouts', exact: true })).toBeFocused();
-  await page.getByLabel('Search saved workouts').fill('Renamed');
+  await page.getByLabel('Search saved library').fill('Renamed');
   await page.getByRole('button', { name: 'Delete Renamed', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Delete workout' }).click();
   await expect(page.getByRole('heading', { name: 'Saved workouts', exact: true })).toBeFocused();
-  await expect(page.getByLabel('Search saved workouts')).toHaveValue('Renamed');
+  await expect(page.getByLabel('Search saved library')).toHaveValue('Renamed');
 });
 
 test('favourite write failure is visible and does not falsely change its state', async ({

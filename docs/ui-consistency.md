@@ -34,3 +34,11 @@ Run at 760×620 and a larger desktop window in Chromium and production WebKit. R
 - One labelled Sort saved library control affects both result lists. Recently added uses reverse saved insertion order (including legacy records); Name A–Z uses stable case-insensitive name ordering; Shortest duration puts unknown/manual-wait/uncapped durations last. Caps are not finish-time predictions. Sorting is transient, non-mutating and survives navigation/filter reset; restarting uses Recently added.
 - Say Clear library filters wherever the shared filters reset. Show session — clear library filters explicitly reveals a result after a successful action; never reset silently. Keep the selected sort and editor draft.
 - Announce block removal and the existing Undo action. Focus the next surviving block's Edit, otherwise the previous block's Edit, otherwise Add EMOM block. Undo focuses the restored block. Use the existing destructive button style for Remove.
+
+## 2.5.0 session assembly
+
+- Use Search saved library and All collections for controls shared by saved workouts and sessions.
+- Choose saved workouts opens a searchable multi-selection dialog; selection order is explicit and independent of filtered results. Refresh discards stale selection and asks for a fresh review. Fixed actions remain visible while content scrolls.
+- Add a new block and Update this block must have distinct instructions and commit actions. Cancelling preserves the draft.
+- Move/duplicate operations announce position and focus the affected block's Edit control, including list boundaries. Undo tracks the relevant block per edit. Chooser cancellation returns focus to its invoking button, including WebKit mouse activation.
+- Session, chooser and actual-performance selects use a scoped 44px minimum, explicit chevron and native select semantics. WebKit native appearance otherwise shrinks these controls to 23px despite min-height.

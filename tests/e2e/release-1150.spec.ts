@@ -38,16 +38,16 @@ test('duplicate preserves source and filters, reports hidden copy and survives r
   await expect(page.getByRole('heading', { name: 'My variant', exact: true })).toBeVisible();
 });
 test('library filters survive navigation and reset on restart', async ({ page }) => {
-  await page.getByLabel('Search saved workouts').fill('Alpha');
+  await page.getByLabel('Search saved library').fill('Alpha');
   await page.getByLabel('Workout type', { exact: true }).selectOption('countdown');
   await page.getByRole('checkbox', { name: 'Favourites only' }).check();
   await page.getByRole('button', { name: 'Workout history', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await expect(page.getByLabel('Search saved workouts')).toHaveValue('Alpha');
+  await expect(page.getByLabel('Search saved library')).toHaveValue('Alpha');
   await expect(page.getByLabel('Workout type', { exact: true })).toHaveValue('countdown');
   await expect(page.getByRole('checkbox', { name: 'Favourites only' })).toBeChecked();
   await page.reload();
-  await expect(page.getByLabel('Search saved workouts')).toHaveValue('');
+  await expect(page.getByLabel('Search saved library')).toHaveValue('');
 });
 test('failed refresh clears old success feedback', async ({ page }) => {
   await page.getByRole('button', { name: 'Refresh saved workouts', exact: true }).click();

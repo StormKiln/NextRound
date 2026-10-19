@@ -249,7 +249,7 @@ test('saved-workout search finds equivalent Unicode while keeping distinct IDs',
     ),
   );
   await page.goto('/');
-  await page.getByLabel('Search saved workouts').fill('Cafe\u0301');
+  await page.getByLabel('Search saved library').fill('Cafe\u0301');
   await expect(page.getByRole('button', { name: 'Load Café workout', exact: true })).toHaveCount(2);
 });
 test('empty picker Custom entry clears a cancelled validation error', async ({ page }) => {

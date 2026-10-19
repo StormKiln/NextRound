@@ -22,7 +22,7 @@ test.beforeEach(async ({ page }) => {
 test('saved search finds exercise snapshots and collection membership survives filtering', async ({
   page,
 }) => {
-  await page.getByLabel('Search saved workouts').fill('steady');
+  await page.getByLabel('Search saved library').fill('steady');
   await expect(page.getByRole('heading', { name: 'Morning', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Manage collections', exact: true }).click();
   await page.getByLabel('Collection name', { exact: true }).fill('Quick sessions');

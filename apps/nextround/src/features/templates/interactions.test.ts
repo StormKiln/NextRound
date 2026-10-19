@@ -122,7 +122,7 @@ it('a delayed favourite write does not steal focus from search', async () => {
   button.focus();
   fireEvent.click(button);
   await waitFor(() => expect(button.hasAttribute('disabled')).toBe(true));
-  const search = screen.getByLabelText('Search saved workouts');
+  const search = screen.getByLabelText('Search saved library');
   search.focus();
   await act(async () => {
     finish({ ...doc, templates: [{ ...entry, favourite: true }] });
@@ -151,7 +151,7 @@ it('failed favourite saves preserve intentional navigation', async () => {
   button.focus();
   fireEvent.click(button);
   await waitFor(() => expect(button.hasAttribute('disabled')).toBe(true));
-  const search = screen.getByLabelText('Search saved workouts');
+  const search = screen.getByLabelText('Search saved library');
   search.focus();
   await act(async () => {
     fail(new Error('Disk unavailable'));
