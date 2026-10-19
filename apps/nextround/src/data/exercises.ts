@@ -2336,6 +2336,146 @@ export const exercises: ExerciseEntry[] = [
     description:
       'With two bells and a wide stable stance, hinge to swing both between your legs. Drive through the hips to float them forward, then guide them back. Keep the back long and arms relaxed. Practise a single-bell swing first.',
   },
+  {
+    id: 'pilates-swimming',
+    name: 'Pilates swimming',
+    description:
+      'Lie face down with arms reaching forward. Float opposite arm and leg, then switch in a small controlled flutter. Keep the neck long and breathe throughout; reduce the lift if the back arches.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'pilates-seal',
+    name: 'Pilates seal',
+    description:
+      'Sit with knees open and hold the ankles from inside the legs. Balance in a rounded shape, tap feet together, roll onto the upper back, then return to balance. Avoid rolling onto the neck. Count each return.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-side-kick',
+    name: 'Pilates side kick front-to-back',
+    description:
+      'Lie on one side with the head supported by your lower arm. Lift the upper leg to hip height and sweep it forward then back without rocking the pelvis. Choose one side; a forward-and-back cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-kneeling-side-kick',
+    name: 'Pilates kneeling side kick',
+    description:
+      'Kneel, place one hand on the floor to the side and extend the opposite leg sideways. Keep the trunk steady as that leg sweeps forward and back. Choose one side; count each complete sweep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-mermaid',
+    name: 'Pilates mermaid stretch',
+    description:
+      'Sit with both knees folded to one side. Place one hand beside the hip and arc the opposite arm overhead into a gentle side bend. Keep both hips heavy and breathe; choose one side for the hold.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'pilates-hip-twist',
+    name: 'Pilates seated hip twist',
+    description:
+      'Advanced: sit leaning back onto forearms, lift bent legs together and trace small circles with the knees. Keep the chest open and trunk steady. Straighten legs only with control. Count each circle; alternate direction.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-leg-pull-back',
+    name: 'Pilates leg pull back',
+    description:
+      'From a reverse plank with hands behind you, lift one straight leg a little without dropping the hips, then lower and alternate. Keep shoulders supported and neck long. Count each lift; scale to a static reverse plank.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-straight-leg-stretch',
+    name: 'Pilates single straight-leg stretch',
+    description:
+      'Lie on your back, curl the shoulders up and draw one straight leg toward you while the other reaches away. Switch legs with control without pulling the neck. Bend knees to scale. Count each switch.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-boomerang',
+    name: 'Pilates boomerang',
+    description:
+      'Advanced: sit with legs crossed, roll back onto the shoulders and switch the ankle crossing. Roll forward into a brief V balance, then lower the legs and fold forward. Keep weight off the neck. Count each full sequence.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-rocking',
+    name: 'Pilates rocking',
+    description:
+      'Advanced: lie face down, bend both knees and hold the ankles. Gently press feet into hands to lift the chest, then rock a little forward and back with control. Keep the neck long. Count each full rock; avoid forcing the back.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-incline-hammer-curl',
+    name: 'Dumbbell incline hammer curl',
+    description:
+      'Sit against an incline bench with arms hanging and palms facing inward. Curl both dumbbells without moving the upper arms, then lower slowly. Keep the neutral grip and back supported. Count each simultaneous curl.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-tate-press',
+    name: 'Dumbbell Tate press',
+    description:
+      'Lie on a stable bench with light dumbbells above the chest. Bend elbows out to the sides to bring the weights toward the chest, then straighten the arms under control. Keep the shoulders supported and feet grounded.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-wrist-rotation',
+    name: 'Dumbbell wrist supination and pronation',
+    description:
+      'Hold a light dumbbell with the elbow bent at your side. Slowly rotate the forearm palm-up then palm-down while keeping the upper arm still. Stay within a comfortable range. Choose one arm; a full cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-incline-y-raise',
+    name: 'Dumbbell incline Y raise',
+    description:
+      'Lie chest-down on a stable incline bench with light weights hanging. Raise the arms diagonally into a Y in line with the torso, then lower slowly. Keep the neck long and avoid shrugging. Count each simultaneous raise.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-side-external-rotation',
+    name: 'Dumbbell side-lying external rotation',
+    description:
+      'Lie on one side with a light dumbbell in the upper hand, elbow bent and resting against your side. Rotate the forearm upward without lifting the elbow or rolling the torso, then lower slowly. Choose one side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-kickstand-deadlift',
+    name: 'Kettlebell kickstand deadlift',
+    description:
+      'Stand with one foot slightly behind as a support. Hold the bell with both hands, hinge over the front leg and stand tall. Keep the back long and most weight on the front foot. Choose one side; count each stand.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-z-press',
+    name: 'Kettlebell Z press',
+    description:
+      'Sit tall on the floor with legs extended and a light bell racked on one side. Brace and press overhead without leaning back, then lower to the rack. Choose one arm. Bend knees slightly if needed to sit upright.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-bent-press',
+    name: 'Kettlebell bent press',
+    description:
+      'Advanced: rack a light bell, rotate slightly and hinge sideways beneath it as the arm straightens. Keep the weight stacked, then stand before lowering to the rack. Learn with a coach; choose one side and count each stand.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-split-jerk',
+    name: 'Kettlebell split jerk',
+    description:
+      'Advanced: rack one bell, dip and drive through the legs, then land in a short split with the arm overhead. Recover feet under you before lowering. Keep the bell stacked. Choose one arm and count each recovered lift.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-double-snatch',
+    name: 'Double kettlebell snatch',
+    description:
+      'Advanced: hinge with two bells between the legs, drive the hips and guide both close into a controlled overhead catch. Return through the rack before the next rep. Keep wrists neutral; learn the single-bell snatch first.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {

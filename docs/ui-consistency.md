@@ -42,3 +42,11 @@ Run at 760×620 and a larger desktop window in Chromium and production WebKit. R
 - Add a new block and Update this block must have distinct instructions and commit actions. Cancelling preserves the draft.
 - Move/duplicate operations announce position and focus the affected block's Edit control, including list boundaries. Undo tracks the relevant block per edit. Chooser cancellation returns focus to its invoking button, including WebKit mouse activation.
 - Session, chooser and actual-performance selects use a scoped 44px minimum, explicit chevron and native select semantics. WebKit native appearance otherwise shrinks these controls to 23px despite min-height.
+
+## 2.6.0 replacement and chooser behavior
+
+- Replace across session shows selected occurrences explicitly; review target changes before Apply. One Undo restores the batch. Custom slots without catalog identity are separate even when names match.
+- Reuse grouped exercise choices, focus/equipment filters and target editing. Keep review actions and errors outside the bounded scrolling body; return focus after Cancel, Apply and Undo.
+- Clear chooser filters resets search/type/favourite filters without clearing selected order. Matching and hidden-selection counts explain why a selected item is not in the filtered list.
+- Inline previews have Close preview, focus their heading when opened, and restore the preview invoker or search fallback when closed.
+- Comparison and replacement selects share the scoped 44px native-select styling and visible chevron.

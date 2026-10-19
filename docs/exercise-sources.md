@@ -415,3 +415,15 @@ Reviewed 2026-10-19. All 303 previous entries are preserved by a committed basel
 | Double kettlebell swing | [StrongFirst: double kettlebells](https://www.strongfirst.com/brutally-strong-with-double-kettlebells/) |
 
 The ten no-equipment movements do not require a mat, strap or yoga block. Reclining leg stretches can use a bent knee and hand support behind the thigh. Bench-supported curls and squeeze press require both dumbbells and a stable raised surface; an incline-capable bench is described where needed. Double swings explicitly require two bells. Wide-angle forward bending differs from the existing side-straddle stretch; bent-knee reverse tabletop differs from the straight-leg reverse plank. No existing saved prescription is rewritten.
+
+## 2.6.0 additions (323 → 343)
+
+Descriptions are original summaries; no source images, video or text passages are bundled. Targets are editable starting suggestions, not prescriptions or equivalent-effort conversions. The existing 323 entries remain unchanged.
+
+- Pilates swimming, side kick front-to-back, kneeling side kick, mermaid and single straight-leg stretch: [Brett Howard, Incorporating Flow](https://www.pilatesanytime.com/class-view/4201/video/Pilates-Incorporating-Flow-by-Brett-Howard).
+- Pilates seal and leg pull back: [Monica Wilson, Bringing it Together](https://www.pilatesanytime.com/class-view/3385/video/Pilates-Day-23-Bringing-it-Together-by-Monica-Wilson).
+- Seated hip twist, boomerang and rocking: [Amy Havens, Creative Imagery Mat](https://www.pilatesanytime.com/class-view/3482/video/Pilates-Creative-Imagery-Mat-by-Amy-Havens) and [Carrie Samper, Teaser Fun](https://www.pilatesanytime.com/class-view/2385/video/Pilates-Teaser-Fun-by-Carrie-Samper). These advanced movements are labelled; bent-knee/smaller-range cues are included where suitable.
+- Dumbbell incline hammer curl: [Muscle & Strength](https://www.muscleandstrength.com/exercises/incline-hammer-curl.html); Tate press: [Muscle & Strength](https://www.muscleandstrength.com/exercises/dumbbell-tate-press); wrist supination/pronation: [ACE](https://www.acefitness.org/resources/everyone/exercise-library/31/wrist-supination-and-pronation/); incline Y raise: [Strong Athlete coach demonstration](https://www.youtube.com/watch?v=U7Pdw5wFGh0); side-lying external rotation: [exercise technique](https://kysero.io/exercise-library/side-lying-external-rotation/).
+- Kettlebell kickstand/B-stance deadlift, Z press, bent press, split jerk and double snatch: [Sand & Steel coaching catalog](https://www.sandandsteelfitness.com/top-80-kettlebell-exercises/). Advanced movements use small editable rep defaults and explicit technique/prerequisite cues.
+
+Equipment audit: 10 movements need no equipment; 5 require dumbbells, with incline hammer curl, Tate press and incline Y raise also requiring a stable bench; 5 require kettlebells. All 20 have focus areas, searchable aliases, training type/intensity and supported target units. Pilates holds/flutters default to time; counted movements specify what constitutes a repetition. No clinical outcomes or therapeutic claims are made.

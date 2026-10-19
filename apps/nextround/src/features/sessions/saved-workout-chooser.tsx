@@ -27,6 +27,11 @@ export function SavedWorkoutChooser({
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const searchInput = useRef<HTMLInputElement>(null);
+  const previewHeading = useRef<HTMLHeadingElement>(null);
+  const previewButtons = useRef(new Map<string, HTMLButtonElement>());
+  useEffect(() => {
+    if (preview) previewHeading.current?.focus();
+  }, [preview]);
   const mounted = useRef(false);
   const request = useRef(0);
   const body = useRef<HTMLDivElement>(null);
@@ -96,6 +101,8 @@ export function SavedWorkoutChooser({
         ].join(' '),
       ).includes(term),
   );
+  const hiddenCount = selected.filter((s) => !matches.some((m) => m.id === s.id)).length;
+  const filtered = !!search || mode !== 'all' || favourites;
   const details = items.find((item) => item.id === preview);
   function move(index: number, delta: number) {
     const next = [...selected];
@@ -157,6 +164,27 @@ export function SavedWorkoutChooser({
             Favourites only
           </label>
         </div>
+        {filtered && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setSearch('');
+              setMode('all');
+              setFavourites(false);
+              searchInput.current?.focus();
+            }}
+          >
+            Clear chooser filters
+          </Button>
+        )}
+        {fresh && (
+          <p role="status">
+            {matches.length} matching workouts · {selected.length} selected
+            {hiddenCount
+              ? ` · ${hiddenCount} selected workout${hiddenCount === 1 ? '' : 's'} hidden by filters`
+              : ''}
+          </p>
+        )}
         {busy && <p role="status">Reading saved workouts…</p>}
         {fresh && !items.length && (
           <p>No saved workouts yet. Save a workout from its setup page first.</p>
@@ -190,7 +218,15 @@ export function SavedWorkoutChooser({
                   <small>{workoutSummary(item.config)}</small>
                 </span>
               </label>
-              <Button variant="ghost" disabled={!fresh || busy} onClick={() => setPreview(item.id)}>
+              <Button
+                variant="ghost"
+                disabled={!fresh || busy}
+                ref={(node) => {
+                  if (node) previewButtons.current.set(item.id, node);
+                  else previewButtons.current.delete(item.id);
+                }}
+                onClick={() => setPreview(item.id)}
+              >
                 Preview {item.name}
               </Button>
             </li>
@@ -198,7 +234,19 @@ export function SavedWorkoutChooser({
         </ul>
         {details && fresh && (
           <section className="chooser-preview" aria-label={`Preview ${details.name}`}>
-            <h3>{details.name}</h3>
+            <h3 ref={previewHeading} tabIndex={-1}>
+              {details.name}
+            </h3>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const id = preview;
+                setPreview(null);
+                (previewButtons.current.get(id!) ?? searchInput.current)?.focus();
+              }}
+            >
+              Close preview
+            </Button>
             <WorkoutDetails config={details.config} />
           </section>
         )}
