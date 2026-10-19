@@ -376,40 +376,59 @@ test('failed checkpoint after starting retains an explicitly recoverable paused 
   await page.getByRole('button', { name: 'Recover session paused', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Resume session', exact: true })).toBeVisible();
 });
-test('session editor previews targets and supports drag and keyboard block ordering', async ({
-  page,
-}) => {
-  await page.goto('/');
-  await page.evaluate(
-    (session) =>
-      localStorage.setItem(
-        'nextround.training.v1',
-        JSON.stringify({
-          version: 1,
-          sessions: [session],
-          results: [],
-          actuals: {},
-          recovery: null,
-        }),
-      ),
-    session,
-  );
-  await page.reload();
-  await page.getByRole('button', { name: 'Open Two blocks', exact: true }).click();
-  await expect(
-    page.getByRole('region', { name: 'Saved workout details', includeHidden: true }),
-  ).toHaveCount(2);
-  await page
-    .getByRole('button', { name: 'Drag block 1' })
-    .dragTo(page.getByRole('button', { name: 'Drag block 2' }));
-  await expect(page.getByLabel('Block 1 name', { exact: true })).toHaveValue(
-    session.blocks[1].name,
-  );
-  await page.getByRole('button', { name: 'Move block 1 down', exact: true }).click();
-  await expect(page.getByLabel('Block 1 name', { exact: true })).toHaveValue(
-    session.blocks[0].name,
-  );
-});
+for (const viewport of [
+  { width: 1280, height: 900 },
+  { width: 760, height: 620 },
+])
+  test(`session editor previews targets and supports drag and keyboard block ordering at ${viewport.width}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.evaluate(
+      (session) =>
+        localStorage.setItem(
+          'nextround.training.v1',
+          JSON.stringify({
+            version: 1,
+            sessions: [session],
+            results: [],
+            actuals: {},
+            recovery: null,
+          }),
+        ),
+      session,
+    );
+    await page.reload();
+    await page.getByRole('button', { name: 'Open Two blocks', exact: true }).click();
+    await expect(
+      page.getByRole('region', { name: 'Saved workout details', includeHidden: true }),
+    ).toHaveCount(2);
+    // Start the native drag before scrolling a tall target block into view.
+    // dragTo scrolls the target before its first mouse move, which can prevent dragstart.
+    const dragSource = page.getByRole('button', { name: 'Drag block 1', exact: true });
+    const dragTarget = page.getByRole('button', { name: 'Drag block 2', exact: true });
+    await dragSource.hover();
+    const sourceBounds = (await dragSource.boundingBox())!;
+    await page.mouse.down();
+    await page.mouse.move(
+      sourceBounds.x + sourceBounds.width / 2 + 12,
+      sourceBounds.y + sourceBounds.height / 2,
+      { steps: 3 },
+    );
+    await dragTarget.scrollIntoViewIfNeeded();
+    await dragTarget.hover();
+    await dragTarget.hover();
+    await page.mouse.up();
+    await expect(page.getByLabel('Block 1 name', { exact: true })).toHaveValue(
+      session.blocks[1].name,
+    );
+    await page.getByRole('button', { name: 'Move block 1 down', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByLabel('Block 1 name', { exact: true })).toHaveValue(
+      session.blocks[0].name,
+    );
+  });
 test('runs all six modes in one session without saving standalone block results', async ({
   page,
 }) => {

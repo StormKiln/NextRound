@@ -8,6 +8,7 @@ import { type FocusArea, matchesFocus, type PickerView } from '@/data/focus';
 import { mergeLibrary, useExerciseLibrary } from '../exercises/library';
 import { readPersonalExercises } from '../exercises/repository';
 import { useEquipment } from '../settings/equipment-store';
+import { Settings } from '../settings/settings';
 import { ExerciseAlternatives } from '../setup/exercise-alternatives';
 import { ExerciseGroups } from '../setup/exercise-picker';
 import { matchesExercise } from '../setup/exercise-suggestions';
@@ -47,6 +48,7 @@ export function ReplacementDialog({
   const [targetKey, setTargetKey] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [equipmentSettings, setEquipmentSettings] = useState(false);
   const mounted = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const selector = useRef<HTMLSelectElement>(null);
@@ -73,6 +75,7 @@ export function ReplacementDialog({
       (!needsReps || !e.supportedUnits || e.supportedUnits.includes('reps')),
   );
   function choose(selected: ExerciseEntry) {
+    if (!keys.length) return;
     try {
       const changes = previewReplacements(session, keys, selected);
       setReview({ selected: structuredClone(selected), changes });
@@ -132,7 +135,9 @@ export function ReplacementDialog({
                     <option key={id} value={id}>
                       {matching[0].entry.name} ({matching.length}{' '}
                       {matching.length === 1 ? 'occurrence' : 'occurrences'})
-                      {matching[0].entry.catalogId ? '' : ` — ${matching[0].block.name}`}
+                      {matching[0].entry.catalogId
+                        ? ''
+                        : ` — Block ${session.blocks.indexOf(matching[0].block) + 1}: ${matching[0].block.name}, movement ${matching[0].block.config.exercises!.indexOf(matching[0].entry) + 1}`}
                     </option>
                   );
                 })}
@@ -153,8 +158,9 @@ export function ReplacementDialog({
                     }
                   />
                   <span>
-                    {row.block.name} · movement {row.block.config.exercises!.indexOf(row.entry) + 1}{' '}
-                    · {workoutSummary(row.block.config)} ·{' '}
+                    Block {session.blocks.indexOf(row.block) + 1}: {row.block.name} · movement{' '}
+                    {row.block.config.exercises!.indexOf(row.entry) + 1} ·{' '}
+                    {workoutSummary(row.block.config)} ·{' '}
                     {row.entry.target
                       ? formatTarget(row.entry.target)
                       : row.block.config.type === 'ladder'
@@ -197,13 +203,18 @@ export function ReplacementDialog({
                 onChoose={choose}
               />
             )}
-            <ExerciseGroups
-              library={available}
-              search={search}
-              view={view}
-              onSelect={choose}
-              note={(e) => equipmentNote(e, showAll ? null : (equipment.selection ?? []))}
-            />
+            {!keys.length && (
+              <p role="status">Select at least one occurrence to choose a replacement.</p>
+            )}
+            {!!keys.length && (
+              <ExerciseGroups
+                library={available}
+                search={search}
+                view={view}
+                onSelect={choose}
+                note={(e) => equipmentNote(e, showAll ? null : (equipment.selection ?? []))}
+              />
+            )}
             {!available.length && !bundled.isPending && !bundled.isError && (
               <p>No exercises match these filters.</p>
             )}
@@ -222,8 +233,9 @@ export function ReplacementDialog({
               return (
                 <section className="replacement-review" key={c.key}>
                   <h4>
-                    {row.block.name} · movement {row.block.config.exercises!.indexOf(row.entry) + 1}{' '}
-                    · {workoutSummary(row.block.config)}
+                    Block {session.blocks.indexOf(row.block) + 1}: {row.block.name} · movement{' '}
+                    {row.block.config.exercises!.indexOf(row.entry) + 1} ·{' '}
+                    {workoutSummary(row.block.config)}
                   </h4>
                   <p>{c.notice}</p>
                   <p>
@@ -237,7 +249,8 @@ export function ReplacementDialog({
                   </p>
                   {row.block.config.type !== 'ladder' && (
                     <Button variant="secondary" disabled={busy} onClick={() => setTargetKey(c.key)}>
-                      Set target for {row.block.name}
+                      Set target for block {session.blocks.indexOf(row.block) + 1}: {row.block.name}
+                      , movement {row.block.config.exercises!.indexOf(row.entry) + 1}
                     </Button>
                   )}
                 </section>
@@ -259,14 +272,35 @@ export function ReplacementDialog({
       </div>
       <footer className="replacement-footer">
         {!review && (
-          <label className="membership-option">
-            <input
-              type="checkbox"
-              checked={showAll}
-              onChange={(e) => setOverride(e.target.checked)}
-            />
-            Show all equipment
-          </label>
+          <p className="equipment-status">
+            {showAll
+              ? 'All equipment shown.'
+              : equipment.selection?.length
+                ? 'Saved equipment filters apply.'
+                : 'No equipment selected.'}{' '}
+            Custom movement requirements are not assessed.
+          </p>
+        )}
+        {!review && (
+          <div className="replacement-equipment-actions">
+            <label className="membership-option">
+              <input
+                type="checkbox"
+                checked={showAll}
+                onChange={(e) => setOverride(e.target.checked)}
+              />
+              Show all equipment
+            </label>
+            <Button
+              variant="secondary"
+              onClick={(event) => {
+                event.currentTarget.focus();
+                setEquipmentSettings(true);
+              }}
+            >
+              Change equipment settings
+            </Button>
+          </div>
         )}
         {equipment.error && (
           <p role="alert">
@@ -288,6 +322,9 @@ export function ReplacementDialog({
           </Button>
         </div>
       </footer>
+      {equipmentSettings && (
+        <Settings initialSection="equipment" onClose={() => setEquipmentSettings(false)} />
+      )}
       {target && targetRow && targetRow.block.config.type !== 'ladder' && (
         <TargetDialog
           exercise={target.entry}

@@ -42,9 +42,10 @@ export function EquipmentSettings() {
         ))}
       </fieldset>
       <p className="hint">
-        A jump-rated box also counts as a stable raised surface. All dumbbell movements in this
-        catalog use one dumbbell. Mats are optional; use a suitable clear floor area. Custom
-        movement requirements are not assessed.
+        A jump-rated box also counts as a stable raised surface. Filters check equipment types, not
+        quantities or bench configurations. Check each movement description for one or two weights
+        and any specific bench requirements. Mats are optional; use a suitable clear floor area.
+        Custom movement requirements are not assessed.
       </p>
       {error && (
         <div role="alert">

@@ -127,7 +127,9 @@ test('replacement can review and explicitly edit a changed target', async ({ pag
   await d.getByLabel('Search replacement exercises').fill('rowing machine');
   await d.getByRole('button', { name: /Rowing machine/ }).click();
   await expect(d).toContainText('because the previous unit is not supported');
-  await d.getByRole('button', { name: 'Set target for Work', exact: true }).click();
+  await d
+    .getByRole('button', { name: 'Set target for block 1: Work, movement 1', exact: true })
+    .click();
   const t = page.getByRole('dialog').last();
   await t.getByRole('spinbutton').fill('100');
   await t.getByRole('button', { name: 'Save target', exact: true }).click();

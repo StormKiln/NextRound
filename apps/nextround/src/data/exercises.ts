@@ -2476,6 +2476,146 @@ export const exercises: ExerciseEntry[] = [
       'Advanced: hinge with two bells between the legs, drive the hips and guide both close into a controlled overhead catch. Return through the rack before the next rep. Keep wrists neutral; learn the single-bell snatch first.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'frogger',
+    name: 'Frogger',
+    description:
+      'From a comfortable squat, place both hands ahead on the floor. Shift onto the hands, then bring your feet forward into the squat. Keep the hop small and controlled. Each forward transfer counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'monkey-walk',
+    name: 'Lateral monkey walk',
+    description:
+      'Start in a low squat. Place both hands to one side, shift weight onto them and bring your feet across to follow. Keep movements small and land softly. Alternate travel direction; each sideways transfer is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'duck-walk',
+    name: 'Duck walk',
+    description:
+      'Lower into a squat you can hold comfortably. Take short forward steps while staying low, keeping knees aligned with toes. Use a shallower squat if needed. Count each step; stand and reset before turning.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'crab-toe-touch',
+    name: 'Crab toe touch',
+    description:
+      'Sit with knees bent and hands behind you. Lift your hips slightly, then reach one hand toward the opposite raised foot. Return both supports to the floor before switching. Each reach counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'frog-pump',
+    name: 'Frog pump',
+    description:
+      'Lie on your back with knees bent outward and soles together. Brace gently and lift your hips by squeezing the glutes, then lower without arching the back. Keep the range comfortable. Each lift is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'reverse-nordic',
+    name: 'Reverse Nordic curl',
+    description:
+      'Kneel tall with hips extended. Keeping shoulders, hips and knees in one line, lean back a short distance and return under control. Choose a range you can reverse without bending at the hips. Each return is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'scapular-pushup',
+    name: 'Scapular push-up',
+    description:
+      'Hold a high plank with straight elbows. Let the chest sink slightly between the shoulders, then push the floor away to spread the shoulder blades. Keep hips steady and elbows straight. Each full cycle counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-90-90-switch',
+    name: 'Seated 90/90 hip switch',
+    description:
+      'Sit with both knees bent, one leg in front and one to the side. Rotate both knees across to swap sides, using your hands for balance if needed. Stay within a comfortable hip range. Each change of side counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rock-back-thoracic-rotation',
+    name: 'Rock-back thoracic rotation',
+    description:
+      'From hands and knees, sit hips toward heels and place one hand behind your head. Rotate that elbow upward, then return it toward the supporting arm. Keep hips still and avoid pulling the neck. Choose one side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'butt-kicks',
+    name: 'Butt kicks',
+    description:
+      'Jog gently in place, alternately lifting each heel toward the glutes. Keep your torso upright and land softly. Reduce to alternating standing heel lifts if needed. Count each heel lift as one rep total.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-cuban-press',
+    name: 'Dumbbell Cuban press',
+    description:
+      'With two light dumbbells, raise bent elbows to a comfortable height. Rotate the forearms upward, press overhead, then reverse slowly. Keep ribs down and avoid forcing shoulder range. Each full sequence is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-reverse-grip-bench-press',
+    name: 'Dumbbell reverse-grip bench press',
+    description:
+      'Lie on a stable flat bench with two dumbbells, palms facing your head. Lower toward the chest with elbows controlled, then press up. Keep wrists stacked and feet grounded. Each simultaneous press counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-reverse-grip-row',
+    name: 'Dumbbell reverse-grip bent-over row',
+    description:
+      'Hold two dumbbells with palms forward and hinge at the hips. Pull toward the lower ribs with elbows close, then lower slowly. Keep your back long and torso still. Each simultaneous row is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-single-arm-upright-row',
+    name: 'Dumbbell single-arm upright row',
+    description:
+      'Stand holding one light dumbbell in front of the thigh. Lead with the elbow to lift it close to your torso, stopping at a comfortable height, then lower slowly. Do not shrug or lean. Choose one arm.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-decline-bench-press',
+    name: 'Dumbbell decline bench press',
+    description:
+      'Secure your legs on a purpose-built decline bench. Hold two dumbbells above the chest, lower with controlled elbows, then press up. Use light weights you can position safely. Each simultaneous press is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-gorilla-row',
+    name: 'Kettlebell alternating gorilla row',
+    description:
+      'Set two bells between your feet and hinge with bent knees. Row one toward your hip while the other stays grounded, then lower and switch. Keep hips and shoulders square. Count each individual row as one rep total.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-sots-press',
+    name: 'Kettlebell Sots press',
+    description:
+      'Advanced: rack a light bell and lower into a stable deep squat. Stay in the squat as you press overhead and lower to the rack. Keep heels grounded and torso upright; use only a controlled range. Choose one arm.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-half-kneeling-windmill',
+    name: 'Kettlebell half-kneeling windmill',
+    description:
+      'Half-kneel with a light bell overhead on the kneeling side. Hinge sideways toward the free hand while keeping the bell stacked above the shoulder, then return tall. Move slowly within control. Choose one side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-kneeling-chest-press',
+    name: 'Kettlebell tall-kneeling chest press',
+    description:
+      'Kneel tall and hold a light bell at chest height with both hands. Brace and press it straight forward, then draw it back. Keep hips extended and avoid leaning back. Each forward press counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-goblet-forward-lunge',
+    name: 'Kettlebell goblet forward lunge',
+    description:
+      'Hold one bell at your chest. Step forward, bend both knees under control and push back to standing. Keep the front knee tracking with the toes. Alternate legs; each lunge counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {
