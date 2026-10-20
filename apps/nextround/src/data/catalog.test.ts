@@ -4,7 +4,7 @@ import baseline from './catalog-baseline.json';
 import { exercises } from './exercises';
 
 it('adds twenty distinct exercises without changing the original catalog identities', () => {
-  expect(exercises).toHaveLength(383);
+  expect(exercises).toHaveLength(403);
   expect(exercises.slice(0, 43).map((e) => e.id)).toEqual(baseline);
   expect(exercises.slice(43, 63).map((e) => e.name)).toEqual([
     'Glute bridge',
@@ -35,10 +35,10 @@ import fullBaseline from './catalog-160-baseline.json';
 import { metadataFor } from './equipment';
 
 it('1.7 adds twenty whole-body/core movements with valid metadata and targets preserving every prior record', () => {
-  expect(exercises).toHaveLength(383);
+  expect(exercises).toHaveLength(403);
   expect(exercises.slice(0, 83)).toEqual(fullBaseline);
   const additions = exercises.slice(83, 103);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(383);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(403);
   expect(additions.filter((e) => metadataFor(e)?.targetAreas?.includes('whole-body'))).toHaveLength(
     10,
   );
@@ -110,8 +110,8 @@ import release1170 from './catalog-1170-baseline.json';
 
 it('1.18 preserves all prior entries and adds twenty complete, searchable, eligible movements', () => {
   expect(exercises.slice(0, 123)).toEqual(release1170);
-  expect(exercises).toHaveLength(383);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(383);
+  expect(exercises).toHaveLength(403);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(403);
   const added = exercises.slice(123, 143);
   expect(added.filter((e) => metadataFor(e)?.equipment.length === 0)).toHaveLength(10);
   expect(added.filter((e) => metadataFor(e)?.equipment.includes('dumbbell'))).toHaveLength(6);
@@ -143,10 +143,10 @@ import release1200 from './catalog-1200-baseline.json';
 
 it('1.21 preserves 143 records and adds 20 distinct fully described exercises', () => {
   expect(exercises.slice(0, 143)).toEqual(release1200);
-  expect(exercises).toHaveLength(383);
+  expect(exercises).toHaveLength(403);
   const added = exercises.slice(143, 163);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(383);
-  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(383);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(403);
+  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(403);
   expect(added.filter((e) => metadataFor(e)?.equipment.length === 0)).toHaveLength(10);
   expect(added.filter((e) => metadataFor(e)?.equipment.includes('dumbbell'))).toHaveLength(6);
   expect(added.filter((e) => metadataFor(e)?.equipment.includes('kettlebell'))).toHaveLength(4);
@@ -165,10 +165,10 @@ import release1210 from './catalog-1210-baseline.json';
 
 it('1.22 preserves 163 snapshots and adds 20 distinct complete movements', () => {
   expect(exercises.slice(0, 163)).toEqual(release1210);
-  expect(exercises).toHaveLength(383);
+  expect(exercises).toHaveLength(403);
   const added = exercises.slice(163, 183);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(383);
-  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(383);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(403);
+  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(403);
   expect(added.filter((e) => metadataFor(e)?.equipment.length === 0)).toHaveLength(10);
   expect(added.filter((e) => metadataFor(e)?.equipment.includes('dumbbell'))).toHaveLength(6);
   expect(added.filter((e) => metadataFor(e)?.equipment.includes('kettlebell'))).toHaveLength(4);
@@ -199,9 +199,9 @@ import release1220 from './catalog-1220-baseline.json';
 
 it('1.23 preserves all 183 snapshots and adds twenty complete low-impact movements', () => {
   expect(exercises.slice(0, 183)).toEqual(release1220);
-  expect(exercises).toHaveLength(383);
+  expect(exercises).toHaveLength(403);
   const added = exercises.slice(183, 203);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(383);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(403);
   for (const e of added) {
     const m = metadataFor(e);
     expect(e.description?.length).toBeLessThanOrEqual(240);

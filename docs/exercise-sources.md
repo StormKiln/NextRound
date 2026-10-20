@@ -462,3 +462,21 @@ Reviewed 2026-10-19. All descriptions are original short technique summaries; no
 | Kettlebell goblet split squat | [Horton Barbell](https://hortonbarbell.com/goblet-split-squat-how-to-benefits-common-mistakes/) |
 
 Equipment audit: 10 no-equipment movements, 5 dumbbell and 5 kettlebell movements. Four dumbbell entries and the lateral step-up require a stable raised surface; incline exercises explicitly require an incline bench. Balance holds use seconds and can be replaced with existing floor versions. The stationary rack march differs from the travelling rack carry, the half snatch lowers through the rack, the goblet split squat keeps both feet on the floor, and supported fly/shrug variations have distinct positions. Each counted movement defines a repetition; alternating movements count each side's action once. Holds and shuffles use seconds. All entries include focus areas, aliases, intensity and training type.
+
+
+## 2.9.0 — twenty no-equipment additions
+
+Reviewed 2026-10-19. Descriptions below are original short coaching cues; no source media or passages are copied. Variants are deliberately distinct prescriptions, not new claims of effectiveness. Defaults are editable starting targets, not pace estimates or medical advice. All 383 previous records remain unchanged (403 total).
+
+- [ACE body-weight programming](https://www.acefitness.org/continuing-education/certified/september-2026/9193/body-weight-training-by-design-programming-for-every-fitness-goal/) informs squat hold, staggered-stance squat, squat-to-calf-raise, lateral squat walk and kneeling hip hinge as explicit isometric, stance, combined-movement and leverage adaptations. The exact variants and short descriptions are editorial adaptations, not attributed verbatim to ACE.
+- [AAOS foot and ankle exercises](https://www.orthoinfo.org/recovery/foot-and-ankle-conditioning-program) informs single-leg calf raises; [Elite Performance Institute calf library](https://elite-performance-institute.com/exercise-library/calf-exercises/) covers bent-knee calf raises. NextRound uses level ground and no external load.
+- [Royal National Orthopaedic Hospital functional exercises](https://www.rnoh.nhs.uk/patients-and-visitors/patient-information-guides/functional-fitness-exercise-pack) informs standing hamstring curl mechanics. This general-fitness entry does not reproduce rehabilitation prescriptions.
+- [NASM movement programming](https://blog.nasm.org/sports-performance/hiit-hvit-viit-know-differences) includes leg swings in multiple planes; our entries separate front-to-back and lateral arcs with explicit cycle counts.
+- [Squat University hip airplane](https://squatuniversity.com/2018/05/06/the-hip-airplane/) informs the single-leg hinge/rotation entry. No injury-treatment claims are included.
+- [NASM bird dog](https://www.nasm.org/resource-center/exercise-library/bird-dog) informs the base quadruped pattern; bird-dog crunch is an editorial flexion/extension variation with explicit counting.
+- [NASM plank progressions](https://www.nasm.org/resource-center/blog/training/the-plank-coaching-progressions-and-variations-for-every-client) informs bracing and leverage cues for bear shoulder taps, knee-to-elbow plank, short-range forearm plank rocks and long-lever holds. These variations have separate names and descriptions.
+- [ClassPass plank jack](https://classpass.com/movements/plank-jack) informs the out-and-in movement and step alternative.
+- [Rehabilitation & Performance Institute anti-extension](https://rehabilitationperformance.com/training-anti-extension/) informs dead-bug heel taps. The seated straight-leg lift is an editorial seated hip-flexion variation, not a rehabilitation prescription.
+- [ACE lateral crawls](https://www.acefitness.org/resources/everyone/exercise-library/328/lateral-crawls/) informs lateral bear crawling, distinct from forward bear crawling already present.
+
+Equipment classification assumes independent balance for standing movements; users needing external support should choose an appropriate personal modification. Static squat/long-lever holds support seconds only. Other additions support reps or seconds; unilateral counts apply to the chosen side and alternating movements count each action as stated in the description.

@@ -37,7 +37,15 @@ test('groups collapse and search reveals matching movements', async ({ page }) =
   await expect(page.getByRole('button', { name: /^Kettlebell swing/ })).toBeHidden();
   await page.getByLabel('Search exercises').fill('swing');
   await expect(page.getByRole('button', { name: /^Kettlebell swing/ })).toBeVisible();
-  await expect(page.locator('.exercise-group summary')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /^Front-to-back leg swing/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Lateral leg swing/ })).toBeVisible();
+  await expect(page.locator('.exercise-group summary')).toHaveCount(2);
+  await expect(
+    page.locator('.exercise-group summary').filter({ hasText: 'Kettlebell' }),
+  ).toBeVisible();
+  await expect(
+    page.locator('.exercise-group summary').filter({ hasText: 'Other bodyweight' }),
+  ).toBeVisible();
 });
 
 test('keyboard reorder can commit and cancel while preserving focus', async ({ page }) => {

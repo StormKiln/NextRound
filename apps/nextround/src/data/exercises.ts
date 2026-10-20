@@ -2756,6 +2756,146 @@ export const exercises: ExerciseEntry[] = [
       'Hold one bell at the chest in a split stance, both feet on the floor. Bend both knees through a comfortable range, then rise without moving the feet. Keep the front heel down. Choose a side; each rise is one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'squat-hold',
+    name: 'Bodyweight squat hold',
+    description:
+      'Lower into a comfortable squat with feet grounded. Hold the position without sinking farther, breathe steadily, then stand to finish.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'staggered-stance-squat',
+    name: 'Staggered-stance squat',
+    description:
+      'Place one foot slightly behind the other. Sit down and back while keeping most weight through the front foot, then stand. Complete the chosen side before switching.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'squat-calf-raise',
+    name: 'Squat to calf raise',
+    description:
+      'Perform a controlled squat. As you stand, rise onto the balls of both feet without jumping, then lower your heels. Count one squat and heel raise as one repetition.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'lateral-squat-walk',
+    name: 'Lateral squat walk',
+    description:
+      'Hold a shallow squat and take small sideways steps, bringing the trailing foot in without crossing. Keep knees tracking over toes. Count each sideways step; change direction evenly.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'single-leg-calf-raise',
+    name: 'Single-leg calf raise',
+    description:
+      'Balance on one foot on level ground. Lift the heel slowly, pause, then lower without rolling the ankle out. Use a smaller range if needed and complete both sides.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bent-knee-calf-raise',
+    name: 'Bent-knee calf raise',
+    description:
+      'Stand with knees slightly bent and hold that knee angle. Raise both heels, pause, then lower with control. Keep weight spread across the balls of the feet.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-hamstring-curl',
+    name: 'Standing hamstring curl',
+    description:
+      'Stand tall and bend one knee to bring the heel behind you. Keep thighs alongside each other, lower slowly and alternate legs. Count each curl as one repetition.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'front-back-leg-swing',
+    name: 'Front-to-back leg swing',
+    description:
+      'Balance on one leg and gently swing the other forward and back through a small controlled arc. Keep the torso quiet. Count a forward-and-back cycle as one repetition; change sides.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'lateral-leg-swing',
+    name: 'Lateral leg swing',
+    description:
+      'Balance on one leg. Move the other leg sideways and gently across the front of the body without twisting the standing knee. Use a small arc; count each out-and-back cycle and switch sides.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'hip-airplane',
+    name: 'Hip airplane',
+    description:
+      'Balance on one leg with a soft knee and hinge forward. Slowly rotate the pelvis open and closed while keeping the standing foot grounded. Use a small range, then stand and switch sides.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bird-dog-crunch',
+    name: 'Bird-dog crunch',
+    description:
+      'From hands and knees, extend opposite arm and leg. Bring that elbow and knee toward each other beneath the trunk, then extend again without shifting sideways. Count each return and alternate sides.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bear-shoulder-tap',
+    name: 'Bear-plank shoulder tap',
+    description:
+      'From hands and knees, hover the knees just above the floor. Touch one hand to the opposite shoulder and replace it, keeping hips level. Alternate hands and count each tap.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'plank-jack',
+    name: 'Plank jack',
+    description:
+      'Start in a high plank. Hop the feet apart and together while keeping the trunk steady. Step one foot at a time to reduce impact. Count one out-and-in cycle as a repetition.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'plank-knee-elbow',
+    name: 'High-plank knee to elbow',
+    description:
+      'Hold a high plank and draw one knee outward toward the elbow on the same side. Return the foot with control and alternate sides without dropping the hips. Count each knee drive.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'forearm-plank-rock',
+    name: 'Forearm-plank rock',
+    description:
+      'Hold a forearm plank. Rock gently forward over the elbows and back using the toes, keeping the body in one line. Use a short range and count one forward-and-back cycle.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dead-bug-heel-tap',
+    name: 'Dead-bug heel tap',
+    description:
+      'Lie on your back with knees bent above the hips. Lower one heel to lightly touch the floor, then return and alternate. Keep the trunk still and count each heel tap.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seated-straight-leg-lift',
+    name: 'Seated straight-leg lift',
+    description:
+      'Sit with legs extended and hands beside the hips. Keep the torso tall as you lift one straight leg a short distance and lower it. Alternate sides without leaning back; count each lift.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kneeling-hip-hinge',
+    name: 'Tall-kneeling hip hinge',
+    description:
+      'Kneel tall with knees comfortably apart. Send the hips toward the heels while keeping the back long, then squeeze the glutes to return upright. Move through a comfortable range without arching the back.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'lateral-bear-crawl',
+    name: 'Lateral bear crawl',
+    description:
+      'Hover the knees from hands and knees. Take small sideways steps with hands and feet, keeping hips level. Count each coordinated sideways step and travel both directions.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'long-lever-plank',
+    name: 'Long-lever forearm plank',
+    description:
+      'Start in a forearm plank, then place elbows slightly farther ahead of the shoulders. Brace and hold without sagging. Shorten the reach if needed and breathe throughout.',
+    supportedUnits: ['seconds'],
+  },
 ];
 
 export async function listExercises() {
