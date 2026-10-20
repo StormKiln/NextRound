@@ -1,3 +1,4 @@
+import { countLabel } from '@nextround/core';
 import { useMemo, useRef, useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
@@ -112,7 +113,7 @@ export function RepeatBlockDialog({
         <p id="repeat-block-feedback" role={preview.error || error ? 'alert' : 'status'}>
           {error ||
             preview.error ||
-            `${selected.length * Number(copies)} new blocks · ${preview.session!.blocks.length} of 20 blocks.`}
+            `${countLabel(selected.length * Number(copies), 'new block')} · ${preview.session!.blocks.length} of 20 blocks.`}
         </p>
         <div className="dialog-actions">
           <Button variant="secondary" onClick={onClose}>

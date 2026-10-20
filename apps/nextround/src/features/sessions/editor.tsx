@@ -1,4 +1,4 @@
-import { validateConfig } from '@nextround/core';
+import { countLabel, validateConfig } from '@nextround/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
@@ -17,6 +17,7 @@ import { mutateTraining, trainingKey } from './repository';
 import { SaveBlockDialog } from './save-block-dialog';
 import { SavedWorkoutChooser } from './saved-workout-chooser';
 import { useTraining } from './state';
+import { workoutOwnsSession } from './workout-ownership';
 import './session.css';
 export const modes: {
   mode: WorkoutMode;
@@ -61,15 +62,19 @@ export function openSession(session?: TrainingSession) {
     undoFocus: null,
   });
 }
+export function sessionEditBlocked() {
+  const workout = useWorkout.getState();
+  const training = useTraining.getState();
+  return !!(
+    training.run ||
+    training.busy ||
+    workoutOwnsSession(workout) ||
+    useSessionEditor.getState().editing
+  );
+}
 export function applyRepeatedBlocks(expected: TrainingSession, ids: string[], copies: number) {
   const current = useSessionEditor.getState();
-  if (
-    useTraining.getState().run ||
-    useTraining.getState().busy ||
-    useWorkout.getState().snapshot ||
-    useWorkout.getState().pendingResult ||
-    current.editing
-  )
+  if (sessionEditBlocked())
     throw new Error('Finish the active workout or block edit before repeating blocks.');
   const next = repeatSessionBlocks(expected, current.draft, ids, copies);
   const first = next.blocks[current.draft.blocks.length].id;
@@ -482,7 +487,7 @@ export function SessionEditor() {
             onClose={() => setChooserDraft(null)}
             onAdd={(blocks) => {
               const current = useSessionEditor.getState();
-              if (useTraining.getState().run || useWorkout.getState().snapshot || current.editing)
+              if (sessionEditBlocked())
                 throw new Error('Finish the active workout or block edit before adding workouts.');
               if (JSON.stringify(current.draft) !== JSON.stringify(chooserDraft))
                 throw new Error(
@@ -512,7 +517,9 @@ export function SessionEditor() {
             const first = applyRepeatedBlocks(repeatDraft, ids, copies);
             setRepeatDraft(null);
             setFocusBlock(first);
-            setNotice(`Added ${ids.length * copies} repeated blocks. Undo last edit is available.`);
+            setNotice(
+              `Added ${countLabel(ids.length * copies, 'repeated block')}. Undo last edit is available.`,
+            );
           }}
         />
       )}
@@ -522,13 +529,7 @@ export function SessionEditor() {
           onClose={() => setSaveBlock(null)}
           validateCurrent={() => {
             const current = useSessionEditor.getState();
-            if (
-              useTraining.getState().run ||
-              useTraining.getState().busy ||
-              useWorkout.getState().snapshot ||
-              useWorkout.getState().pendingResult ||
-              current.editing
-            )
+            if (sessionEditBlocked())
               throw new Error('Finish the active workout or block edit before saving a workout.');
             const block = current.draft.blocks.find((b) => b.id === saveBlock.id);
             if (!block || JSON.stringify(block) !== JSON.stringify(saveBlock))
@@ -549,13 +550,7 @@ export function SessionEditor() {
           onClose={() => setReplacementDraft(null)}
           onApply={(changes) => {
             const current = useSessionEditor.getState();
-            if (
-              useTraining.getState().run ||
-              useTraining.getState().busy ||
-              useWorkout.getState().snapshot ||
-              useWorkout.getState().pendingResult ||
-              current.editing
-            )
+            if (sessionEditBlocked())
               throw new Error(
                 'Finish the active workout or block edit before replacing exercises.',
               );

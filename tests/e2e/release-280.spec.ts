@@ -143,3 +143,28 @@ test('repeat sequence preview presents timing and targets before apply', async (
     await page.screenshot({ path: 'docs/screenshots/repeat-session.png' });
   await page.keyboard.press('Escape');
 });
+
+test('completed standalone workout does not block session repeat and capture', async ({ page }) => {
+  await seed(page, 1);
+  await page.getByRole('button', { name: 'Home', exact: true }).last().click();
+  await page.getByRole('button', { name: 'Set a countdown', exact: true }).click();
+  await page.getByLabel('Minutes', { exact: true }).fill('0');
+  await page.getByLabel('Seconds', { exact: true }).fill('1');
+  await page.getByLabel('Lead-in seconds').fill('0');
+  await page.getByRole('button', { name: 'Start countdown', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Workout complete' })).toBeVisible();
+  await page.getByRole('button', { name: 'Save result', exact: true }).click();
+  await expect(page.getByText('Result saved to history.')).toBeVisible();
+  await page.getByRole('button', { name: 'Home', exact: true }).last().click();
+  await page.getByRole('button', { name: 'Open Attempt a', exact: true }).click();
+  await page.getByRole('button', { name: 'Open in editor', exact: true }).click();
+  await page.getByRole('button', { name: 'Replace current draft', exact: true }).click();
+  await page.getByRole('button', { name: 'Repeat blocks', exact: true }).click();
+  await page.getByRole('button', { name: 'Add repeated blocks', exact: true }).click();
+  await expect(page.getByLabel('Session blocks').locator(':scope > li')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Save block 1 as workout', exact: true }).click();
+  const capture = page.getByRole('dialog', { name: 'Save block as workout' });
+  await capture.getByLabel('Workout name').fill('After finished workout');
+  await capture.getByRole('button', { name: 'Save workout', exact: true }).click();
+  await expect(capture).toHaveCount(0);
+});

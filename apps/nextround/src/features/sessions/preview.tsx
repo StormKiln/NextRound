@@ -7,6 +7,7 @@ import { hasSessionDraft } from './editor';
 import { sessionTimeLabel, type TrainingSession } from './model';
 import { readTraining } from './repository';
 import { useTraining } from './state';
+import { workoutOwnsSession } from './workout-ownership';
 
 export async function readSavedSession(id: string, expected?: TrainingSession) {
   const current = (await readTraining()).sessions.find((s) => s.id === id);
@@ -33,8 +34,8 @@ export function SessionPreview({
   const ticket = useRef(0);
   const body = useRef<HTMLDivElement>(null);
   const close = useRef<HTMLButtonElement>(null);
-  const run = useTraining((s) => s.run);
-  const snapshot = useWorkout((s) => s.snapshot);
+  const run = useTraining((s) => !!s.run || s.busy);
+  const snapshot = useWorkout(workoutOwnsSession);
   const blocked = !!run || !!snapshot;
   const refresh = useCallback(async () => {
     const request = ++ticket.current;
@@ -75,7 +76,11 @@ export function SessionPreview({
         body.current?.scrollTo(0, 0);
         return;
       }
-      if (useTraining.getState().run || useWorkout.getState().snapshot)
+      if (
+        useTraining.getState().run ||
+        useTraining.getState().busy ||
+        workoutOwnsSession(useWorkout.getState())
+      )
         throw new Error('Finish the active workout before opening a session.');
       if (hasSessionDraft() && !confirm) {
         setConfirm(true);
