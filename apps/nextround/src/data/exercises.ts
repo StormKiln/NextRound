@@ -2616,6 +2616,146 @@ export const exercises: ExerciseEntry[] = [
       'Hold one bell at your chest. Step forward, bend both knees under control and push back to standing. Keep the front knee tracking with the toes. Alternate legs; each lunge counts once.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'ankle-circles',
+    name: 'Ankle circles',
+    description:
+      'Stand balanced on one leg and lift the other foot slightly. Trace small circles with the toes, then reverse direction. Keep the knee still. Choose one ankle per interval; each full circle counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'wrist-circles',
+    name: 'Wrist circles',
+    description:
+      'Loosely interlace your fingers in front of you. Rotate the wrists slowly through a comfortable circle without forcing the range. Reverse direction halfway through. Each circle counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-hip-circles',
+    name: 'Standing hip circles',
+    description:
+      'Stand with feet apart and knees soft, hands on hips. Move the pelvis in a small circle while keeping feet planted. Reverse direction halfway through. Each complete circle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'hamstring-sweep',
+    name: 'Hamstring sweep',
+    description:
+      'Step one heel forward with toes raised. Hinge gently at the hips and sweep your hands toward the foot, then stand and switch legs. Keep the range comfortable. Each sweep counts as one rep total.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'lateral-shuffle',
+    name: 'Lateral shuffle',
+    description:
+      'Bend the knees slightly and take quick sideways steps, keeping feet from crossing. Use a clear space and reverse direction under control. Stay low with soft landings. Use a seconds target.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'grapevine-step',
+    name: 'Grapevine step',
+    description:
+      'Step sideways, cross the trailing foot behind, step sideways again and bring feet together. Repeat the other way at a controlled pace in a clear space. One four-step sequence is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'seal-jack',
+    name: 'Seal jack',
+    description:
+      'Jump feet apart while opening your arms sideways at chest height. Jump feet together while bringing palms toward each other in front. Land softly; step instead of jumping to scale. One out-and-in cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'cross-jack',
+    name: 'Cross jack',
+    description:
+      'Start with feet apart and arms out at chest height. Jump to cross feet and arms, then jump open. Alternate which side crosses in front and land softly. Each cross-and-open cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-quad-stretch',
+    name: 'Standing quadriceps stretch',
+    description:
+      'Balance on one leg and gently hold the other ankle behind you. Keep knees close and torso upright without arching your back. Hold a comfortable stretch, then switch sides between intervals.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'standing-figure-four-stretch',
+    name: 'Standing figure-four stretch',
+    description:
+      'Balance on one leg, rest the opposite ankle above the standing knee and sit the hips back slightly. Keep the chest lifted and avoid pressing on the crossed knee. Hold comfortably; choose a side per interval.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'dumbbell-overhead-shrug',
+    name: 'Dumbbell overhead shrug',
+    description:
+      'Hold light dumbbells overhead with arms extended and ribs steady. Gently lift the shoulders toward the ears, then lower the shoulders without bending elbows. Each lift and lower is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-bench-pullover',
+    name: 'Dumbbell bench pullover',
+    description:
+      'Lie along a stable bench, feet grounded, holding one light dumbbell securely above the chest. With elbows softly bent, lower behind the head only as far as controlled, then return. Each return counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-incline-reverse-fly',
+    name: 'Dumbbell incline reverse fly',
+    description:
+      'Lie chest-down on a stable incline bench with light dumbbells hanging. With elbows slightly bent, lift arms sideways to torso height, then lower slowly. Keep chest supported. Each paired lift counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-incline-shrug',
+    name: 'Dumbbell incline shrug',
+    description:
+      'Lie chest-down on a stable incline bench with dumbbells hanging and arms straight. Lift the shoulders toward the ceiling without rowing or bending elbows, pause briefly, then lower. Each paired shrug is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-seated-reverse-fly',
+    name: 'Dumbbell seated reverse fly',
+    description:
+      'Sit on a stable bench with feet planted. Hinge over your thighs with light dumbbells hanging. Raise both arms sideways with soft elbows, then lower slowly without swinging. Each paired raise is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-front-rack-march',
+    name: 'Kettlebell front-rack march',
+    description:
+      'Hold one bell securely at your shoulder. March in place, lifting alternating knees while keeping ribs level and avoiding a sideways lean. Choose one rack side per interval. Each knee lift counts as one rep total.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-double-rack-walking-lunge',
+    name: 'Double kettlebell front-rack walking lunge',
+    description:
+      'Rack two bells at the chest. Step into a forward lunge, rise through the front foot and continue with the other leg in a clear space. Keep the trunk steady. Each forward lunge counts as one rep total.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-lateral-step-up',
+    name: 'Kettlebell lateral step-up',
+    description:
+      'Hold a bell at your chest beside a stable low platform. Place the nearer foot fully on top, step up under control and lower to the same side. Avoid pushing off the trailing foot. Choose a side; each ascent counts once.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-half-snatch',
+    name: 'Kettlebell half snatch',
+    description:
+      'Advanced: drive one bell from a backswing into a controlled overhead catch. Lower to the rack before swinging into the next rep. Keep the bell close and avoid forearm impact. Choose one arm; each overhead catch is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-goblet-split-squat',
+    name: 'Kettlebell goblet split squat',
+    description:
+      'Hold one bell at the chest in a split stance, both feet on the floor. Bend both knees through a comfortable range, then rise without moving the feet. Keep the front heel down. Choose a side; each rise is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {

@@ -16,6 +16,7 @@ import { encodeSession, independentSession, parseSessionFile } from './portable'
 import { readSavedSession, SessionPreview } from './preview';
 import { mutateTraining, readTraining, trainingKey } from './repository';
 import { useTraining } from './state';
+import { workoutOwnsSession } from './workout-ownership';
 export function SessionLibrary() {
   const query = useQuery({ queryKey: trainingKey, queryFn: readTraining, retry: false });
   const templates = useQuery({
@@ -28,8 +29,8 @@ export function SessionLibrary() {
   const filters = useTemplateFilters();
   const [previewId, setPreviewId] = useState<string | null>(null);
   const origin = useRef<HTMLElement | null>(null);
-  const activeRun = useTraining((s) => s.run);
-  const activeWorkout = useWorkout((s) => s.snapshot);
+  const activeRun = useTraining((s) => !!s.run || s.busy);
+  const activeWorkout = useWorkout(workoutOwnsSession);
   const fresh = query.isSuccess && !query.isFetching;
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -267,7 +268,11 @@ export function SessionLibrary() {
                     remember(event);
                     void perform(async () => {
                       const current = await readSavedSession(s.id, s);
-                      if (useTraining.getState().run || useWorkout.getState().snapshot)
+                      if (
+                        useTraining.getState().run ||
+                        useTraining.getState().busy ||
+                        workoutOwnsSession(useWorkout.getState())
+                      )
                         throw new Error('Finish the active workout before opening a session.');
                       if (hasSessionDraft()) setPreviewId(s.id);
                       else {
