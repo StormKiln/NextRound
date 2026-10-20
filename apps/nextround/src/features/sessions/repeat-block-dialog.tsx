@@ -48,7 +48,12 @@ export function RepeatBlockDialog({
             max="19"
             step="1"
             value={copies}
-            aria-invalid={!Number.isSafeInteger(Number(copies)) || Number(copies) < 1}
+            aria-invalid={
+              !Number.isSafeInteger(Number(copies)) ||
+              Number(copies) < 1 ||
+              Number(copies) > 19 ||
+              session.blocks.length + selected.length * Number(copies) > 20
+            }
             aria-describedby="repeat-block-feedback"
             onChange={(e) => {
               setCopies(e.target.value);

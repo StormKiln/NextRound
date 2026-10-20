@@ -10,6 +10,8 @@ import { useTemplateFilters } from '../templates/filter-state';
 import { applyReplacements, sessionOccurrences } from './exercise-replacement';
 import { parseSession, sessionTimeLabel, type TrainingBlock, type TrainingSession } from './model';
 import { useTrainingOwnership } from './ownership';
+import { updateSessionRecovery } from './recovery';
+import { RecoveryDialog } from './recovery-dialog';
 import { RepeatBlockDialog } from './repeat-block-dialog';
 import { repeatSessionBlocks } from './repeat-blocks';
 import { ReplacementDialog } from './replacement-dialog';
@@ -62,15 +64,21 @@ export function openSession(session?: TrainingSession) {
     undoFocus: null,
   });
 }
-export function sessionEditBlocked() {
+export function sessionWorkoutOwned() {
   const workout = useWorkout.getState();
   const training = useTraining.getState();
-  return !!(
-    training.run ||
-    training.busy ||
-    workoutOwnsSession(workout) ||
-    useSessionEditor.getState().editing
-  );
+  return !!(training.run || training.busy || workoutOwnsSession(workout));
+}
+export function sessionEditBlocked() {
+  return sessionWorkoutOwned() || !!useSessionEditor.getState().editing;
+}
+export function undoSessionDraft() {
+  if (sessionWorkoutOwned())
+    throw new Error('Finish the active workout before editing this session.');
+  const current = useSessionEditor.getState();
+  if (!current.undo) return null;
+  useSessionEditor.setState({ draft: current.undo, undo: null, undoFocus: null });
+  return current.undoFocus ?? current.undo.blocks[0]?.id ?? '';
 }
 export function applyRepeatedBlocks(expected: TrainingSession, ids: string[], copies: number) {
   const current = useSessionEditor.getState();
@@ -85,7 +93,26 @@ export function applyRepeatedBlocks(expected: TrainingSession, ids: string[], co
   });
   return first;
 }
-function change(update: (session: TrainingSession) => void, undoFocus: string | null = null) {
+export function applySessionRecovery(
+  expected: TrainingSession,
+  ids: string[],
+  seconds: number,
+  advance: TrainingBlock['advance'],
+) {
+  if (sessionEditBlocked())
+    throw new Error('Finish the active workout or block edit before editing recovery.');
+  const current = useSessionEditor.getState();
+  const next = updateSessionRecovery(expected, current.draft, ids, seconds, advance);
+  const first = current.draft.blocks.find((b) => ids.includes(b.id))!.id;
+  useSessionEditor.setState({ draft: next, undo: current.draft, undoFocus: first });
+  return first;
+}
+export function changeSessionDraft(
+  update: (session: TrainingSession) => void,
+  undoFocus: string | null = null,
+) {
+  if (sessionWorkoutOwned())
+    throw new Error('Finish the active workout before editing this session.');
   const draft = structuredClone(useSessionEditor.getState().draft);
   update(draft);
   useSessionEditor.setState({ undo: useSessionEditor.getState().draft, draft, undoFocus });
@@ -129,7 +156,7 @@ export function BlockCapture() {
               const config = useWorkout.getState().getDraftConfig(edit.mode);
               const errors = validateConfig(config);
               if (Object.keys(errors).length) throw new Error(Object.values(errors).join(' '));
-              change((d) => {
+              changeSessionDraft((d) => {
                 const old = d.blocks.find((b) => b.id === edit.id);
                 if (old) old.config = structuredClone(config);
                 else
@@ -157,8 +184,19 @@ export function BlockCapture() {
   );
 }
 export function SessionEditor() {
-  const { draft, source, undo, undoFocus } = useSessionEditor();
+  const { draft, source, undo } = useSessionEditor();
   const dragging = useRef<string | null>(null);
+  const footerRef = useRef<HTMLElement>(null);
+  const [footerHeight, setFooterHeight] = useState(210);
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+    const measure = () => setFooterHeight(Math.ceil(footer.getBoundingClientRect().height));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
   const editButtons = useRef(new Map<string, HTMLButtonElement>());
   const addButton = useRef<HTMLButtonElement>(null);
   const [focusBlock, setFocusBlock] = useState<string | null>(null);
@@ -176,6 +214,15 @@ export function SessionEditor() {
   };
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const change = (update: (session: TrainingSession) => void, undoFocus: string | null = null) => {
+    try {
+      changeSessionDraft(update, undoFocus);
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      return false;
+    }
+  };
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -183,9 +230,14 @@ export function SessionEditor() {
   const [saveBlock, setSaveBlock] = useState<TrainingBlock | null>(null);
   const [savedWorkout, setSavedWorkout] = useState('');
   const [replacementDraft, setReplacementDraft] = useState<TrainingSession | null>(null);
+  const [recoveryDraft, setRecoveryDraft] = useState<TrainingSession | null>(null);
   const [repeatDraft, setRepeatDraft] = useState<TrainingSession | null>(null);
   const [chooserDraft, setChooserDraft] = useState<TrainingSession | null>(null);
   const edit = (mode: WorkoutMode, block?: TrainingBlock) => {
+    if (sessionEditBlocked()) {
+      setError('Finish the active workout or block edit before editing this session.');
+      return;
+    }
     if (block && !useWorkout.getState().loadConfig(block.config)) return;
     useSessionEditor.setState({ editing: { id: block?.id ?? crypto.randomUUID(), mode } });
     useTrainingOwnership.setState({ editing: true });
@@ -200,7 +252,7 @@ export function SessionEditor() {
     setNotice(`Moved ${block.name} to position ${i + delta + 1} of ${draft.blocks.length}.`);
   };
   return (
-    <main className="page session-editor">
+    <main className="page session-editor" style={{ paddingBottom: footerHeight + 32 }}>
       <div className="page-heading">
         <div>
           <h1>Build your training session</h1>
@@ -437,7 +489,17 @@ export function SessionEditor() {
           </li>
         ))}
       </ol>
-      <section className="session-repeat-actions" aria-label="Repeat session sequence">
+      <section className="session-repeat-actions" aria-label="Session sequence actions">
+        <Button
+          variant="secondary"
+          disabled={busy || training.busy || !!training.run || !draft.blocks.length}
+          onClick={(event) => {
+            event.currentTarget.focus();
+            setRecoveryDraft(structuredClone(draft));
+          }}
+        >
+          Edit recovery
+        </Button>
         <Button
           variant="secondary"
           disabled={
@@ -509,6 +571,20 @@ export function SessionEditor() {
           session.
         </p>
       </section>
+      {recoveryDraft && (
+        <RecoveryDialog
+          session={recoveryDraft}
+          onClose={() => setRecoveryDraft(null)}
+          onApply={(ids, seconds, advance) => {
+            const first = applySessionRecovery(recoveryDraft, ids, seconds, advance);
+            setRecoveryDraft(null);
+            setFocusBlock(first);
+            setNotice(
+              `Updated recovery for ${countLabel(ids.length, 'block')}. Undo last edit is available.`,
+            );
+          }}
+        />
+      )}
       {repeatDraft && (
         <RepeatBlockDialog
           session={repeatDraft}
@@ -566,7 +642,7 @@ export function SessionEditor() {
           }}
         />
       )}
-      <footer className="session-footer">
+      <footer ref={footerRef} className="session-footer">
         {(error || training.error) && <p role="alert">{error || training.error}</p>}
         {notice && <p role="status">{notice}</p>}
         {savedWorkout && (
@@ -595,10 +671,15 @@ export function SessionEditor() {
             variant="ghost"
             disabled={!undo}
             onClick={() => {
-              const restored = undo!;
-              useSessionEditor.setState({ draft: restored, undo: null, undoFocus: null });
-              setFocusBlock(undoFocus ?? restored.blocks[0]?.id ?? '');
-              setNotice('Last edit undone.');
+              try {
+                const focus = undoSessionDraft();
+                if (focus !== null) {
+                  setFocusBlock(focus);
+                  setNotice('Last edit undone.');
+                }
+              } catch (e) {
+                setError(e instanceof Error ? e.message : String(e));
+              }
             }}
           >
             Undo last edit
@@ -610,8 +691,17 @@ export function SessionEditor() {
               setBusy(true);
               setError('');
               try {
-                const parsed = parseSession(draft);
+                if (sessionEditBlocked())
+                  throw new Error(
+                    'Finish the active workout or block edit before saving this session.',
+                  );
+                const savingDraft = useSessionEditor.getState().draft;
+                const parsed = parseSession(savingDraft);
                 await mutateTraining((doc) => {
+                  if (sessionEditBlocked() || useSessionEditor.getState().draft !== savingDraft)
+                    throw new Error(
+                      'Your session changed or a workout started. Review the draft before saving.',
+                    );
                   const i = doc.sessions.findIndex((s) => s.id === parsed.id);
                   if (i >= 0) {
                     if (JSON.stringify(doc.sessions[i]) !== JSON.stringify(source))
@@ -619,7 +709,8 @@ export function SessionEditor() {
                     doc.sessions[i] = parsed;
                   } else doc.sessions.push(parsed);
                 });
-                useSessionEditor.setState({ draft: parsed, source: parsed });
+                if (useSessionEditor.getState().draft === savingDraft && !sessionEditBlocked())
+                  useSessionEditor.setState({ draft: parsed, source: parsed });
                 await queryClient.invalidateQueries({ queryKey: trainingKey });
                 setNotice('Session saved');
               } catch (e) {
