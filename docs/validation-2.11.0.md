@@ -11,3 +11,7 @@ Independent review of 7e76422 approved with no actionable findings. The obsolete
 ![Pinned suggestions](screenshots/pinned-suggestions.png)
 
 ![Minimum window](screenshots/pinned-suggestions-minimum.png)
+
+Full source checks passed: 386 unit tests,64 native tests,type/lint/release tooling and production build. Native media lifecycle, four sandboxed cues/display assertion and local macOS packaging passed; App Store no-default-features compilation passed.
+
+Production WebKit passed76 cases; the new keyboard/layout test initially searched for the old Pin accessible name after toggling to Unpin. The corrected assertion passed the focused rerun, including enlarged text and minimum-window geometry. No application change was needed. Native UI was attempted but the Mac was locked; any later physical observation is recorded on #438.

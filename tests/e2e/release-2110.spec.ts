@@ -111,7 +111,10 @@ test('long preview names and keyboard pin controls fit the minimum window with l
   const pin = d.getByRole('button', { name: /Pin A very long/ });
   await pin.focus();
   await page.keyboard.press('Space');
-  await expect(pin).toHaveAttribute('aria-pressed', 'true');
+  await expect(d.getByRole('button', { name: /Unpin A very long/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   const row = d.getByRole('list', { name: 'Proposed additions' }).locator('li');
   const boxes = await row.locator('.fill-movement,button').evaluateAll((els) =>
     els.map((el) => {
