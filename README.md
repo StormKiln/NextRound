@@ -6,7 +6,15 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 2.9.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.9.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 2.10.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.10.0.md) · [Privacy policy](PRIVACY.md)
+
+## Fill the rest of your workout
+
+Choose your key movements, then select **Fill remaining slots**. Set a total exercise count and filter additions by equipment, focus area, category, intensity or favorites. Preview random additions, reshuffle, and apply; chosen entries and workout timing stay intact. Undo restores the original list. Works across all six workout modes and session blocks. Existing Create a workout presets still replace the full list.
+
+![Filtered random workout preview](docs/screenshots/workout-fill.png)
+
+This 2.10.0 production WebKit capture uses isolated sample data.
 
 ## Set recovery across your session
 

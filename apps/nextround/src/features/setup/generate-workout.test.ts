@@ -78,7 +78,7 @@ it('ranking handles invalid counts and duplicate catalog records without changin
   expect(library.map((e) => e.id)).toEqual(['e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6']);
 });
 
-it('bounds suggested seconds to interval work but preserves explicit personal targets', () => {
+it('bounds new generated seconds targets to interval work including personal defaults', () => {
   const plank: ExerciseEntry = { id: 'plank', name: 'Plank', supportedUnits: ['seconds'] };
   for (const phase of [1, 10, 20, 60])
     expect(generatedEntry(plank, 'intervals', phase).target).toEqual({
@@ -91,6 +91,6 @@ it('bounds suggested seconds to interval work but preserves explicit personal ta
       'intervals',
       10,
     ).target?.value,
-  ).toBe(45);
+  ).toBe(10);
   expect(generatedEntry(plank, 'countdown', 10).target?.value).toBe(30);
 });
