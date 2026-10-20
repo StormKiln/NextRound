@@ -12,6 +12,10 @@ NextRound is an offline workout timer and planner for **Apple Silicon Macs runni
 
 Pin any proposed addition in **Fill remaining slots**, then reshuffle only the unpinned positions. Pinned targets stay intact. Pins last for the current preview; changing filters, totals or library data clears it. Apply and Undo keep you in control.
 
+![Pinned workout suggestions](docs/screenshots/pinned-suggestions.png)
+
+This 2.11.0 production WebKit capture uses isolated sample data.
+
 The library now includes **423 exercises**, with 20 new no-equipment movements for warm-up, core, lower-body and conditioning work.
 
 ## Fill the rest of your workout
