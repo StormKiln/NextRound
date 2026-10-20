@@ -1879,3 +1879,31 @@ fieldset.library-secondary-actions {
     grid-template-columns: 1fr;
   }
 }
+
+/* Keep generation controls and long preview names clear at smaller window sizes. */
+.generator-dialog .dialog-actions {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.generator-body > label:not(.fill-check) {
+  display: block;
+  margin: 12px 0 8px;
+}
+.fill-preview li {
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #48433f;
+}
+.fill-movement {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.fill-preview li > button {
+  flex: 0 0 auto;
+}
+.fill-preview button[aria-pressed="true"] {
+  outline: 2px solid var(--primary, #f97316);
+  outline-offset: 2px;
+}
