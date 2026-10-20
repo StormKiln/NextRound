@@ -196,7 +196,7 @@ test('session and chooser selects have usable height and reachable actions at mi
   await page.setViewportSize({ width: 760, height: 620 });
   await seed(page);
   await page.getByRole('button', { name: 'Duplicate block 1', exact: true }).click();
-  const select = page.getByRole('combobox', { name: 'After rest', exact: true });
+  const select = page.getByRole('combobox', { name: 'After rest for block 1', exact: true });
   expect((await select.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.getByRole('button', { name: 'Choose saved workouts', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Choose saved workouts', exact: true });

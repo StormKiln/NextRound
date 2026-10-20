@@ -437,3 +437,28 @@ Reviewed 2026-10-19. Original descriptions; no third-party media copied. Counts 
 - Seated 90/90 switch: [GOWOD](https://www.gowod.app/mobility-exercises/90-to-90). Rock-back thoracic rotation: [Muscle & Strength](https://www.muscleandstrength.com/exercises/rock-back-extension-rotation). Butt kicks: [Special Olympics High Five cards](https://media.specialolympics.org/resources/health/fitness/high-five/SO-HIGHFIVE-15-21-CARDS-3922-Digital.pdf).
 - Dumbbell Cuban press: [MuscleWiki](https://musclewiki.com/exercise/dumbbell-cuban-press). Reverse-grip bench press, reverse-grip row, single-arm upright row and decline bench press: Muscle & Strength [bench](https://www.muscleandstrength.com/node/3802), [row](https://www.muscleandstrength.com/exercises/reverse-grip-bent-over-dumbbell-row.html), [upright row](https://www.muscleandstrength.com/exercises/one-arm-dumbbell-upright-row.html), [decline](https://www.muscleandstrength.com/exercises/decline-dumbbell-bench-press.html). Bench entries require a raised surface; decline explicitly requires a purpose-built decline bench. Descriptions specify two weights where needed.
 - Kettlebell gorilla row: [Cavemantraining](https://www.cavemantraining.com/caveman-kettlebells/gorilla-blackback-workout/). Sots press: [Scott Iardella](https://www.rdellatraining.com/how-to-do-the-sots-press-the-ultimate-guide/). Half-kneeling windmill: [Girls Gone Strong](https://www.girlsgonestrong.com/blog/strength-training/exercise-spotlight-kettlebell-windmill/). Tall-kneeling chest press: [Brian Schiff](https://fit-pro.com/article-4034-Functionally-Fit-Tall-kneeling-kettlebell-chest-press.html). Goblet forward lunge: [coaching demonstration](https://www.youtube.com/watch?v=9lhSQ8NEkLA). Gorilla rows require two bells and count each individual row; unilateral entries explicitly choose a side.
+
+## 2.8.0 additions (363 → 383)
+
+Reviewed 2026-10-19. All descriptions are original short technique summaries; no third-party images or video are bundled. The previous 363 entries are preserved unchanged. Starting targets are editable planning suggestions.
+
+| Entries | Technique references |
+| --- | --- |
+| Ankle circles, wrist circles, standing hip circles, cross jacks | SPOTEBI: [ankles](https://spotebi.com/exercise-guide/ankle-circles/), [wrists](https://spotebi.com/exercise-guide/wrist-circles/), [hips](https://spotebi.com/exercise-guide/hip-circles/), [cross jacks](https://spotebi.com/exercise-guide/cross-jacks/) |
+| Hamstring sweep | [Runna coaching tutorial](https://support.runna.com/en/articles/8791654-hamstring-sweeps-exercise-tutorial) |
+| Lateral shuffle | [ACE lateral shuffle](https://www.acefitness.org/resources/everyone/exercise-library/170/agility-ladder-lateral-shuffle/) — adapted to a clear floor without ladder squares; timed rather than counted |
+| Grapevine step | [Veterans Health Library](https://www.veteranshealthlibrary.va.gov/rehab/physicaltherapy/HipKnee/3%2C89953) |
+| Seal jack | [WorkoutLabs](https://workoutlabs.com/exercise-guide/seal-jacks/) |
+| Standing quadriceps stretch | [Mayo Clinic basic stretches](https://www.mayoclinic.org/healthy-lifestyle/fitness/in-depth/stretching/art-20546848?s=6) |
+| Standing figure-four stretch | [Tulsa Spine and Rehab](https://tulsaspineandrehab.com/fit-tips/fit-tip-walking-figure-4-stretch/) — stationary hold; no clinical claims adopted |
+| Dumbbell overhead shrug, incline shrug | Muscle & Fitness: [overhead](https://www.muscleandfitness.com/exercise/workouts/shoulder-exercises/overhead-dumbbell-shrug/), [incline](https://www.muscleandfitness.com/exercise/workouts/shoulder-exercises/incline-dumbbell-shrug/) |
+| Dumbbell bench pullover | [StrengthLog](https://www.strengthlog.com/dumbbell-pullover/) |
+| Dumbbell incline reverse fly | [ACE](https://www.acefitness.org/resources/everyone/exercise-library/34/incline-reverse-fly/) |
+| Dumbbell seated reverse fly | [Muscle & Strength](https://www.muscleandstrength.com/exercises/dumbbell-reverse-fly.html) |
+| Kettlebell front-rack march | [KB Pro](https://www.kbpro.dev/en/exercises/unilateral-kettlebell-front-rack-march) |
+| Double kettlebell front-rack walking lunge | [MuscleFit programming guide](https://www.musclefitprogram.com/exercises/double-kettlebell-front-rack-walking-lunge) |
+| Kettlebell lateral step-up | [Budy exercise guide](https://budy.fit/exercises/kettlebell-lateral-step-up) |
+| Kettlebell half snatch | [Kettlebell Kings / Mike Salemi](https://www.kettlebellkings.com/pages/kettlebell-half-snatch) |
+| Kettlebell goblet split squat | [Horton Barbell](https://hortonbarbell.com/goblet-split-squat-how-to-benefits-common-mistakes/) |
+
+Equipment audit: 10 no-equipment movements, 5 dumbbell and 5 kettlebell movements. Four dumbbell entries and the lateral step-up require a stable raised surface; incline exercises explicitly require an incline bench. Balance holds use seconds and can be replaced with existing floor versions. The stationary rack march differs from the travelling rack carry, the half snatch lowers through the rack, the goblet split squat keeps both feet on the floor, and supported fly/shrug variations have distinct positions. Each counted movement defines a repetition; alternating movements count each side's action once. Holds and shuffles use seconds. All entries include focus areas, aliases, intensity and training type.

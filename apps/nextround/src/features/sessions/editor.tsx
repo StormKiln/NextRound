@@ -10,6 +10,8 @@ import { useTemplateFilters } from '../templates/filter-state';
 import { applyReplacements, sessionOccurrences } from './exercise-replacement';
 import { parseSession, sessionTimeLabel, type TrainingBlock, type TrainingSession } from './model';
 import { useTrainingOwnership } from './ownership';
+import { RepeatBlockDialog } from './repeat-block-dialog';
+import { repeatSessionBlocks } from './repeat-blocks';
 import { ReplacementDialog } from './replacement-dialog';
 import { mutateTraining, trainingKey } from './repository';
 import { SaveBlockDialog } from './save-block-dialog';
@@ -58,6 +60,25 @@ export function openSession(session?: TrainingSession) {
     undo: null,
     undoFocus: null,
   });
+}
+export function applyRepeatedBlocks(expected: TrainingSession, ids: string[], copies: number) {
+  const current = useSessionEditor.getState();
+  if (
+    useTraining.getState().run ||
+    useTraining.getState().busy ||
+    useWorkout.getState().snapshot ||
+    useWorkout.getState().pendingResult ||
+    current.editing
+  )
+    throw new Error('Finish the active workout or block edit before repeating blocks.');
+  const next = repeatSessionBlocks(expected, current.draft, ids, copies);
+  const first = next.blocks[current.draft.blocks.length].id;
+  useSessionEditor.setState({
+    draft: next,
+    undo: current.draft,
+    undoFocus: current.draft.blocks[0].id,
+  });
+  return first;
 }
 function change(update: (session: TrainingSession) => void, undoFocus: string | null = null) {
   const draft = structuredClone(useSessionEditor.getState().draft);
@@ -157,6 +178,7 @@ export function SessionEditor() {
   const [saveBlock, setSaveBlock] = useState<TrainingBlock | null>(null);
   const [savedWorkout, setSavedWorkout] = useState('');
   const [replacementDraft, setReplacementDraft] = useState<TrainingSession | null>(null);
+  const [repeatDraft, setRepeatDraft] = useState<TrainingSession | null>(null);
   const [chooserDraft, setChooserDraft] = useState<TrainingSession | null>(null);
   const edit = (mode: WorkoutMode, block?: TrainingBlock) => {
     if (block && !useWorkout.getState().loadConfig(block.config)) return;
@@ -188,6 +210,7 @@ export function SessionEditor() {
         <input
           className="input"
           aria-invalid={!draft.name.trim()}
+          aria-describedby={!draft.name.trim() ? 'session-name-error' : undefined}
           value={draft.name}
           maxLength={120}
           onChange={(e) =>
@@ -197,6 +220,11 @@ export function SessionEditor() {
           }
         />
       </label>
+      {!draft.name.trim() && (
+        <p id="session-name-error" className="session-field-error">
+          Enter a session name.
+        </p>
+      )}
       {draft.blocks.length > 0 && <p>{sessionTimeLabel(draft)}</p>}
       <ol className="session-blocks" aria-label="Session blocks">
         {draft.blocks.map((b, i) => (
@@ -249,6 +277,7 @@ export function SessionEditor() {
               <input
                 className="input"
                 aria-invalid={!b.name.trim()}
+                aria-describedby={!b.name.trim() ? `block-name-error-${i}` : undefined}
                 value={b.name}
                 maxLength={120}
                 onChange={(e) =>
@@ -258,6 +287,11 @@ export function SessionEditor() {
                 }
               />
             </label>
+            {!b.name.trim() && (
+              <p id={`block-name-error-${i}`} className="session-field-error">
+                Enter a block name.
+              </p>
+            )}
             <details>
               <summary>Preview exercises, targets and timing</summary>
               <WorkoutDetails config={b.config} />
@@ -338,46 +372,85 @@ export function SessionEditor() {
                 Remove block {i + 1}
               </Button>
             </fieldset>
-            {i < draft.blocks.length - 1 && (
-              <div className="block-transition">
-                <label>
-                  Rest after block {i + 1} (seconds)
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    max="3600"
-                    aria-invalid={
-                      !Number.isInteger(b.restSeconds) || b.restSeconds < 0 || b.restSeconds > 3600
-                    }
-                    value={Number.isNaN(b.restSeconds) ? '' : b.restSeconds}
-                    onChange={(e) =>
-                      change((d) => {
-                        d.blocks[i].restSeconds =
-                          e.target.value === '' ? Number.NaN : Number(e.target.value);
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  After rest
-                  <select
-                    value={b.advance}
-                    onChange={(e) =>
-                      change((d) => {
-                        d.blocks[i].advance = e.target.value as TrainingBlock['advance'];
-                      })
-                    }
-                  >
-                    <option value="automatic">Start next block automatically</option>
-                    <option value="ready">Wait until I am ready</option>
-                  </select>
-                </label>
-              </div>
+            <div className="block-transition">
+              <label>
+                Rest after block {i + 1} (seconds)
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  max="3600"
+                  aria-invalid={
+                    !Number.isInteger(b.restSeconds) || b.restSeconds < 0 || b.restSeconds > 3600
+                  }
+                  aria-label={`Rest after block ${i + 1} (seconds)`}
+                  aria-describedby={
+                    !Number.isInteger(b.restSeconds) || b.restSeconds < 0 || b.restSeconds > 3600
+                      ? `block-rest-error-${i}`
+                      : undefined
+                  }
+                  value={Number.isNaN(b.restSeconds) ? '' : b.restSeconds}
+                  onChange={(e) =>
+                    change((d) => {
+                      d.blocks[i].restSeconds =
+                        e.target.value === '' ? Number.NaN : Number(e.target.value);
+                    })
+                  }
+                />
+                {(!Number.isInteger(b.restSeconds) ||
+                  b.restSeconds < 0 ||
+                  b.restSeconds > 3600) && (
+                  <span id={`block-rest-error-${i}`} className="session-field-error">
+                    Enter whole seconds from 0 to 3600.
+                  </span>
+                )}
+              </label>
+              <label>
+                After rest for block {i + 1}
+                <select
+                  aria-label={`After rest for block ${i + 1}`}
+                  value={b.advance}
+                  onChange={(e) =>
+                    change((d) => {
+                      d.blocks[i].advance = e.target.value as TrainingBlock['advance'];
+                    })
+                  }
+                >
+                  <option value="automatic">Start next block automatically</option>
+                  <option value="ready">Wait until I am ready</option>
+                </select>
+              </label>
+            </div>
+            {i === draft.blocks.length - 1 && (
+              <p className="muted">
+                Final block — stored recovery:{' '}
+                {Number.isFinite(b.restSeconds) ? `${b.restSeconds}s` : 'not set'} ·{' '}
+                {b.advance === 'ready' ? 'Wait until ready' : 'Advance automatically'}. These
+                settings are unused now and apply only if another block follows.
+              </p>
             )}
           </li>
         ))}
       </ol>
+      <section className="session-repeat-actions" aria-label="Repeat session sequence">
+        <Button
+          variant="secondary"
+          disabled={
+            busy ||
+            training.busy ||
+            !!training.run ||
+            !draft.blocks.length ||
+            draft.blocks.length >= 20
+          }
+          onClick={(event) => {
+            event.currentTarget.focus();
+            setRepeatDraft(structuredClone(draft));
+          }}
+        >
+          Repeat blocks
+        </Button>
+        <p className="muted">Append a selected sequence in its current order, up to 20 blocks.</p>
+      </section>
       <section className="session-add">
         <h2>Add a workout block</h2>
         <div className="dialog-actions">
@@ -431,6 +504,18 @@ export function SessionEditor() {
           session.
         </p>
       </section>
+      {repeatDraft && (
+        <RepeatBlockDialog
+          session={repeatDraft}
+          onClose={() => setRepeatDraft(null)}
+          onApply={(ids, copies) => {
+            const first = applyRepeatedBlocks(repeatDraft, ids, copies);
+            setRepeatDraft(null);
+            setFocusBlock(first);
+            setNotice(`Added ${ids.length * copies} repeated blocks. Undo last edit is available.`);
+          }}
+        />
+      )}
       {saveBlock && (
         <SaveBlockDialog
           block={saveBlock}
