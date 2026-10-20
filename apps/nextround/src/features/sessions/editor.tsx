@@ -107,6 +107,31 @@ export function applySessionRecovery(
   useSessionEditor.setState({ draft: next, undo: current.draft, undoFocus: first });
   return first;
 }
+export async function saveSessionDraft() {
+  if (sessionEditBlocked())
+    throw new Error('Finish the active workout or block edit before saving this session.');
+  const { draft: savingDraft, source: savingSource } = useSessionEditor.getState();
+  const parsed = parseSession(savingDraft);
+  await mutateTraining((doc) => {
+    if (sessionEditBlocked() || useSessionEditor.getState().draft !== savingDraft)
+      throw new Error('Your session changed or a workout started. Review the draft before saving.');
+    const i = doc.sessions.findIndex((s) => s.id === parsed.id);
+    if (i >= 0) {
+      if (JSON.stringify(doc.sessions[i]) !== JSON.stringify(savingSource))
+        throw new Error('This session changed. Reopen it before saving.');
+      doc.sessions[i] = parsed;
+    } else doc.sessions.push(parsed);
+  });
+  const current = useSessionEditor.getState();
+  if (current.source !== savingSource || current.draft.id !== savingDraft.id)
+    return 'Saved the previous session.';
+  // Advance the saved baseline even if the user edited while native storage awaited completion.
+  const unchanged = current.draft === savingDraft && !sessionEditBlocked();
+  useSessionEditor.setState({ source: parsed, ...(unchanged ? { draft: parsed } : {}) });
+  return unchanged
+    ? 'Session saved'
+    : 'Saved the earlier snapshot. Your newer edits are still in the draft.';
+}
 export function changeSessionDraft(
   update: (session: TrainingSession) => void,
   undoFocus: string | null = null,
@@ -184,7 +209,7 @@ export function BlockCapture() {
   );
 }
 export function SessionEditor() {
-  const { draft, source, undo } = useSessionEditor();
+  const { draft, undo } = useSessionEditor();
   const dragging = useRef<string | null>(null);
   const footerRef = useRef<HTMLElement>(null);
   const [footerHeight, setFooterHeight] = useState(210);
@@ -219,6 +244,7 @@ export function SessionEditor() {
       changeSessionDraft(update, undoFocus);
       return true;
     } catch (e) {
+      setNotice('');
       setError(e instanceof Error ? e.message : String(e));
       return false;
     }
@@ -245,9 +271,12 @@ export function SessionEditor() {
   };
   const move = (i: number, delta: number) => {
     const block = draft.blocks[i];
-    change((d) => {
-      [d.blocks[i], d.blocks[i + delta]] = [d.blocks[i + delta], d.blocks[i]];
-    }, block.id);
+    if (
+      !change((d) => {
+        [d.blocks[i], d.blocks[i + delta]] = [d.blocks[i + delta], d.blocks[i]];
+      }, block.id)
+    )
+      return;
     setFocusBlock(block.id);
     setNotice(`Moved ${block.name} to position ${i + delta + 1} of ${draft.blocks.length}.`);
   };
@@ -310,10 +339,15 @@ export function SessionEditor() {
                   event.preventDefault();
                   const from = draft.blocks.findIndex((block) => block.id === dragging.current);
                   if (from >= 0 && from !== i) {
-                    change((d) => {
-                      const [block] = d.blocks.splice(from, 1);
-                      d.blocks.splice(i, 0, block);
-                    }, draft.blocks[from].id);
+                    if (
+                      !change((d) => {
+                        const [block] = d.blocks.splice(from, 1);
+                        d.blocks.splice(i, 0, block);
+                      }, draft.blocks[from].id)
+                    ) {
+                      dragging.current = null;
+                      return;
+                    }
                     setFocusBlock(draft.blocks[from].id);
                     setNotice(
                       `Moved ${draft.blocks[from].name} to position ${i + 1} of ${draft.blocks.length}.`,
@@ -400,13 +434,16 @@ export function SessionEditor() {
                 disabled={draft.blocks.length >= 20}
                 onClick={() => {
                   const id = crypto.randomUUID();
-                  change((d) => {
-                    d.blocks.splice(i + 1, 0, {
-                      ...structuredClone(b),
-                      id,
-                      name: `${b.name.slice(0, 110)} copy`,
-                    });
-                  }, b.id);
+                  if (
+                    !change((d) => {
+                      d.blocks.splice(i + 1, 0, {
+                        ...structuredClone(b),
+                        id,
+                        name: `${b.name.slice(0, 110)} copy`,
+                      });
+                    }, b.id)
+                  )
+                    return;
                   setFocusBlock(id);
                   setNotice(
                     `Duplicated ${b.name} at position ${i + 2} of ${draft.blocks.length + 1}. Undo last edit is available.`,
@@ -419,9 +456,12 @@ export function SessionEditor() {
                 variant="destructive"
                 onClick={() => {
                   const next = draft.blocks[i + 1]?.id ?? draft.blocks[i - 1]?.id ?? '';
-                  change((d) => {
-                    d.blocks.splice(i, 1);
-                  }, b.id);
+                  if (
+                    !change((d) => {
+                      d.blocks.splice(i, 1);
+                    }, b.id)
+                  )
+                    return;
                   setNotice(`Removed ${b.name}. Undo last edit is available.`);
                   setFocusBlock(next);
                 }}
@@ -691,28 +731,9 @@ export function SessionEditor() {
               setBusy(true);
               setError('');
               try {
-                if (sessionEditBlocked())
-                  throw new Error(
-                    'Finish the active workout or block edit before saving this session.',
-                  );
-                const savingDraft = useSessionEditor.getState().draft;
-                const parsed = parseSession(savingDraft);
-                await mutateTraining((doc) => {
-                  if (sessionEditBlocked() || useSessionEditor.getState().draft !== savingDraft)
-                    throw new Error(
-                      'Your session changed or a workout started. Review the draft before saving.',
-                    );
-                  const i = doc.sessions.findIndex((s) => s.id === parsed.id);
-                  if (i >= 0) {
-                    if (JSON.stringify(doc.sessions[i]) !== JSON.stringify(source))
-                      throw new Error('This session changed. Reopen it before saving.');
-                    doc.sessions[i] = parsed;
-                  } else doc.sessions.push(parsed);
-                });
-                if (useSessionEditor.getState().draft === savingDraft && !sessionEditBlocked())
-                  useSessionEditor.setState({ draft: parsed, source: parsed });
+                const message = await saveSessionDraft();
                 await queryClient.invalidateQueries({ queryKey: trainingKey });
-                setNotice('Session saved');
+                setNotice(message);
               } catch (e) {
                 setError(String(e));
                 focusInvalid();
