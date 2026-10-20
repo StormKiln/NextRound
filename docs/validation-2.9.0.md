@@ -13,3 +13,5 @@ Static checks, 64 native tests, native audio/power lifecycle, sandbox media smok
 ![Recovery preview](screenshots/session-recovery.png)
 
 ![Minimum-window recovery](screenshots/session-recovery-minimum.png)
+
+The full Chromium run passed 392 cases and exposed one stale test assumption: searching “swing” previously matched only kettlebells, but new leg swings correctly add a second category. The test now asserts both groups and both new leg-swing movements. This test-only correction is tracked in #423; its focused rerun passed. The production WebKit regression suite passed all 78 cases. Final hosted CI/merge queue validates the complete suite before release.
