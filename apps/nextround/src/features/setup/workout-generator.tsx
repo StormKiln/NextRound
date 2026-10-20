@@ -16,6 +16,7 @@ import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
 import { defaultEmomTarget } from './emom-defaults';
 import { deriveUsage, type SuggestionPreset, suggestExercises } from './exercise-suggestions';
+import { FillWorkoutDialog } from './fill-workout-dialog';
 import { FocusFilter } from './focus-controls';
 
 type Mode = NonNullable<WorkoutConfig['type']>;
@@ -32,7 +33,18 @@ export function generatedEntry(
   workSeconds?: number,
 ): ExerciseEntry {
   const snapshot = toWorkoutEntry(entry, mode);
-  if (mode === 'ladder' || snapshot.target) return snapshot;
+  if (mode === 'ladder') return snapshot;
+  if (snapshot.target) {
+    if (
+      mode === 'intervals' &&
+      snapshot.target.unit === 'seconds' &&
+      workSeconds !== undefined &&
+      Number.isInteger(workSeconds) &&
+      workSeconds > 0
+    )
+      snapshot.target = { ...snapshot.target, value: Math.min(snapshot.target.value, workSeconds) };
+    return snapshot;
+  }
   const suggested = defaultEmomTarget(entry);
   const units = entry.supportedUnits ?? ['reps', 'seconds', 'metres', 'calories'];
   const unit = units.includes(suggested.unit) ? suggested.unit : units[0];
@@ -67,8 +79,18 @@ export function WorkoutGenerator({
   workSeconds?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const [fill, setFill] = useState(false);
+  const fillTrigger = useRef<HTMLButtonElement>(null);
   const [preset, setPreset] = useState<SuggestionPreset | null>(null);
-  const [undo, setUndo] = useState<{ before: ExerciseEntry[]; after: string } | null>(null);
+  const [undo, setUndo] = useState<{
+    before: ExerciseEntry[];
+    after: string;
+    kind?: 'fill';
+  } | null>(null);
+  const fingerprint = JSON.stringify(exercises);
+  useEffect(() => {
+    setUndo((current) => (current && current.after !== fingerprint ? null : current));
+  }, [fingerprint]);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const menuId = useId();
@@ -96,6 +118,9 @@ export function WorkoutGenerator({
         >
           Create a workout <ChevronDown size={16} />
         </Button>
+        <Button ref={fillTrigger} variant="secondary" disabled={open} onClick={() => setFill(true)}>
+          Fill remaining slots
+        </Button>
         {undo && undo.after === JSON.stringify(exercises) && (
           <Button
             variant="ghost"
@@ -104,7 +129,7 @@ export function WorkoutGenerator({
               setUndo(null);
             }}
           >
-            Undo generated workout
+            {undo.kind === 'fill' ? 'Undo fill' : 'Undo generated workout'}
           </Button>
         )}
       </div>
@@ -134,6 +159,27 @@ export function WorkoutGenerator({
             </Button>
           ))}
         </fieldset>
+      )}
+      {fill && (
+        <FillWorkoutDialog
+          exercises={exercises}
+          mode={mode}
+          workSeconds={workSeconds}
+          onClose={() => {
+            setFill(false);
+            requestAnimationFrame(() => fillTrigger.current?.focus());
+          }}
+          onApply={(next) => {
+            setUndo({
+              before: structuredClone(exercises),
+              after: JSON.stringify(next),
+              kind: 'fill',
+            });
+            onChange(next);
+            setFill(false);
+            requestAnimationFrame(() => fillTrigger.current?.focus());
+          }}
+        />
       )}
       {preset && (
         <GenerateDialog

@@ -1821,3 +1821,61 @@ fieldset.library-secondary-actions {
   gap: 12px;
   align-items: center;
 }
+
+.fill-dialog {
+  width: min(720px, calc(100vw - 40px));
+}
+.fill-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.fill-filter-grid label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.fill-filter-grid select {
+  width: 100%;
+  min-width: 0;
+}
+.fill-dialog .fill-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.fill-check input {
+  flex-shrink: 0;
+}
+.fill-equipment {
+  border-top: 1px solid #48433f;
+  padding-top: 8px;
+  margin-top: 16px;
+}
+.fill-retained {
+  margin-bottom: 16px;
+}
+.fill-dialog ol {
+  padding-left: 28px;
+  overflow-wrap: anywhere;
+}
+.fill-dialog li {
+  margin: 8px 0;
+}
+.fill-preview li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.fill-dialog .dialog-actions {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .fill-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
