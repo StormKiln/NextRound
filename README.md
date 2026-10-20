@@ -12,6 +12,10 @@ NextRound is an offline workout timer and planner for **Apple Silicon Macs runni
 
 Choose your key movements, then select **Fill remaining slots**. Set a total exercise count and filter additions by equipment, focus area, category, intensity or favorites. Preview random additions, reshuffle, and apply; chosen entries and workout timing stay intact. Undo restores the original list. Works across all six workout modes and session blocks. Existing Create a workout presets still replace the full list.
 
+![Filtered random workout preview](docs/screenshots/workout-fill.png)
+
+This 2.10.0 production WebKit capture uses isolated sample data.
+
 ## Set recovery across your session
 
 Select blocks, choose recovery seconds and automatic or ready-to-start transitions, then review the before/after timing. Apply once and use Undo to restore the draft. Final-block recovery is stored for future additions and does not extend the current session.
