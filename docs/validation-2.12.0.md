@@ -19,3 +19,5 @@ On the physical Mac, the locally built 2.12.0 app launched and the Countdown pre
 Production WebKit initially exposed an incorrect test assumption that mouse clicks focus buttons. The exhausted-pool check now focuses Swap and activates it with the keyboard, explicitly testing preserved keyboard focus. Final rerun and publication results are attached to #450.
 
 Final production WebKit evidence: 85 cases passed initially; all nine 2.12.0 cases passed on the corrected focused rerun. Final Chromium release/regression rerun passed all 13 cases. The only rerun change was keyboard activation in the test; application source remained the reviewed build.
+
+Hosted CI completed its substantive checks but hit the 30-minute job limit during cache upload. Issue #453 increases the full-validation limit to 60 minutes, preserving required checks and the protected queue. Exact-head CI and queue reruns are required before tagging.
