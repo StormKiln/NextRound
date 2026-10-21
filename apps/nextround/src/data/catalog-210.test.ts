@@ -4,7 +4,7 @@ import { catalogMetadata, eligibleExercise } from './equipment';
 import { exercises } from './exercises';
 
 it('adds exactly twenty distinct, classified movements with compatible targets', () => {
-  expect(exercises).toHaveLength(403);
+  expect(exercises).toHaveLength(423);
   const added = exercises.slice(223, 243);
   expect(added.filter((e) => eligibleExercise(e, []))).toHaveLength(12);
   expect(added.filter((e) => catalogMetadata[e.id].equipment.includes('dumbbell'))).toHaveLength(4);

@@ -66,3 +66,31 @@ export function sampleFill(
   }
   return pool.slice(0, needed);
 }
+
+/** Keep pinned snapshots in place; sample only the remaining positions. */
+export function reshuffleFill(
+  candidates: ExerciseEntry[],
+  preview: ExerciseEntry[],
+  pinnedIds: readonly string[],
+  random: () => number = Math.random,
+): ExerciseEntry[] {
+  if (pinnedIds.some((id) => !preview.some((entry) => entry.id === id)))
+    throw new Error('Pinned additions changed. Create a new preview.');
+  const pinned = preview.filter((entry) => pinnedIds.includes(entry.id));
+  const ids = new Set(pinned.map((entry) => entry.catalogId ?? entry.id));
+  const names = new Set(pinned.map((entry) => normalizeSearch(entry.name)));
+  const pool = candidates.filter((entry) => {
+    const id = entry.catalogId ?? entry.id;
+    const name = normalizeSearch(entry.name);
+    if (ids.has(id) || names.has(name)) return false;
+    ids.add(id);
+    names.add(name);
+    return true;
+  });
+  if (pinned.length === preview.length) return structuredClone(preview);
+  const additions = sampleFill(pool, pinned.length, preview.length, random);
+  let next = 0;
+  return preview.map((entry) =>
+    pinnedIds.includes(entry.id) ? structuredClone(entry) : additions[next++],
+  );
+}

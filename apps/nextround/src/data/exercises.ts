@@ -2896,6 +2896,146 @@ export const exercises: ExerciseEntry[] = [
       'Start in a forearm plank, then place elbows slightly farther ahead of the shoulders. Brace and hold without sagging. Shorten the reach if needed and breathe throughout.',
     supportedUnits: ['seconds'],
   },
+  {
+    id: 'heel-beats',
+    name: 'Prone heel beats',
+    description:
+      'Lie face down with your forehead resting on your hands. Lift straight legs slightly, separate the heels, then bring them together gently. Keep the pelvis still. Each close and reopen counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'arm-circles',
+    name: 'Arm circles',
+    description:
+      'Stand tall with arms extended to the sides. Make small, smooth circles without shrugging. Choose a direction and switch for the next set. One full circle counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'arm-swings',
+    name: 'Arm swings',
+    description:
+      'Stand with soft knees. Open your arms to the sides, then cross them comfortably in front of your chest. Alternate which arm crosses above. One open-and-cross cycle counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-side-crunch',
+    name: 'Standing side crunch',
+    description:
+      'Stand tall and bring one knee outward toward the elbow on the same side. Return the foot to the floor and alternate sides without pulling your neck. Count each knee lift as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'forearm-plank-leg-lift',
+    name: 'Forearm-plank leg lift',
+    description:
+      'From a forearm plank, lift one straight leg a little without turning the hips or arching the back. Lower with control, then alternate legs. Count each lift and return as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'reverse-clamshell',
+    name: 'Reverse clamshell',
+    description:
+      'Lie on your side with hips stacked and knees bent. Keep the knees touching as you rotate the top foot upward, then lower it slowly. Avoid rolling the pelvis. Reps apply to the chosen side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'curtsy-lunge',
+    name: 'Curtsy lunge',
+    description:
+      'Step one foot back and slightly behind the other, bending both knees through a comfortable range. Keep the front knee aligned with its foot. Stand and alternate sides. Each lunge counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'ankle-hops',
+    name: 'Ankle hops',
+    description:
+      'With feet about hip-width apart and knees soft, make small two-foot hops in place. Land quietly and keep the torso tall. Use a controlled rhythm. Each landing counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'quick-feet',
+    name: 'Quick feet',
+    description:
+      'Take a shallow athletic stance and make short, quick alternating steps in place. Keep knees soft and the trunk steady. Maintain a pace you can control for the chosen time.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'cross-body-mountain-climber',
+    name: 'Cross-body mountain climber',
+    description:
+      'Start in a high plank. Bring one knee toward the opposite elbow, return it, and alternate legs. Keep shoulders over hands and avoid bouncing the hips. Count each knee drive as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'prone-back-extension',
+    name: 'Prone back extension',
+    description:
+      'Lie face down with arms beside you and legs resting on the floor. Lift the chest a small, comfortable distance while looking down, pause, then lower slowly. Each lift and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'lying-side-crunch',
+    name: 'Lying side crunch',
+    description:
+      'Lie on one side with bent knees stacked. Lift the upper shoulder and ribs toward the hip, then lower with control. Support the head lightly without pulling it. Reps apply to the chosen side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'oblique-v-crunch',
+    name: 'Oblique V crunch',
+    description:
+      'Lie on your side with legs extended. Lift both legs and the upper torso toward each other, then lower slowly. Use the bottom arm for balance and avoid pulling the neck. Reps apply to the chosen side.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pilates-open-leg-rocker',
+    name: 'Pilates open-leg rocker',
+    description:
+      'Balance seated, holding the shins with legs in a comfortable V. Round the back and roll to the shoulder blades, keeping weight off the neck, then return to balance. One back-and-return cycle counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-kick-crunch',
+    name: 'Standing kick crunch',
+    description:
+      'Stand tall, then lift one leg forward as the opposite hand reaches toward it. Use a comfortable height without forcing the knee straight. Return and alternate sides. Each kick and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'plank-kick-through',
+    name: 'Plank kick-through',
+    description:
+      'From a high plank, lift one hand and thread the opposite leg underneath as you rotate toward that side. Return to plank, then alternate. Move slowly with control. Each kick and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'hindu-pushup',
+    name: 'Hindu push-up',
+    description:
+      'Start with hips lifted in an inverted V. Bend the elbows and sweep the chest forward near the floor, then straighten the arms within a comfortable range. Lift the hips to return. Each complete cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'diamond-kicks',
+    name: 'Diamond kicks',
+    description:
+      'Lie on your back with legs raised, knees bent outward and soles together. Extend legs into a comfortable wide V, bring them together, then return to the bent-knee shape. Keep your back steady. Each full cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bear-squat',
+    name: 'Bear squat',
+    description:
+      'Start on hands and knees with toes tucked. Keep hands planted as you straighten the knees and raise the hips, then bend the knees to return. Stay within a comfortable range. Each rise and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'squat-side-kick',
+    name: 'Squat to side kick',
+    description:
+      'Squat with heels grounded, then stand and lift one leg out to the side without leaning far. Lower the foot and repeat, alternating the lifted leg. One squat plus one side lift counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {

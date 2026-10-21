@@ -185,6 +185,7 @@ export function WorkoutGenerator({
         <GenerateDialog
           preset={preset}
           initialCount={exercises.length || 3}
+          sourceKey={JSON.stringify({ exercises, mode, workSeconds })}
           mode={mode}
           workSeconds={workSeconds}
           onClose={close}
@@ -202,6 +203,7 @@ export function WorkoutGenerator({
 function GenerateDialog({
   preset,
   initialCount,
+  sourceKey,
   mode,
   workSeconds,
   onClose,
@@ -209,11 +211,14 @@ function GenerateDialog({
 }: {
   preset: SuggestionPreset;
   initialCount: number;
+  sourceKey: string;
   mode: Mode;
   workSeconds?: number;
   onClose: () => void;
   onGenerate: (entries: ExerciseEntry[]) => void;
 }) {
+  const [initialSource] = useState(sourceKey);
+  const stale = sourceKey !== initialSource;
   const { library, personal, bundled } = useExerciseLibrary();
   const equipment = useEquipment();
   const favorites = useExerciseFavorites();
@@ -275,12 +280,17 @@ function GenerateDialog({
       />
     );
   return (
-    <Dialog title="Create a workout" className="generator-dialog" onClose={onClose}>
+    <Dialog
+      title="Create a workout"
+      className="generator-dialog"
+      onClose={onClose}
+      initialFocus={countRef}
+    >
       <form
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          if (loading || failed) return;
+          if (loading || failed || stale) return;
           const amount = Number(count);
           if (!Number.isInteger(amount) || amount < 1 || amount > 100) {
             setError('Choose a whole number from 1 to 100.');
@@ -328,6 +338,12 @@ function GenerateDialog({
               }}
             />
           </div>
+          {stale && (
+            <p role="alert">
+              Your workout changed while this dialog was open. Close and reopen Create a workout
+              before generating suggestions.
+            </p>
+          )}
           {loading && <p role="status">Loading workout suggestions…</p>}
           {failed && (
             <div role="alert">
@@ -337,7 +353,10 @@ function GenerateDialog({
                 onClick={() => {
                   void personal.refetch();
                   void bundled.refetch();
-                  if (!starred) void history.refetch();
+                  if (!starred) {
+                    void history.refetch();
+                    void training.refetch();
+                  }
                   if (starred) favorites.load();
                   equipment.load();
                 }}
@@ -384,7 +403,7 @@ function GenerateDialog({
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading || failed}>
+          <Button type="submit" disabled={loading || failed || stale}>
             Generate workout
           </Button>
         </div>

@@ -480,3 +480,30 @@ Reviewed 2026-10-19. Descriptions below are original short coaching cues; no sou
 - [ACE lateral crawls](https://www.acefitness.org/resources/everyone/exercise-library/328/lateral-crawls/) informs lateral bear crawling, distinct from forward bear crawling already present.
 
 Equipment classification assumes independent balance for standing movements; users needing external support should choose an appropriate personal modification. Static squat/long-lever holds support seconds only. Other additions support reps or seconds; unilateral counts apply to the chosen side and alternating movements count each action as stated in the description.
+
+## 2.11.0 additions (403 → 423)
+
+Reviewed 2026-10-20. Original concise technique summaries; no external media or treatment claims. Existing entries remain unchanged. Each source supports the movement pattern; counting conventions and conservative editable targets are NextRound editorial choices. All additions require no equipment. Quick feet is timed; other additions support reps or seconds.
+
+| Movement | Technique reference |
+| --- | --- |
+| Prone heel beats | [Reference](https://spotebi.com/exercise-guide/heel-beats/) |
+| Arm circles | [Reference](https://spotebi.com/exercise-guide/arm-circles/) |
+| Arm swings | [Reference](https://spotebi.com/exercise-guide/arm-swings/) |
+| Standing side crunch | [Reference](https://spotebi.com/exercise-guide/standing-side-crunch/) |
+| Forearm-plank leg lift | [Reference](https://workoutlabs.com/exercise-guide/plank-leg-lifts/) |
+| Reverse clamshell | [Reference](https://www.orthoinfo.org/recovery/hip-conditioning-program) |
+| Curtsy lunge | [Reference](https://spotebi.com/exercise-guide/curtsy-lunge/) |
+| Ankle hops | [Reference](https://spotebi.com/exercise-guide/ankle-hops/) |
+| Quick feet | [Reference](https://spotebi.com/exercise-guide/quick-feet/) |
+| Cross-body mountain climber | [Reference](https://spotebi.com/exercise-guide/mountain-climber-twist/) |
+| Prone back extension | [Reference](https://spotebi.com/exercise-guide/prone-back-extension/) |
+| Lying side crunch | [Reference](https://spotebi.com/exercise-guide/lying-side-crunch/) |
+| Oblique V crunch | [Reference](https://spotebi.com/exercise-guide/oblique-v-crunch/) |
+| Pilates open-leg rocker | [Reference](https://spotebi.com/exercise-guide/open-leg-rocker/) |
+| Standing kick crunch | [Reference](https://spotebi.com/workout-routines/no-equipment-high-intensity-workout/) |
+| Plank kick-through | [Reference](https://spotebi.com/exercise-guide/plank-kick-throughs/) |
+| Hindu push-up | [Reference](https://spotebi.com/exercise-guide/hindu-push-ups/) |
+| Diamond kicks | [Reference](https://spotebi.com/exercise-guide/diamond-kicks/) |
+| Bear squat | [Reference](https://spotebi.com/exercise-guide/bear-squat/) |
+| Squat to side kick | [Reference](https://spotebi.com/exercise-guide/squat-side-kick/) |

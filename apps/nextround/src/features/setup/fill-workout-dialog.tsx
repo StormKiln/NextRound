@@ -9,7 +9,7 @@ import { useExerciseFavorites } from '@/features/exercises/favorites-store';
 import { useExerciseLibrary } from '@/features/exercises/library';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
-import { type FillFilters, fillCandidates, sampleFill } from './fill-workout';
+import { type FillFilters, fillCandidates, reshuffleFill, sampleFill } from './fill-workout';
 import { FocusFilter } from './focus-controls';
 import { generatedEntry } from './workout-generator';
 
@@ -45,10 +45,12 @@ export function FillWorkoutDialog({
   const allEquipment = equipmentOverride ?? equipment.selection === null;
   const [settings, setSettings] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState<{
     key: string;
     entries: ExerciseEntry[];
     revision: number;
+    pinnedIds: string[];
   } | null>(null);
   const countRef = useRef<HTMLInputElement>(null);
   const equipmentId = useId();
@@ -77,20 +79,37 @@ export function FillWorkoutDialog({
   const previewKey = JSON.stringify({ total, filters, candidates, sourceKey });
   const ready = !stale && !loading && !failed;
   const currentPreview = ready && preview?.key === previewKey ? preview : null;
+  useEffect(() => {
+    if (preview && (!ready || preview.key !== previewKey)) {
+      setPreview(null);
+      setNotice('Preview and pins cleared. Preview additions again with your updated choices.');
+    }
+  }, [ready, previewKey, preview]);
   const changed = () => {
+    if (preview)
+      setNotice('Preview and pins cleared. Preview additions again with your updated choices.');
     setError('');
     setPreview(null);
   };
   const generate = () => {
     if (!ready) return;
     try {
-      const selected = sampleFill(candidates, initial.entries.length, Number(total));
+      const pinnedIds = currentPreview?.pinnedIds ?? [];
+      const selected = currentPreview
+        ? reshuffleFill(candidates, currentPreview.entries, pinnedIds)
+        : sampleFill(candidates, initial.entries.length, Number(total));
       setPreview({
         key: previewKey,
-        entries: selected.map((entry) => generatedEntry(entry, mode, workSeconds)),
+        entries: selected.map((entry) =>
+          pinnedIds.includes(entry.id)
+            ? structuredClone(entry)
+            : generatedEntry(entry, mode, workSeconds),
+        ),
+        pinnedIds,
         revision: (preview?.revision ?? 0) + 1,
       });
       setError('');
+      setNotice('');
     } catch (e) {
       setPreview(null);
       setError(e instanceof Error ? e.message : 'Unable to create additions.');
@@ -243,6 +262,21 @@ export function FillWorkoutDialog({
               Change equipment settings
             </Button>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setCategory('');
+              setIntensity('');
+              setFavoritesOnly(false);
+              setAreas([]);
+              setEquipmentOverride(null);
+              changed();
+            }}
+          >
+            Clear filters
+          </Button>
+          {notice && <p role="status">{notice}</p>}
           {mode === 'ladder' && (
             <p className="hint">
               Ladder additions support repetitions and follow your rung targets.
@@ -296,16 +330,38 @@ export function FillWorkoutDialog({
               <ol aria-label="Proposed additions">
                 {currentPreview.entries.map((entry) => (
                   <li key={entry.id}>
-                    <strong>{entry.name}</strong>
-                    <span>
-                      {entry.target ? formatTarget(entry.target) : 'Targets follow the workout'}
-                    </span>
+                    <div className="fill-movement">
+                      <strong>{entry.name}</strong>
+                      <span>
+                        {entry.target ? formatTarget(entry.target) : 'Targets follow the workout'}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      aria-pressed={currentPreview.pinnedIds.includes(entry.id)}
+                      aria-label={`${currentPreview.pinnedIds.includes(entry.id) ? 'Unpin' : 'Pin'} ${entry.name}`}
+                      onClick={() =>
+                        setPreview({
+                          ...currentPreview,
+                          pinnedIds: currentPreview.pinnedIds.includes(entry.id)
+                            ? currentPreview.pinnedIds.filter((id) => id !== entry.id)
+                            : [...currentPreview.pinnedIds, entry.id],
+                        })
+                      }
+                    >
+                      {currentPreview.pinnedIds.includes(entry.id) ? 'Pinned' : 'Pin'}
+                    </Button>
                   </li>
                 ))}
               </ol>
+              {currentPreview.pinnedIds.length === currentPreview.entries.length && (
+                <p role="status">All additions are pinned. Unpin one to reshuffle.</p>
+              )}
               <p className="hint">
-                Reshuffle draws again from these filters and may repeat movements from this preview.
-                Review movements and targets before starting.
+                Pin additions to keep their positions and targets. Reshuffle changes only unpinned
+                slots and may draw the same movements again. Pins last only for this preview. Review
+                movements and targets before starting.
               </p>
             </section>
           )}
@@ -317,7 +373,12 @@ export function FillWorkoutDialog({
           <Button
             type="submit"
             variant="secondary"
-            disabled={!ready || initial.entries.length >= 100}
+            disabled={
+              !ready ||
+              initial.entries.length >= 100 ||
+              (!!currentPreview &&
+                currentPreview.pinnedIds.length === currentPreview.entries.length)
+            }
           >
             {currentPreview ? 'Reshuffle additions' : 'Preview additions'}
           </Button>
