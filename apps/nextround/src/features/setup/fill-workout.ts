@@ -94,3 +94,27 @@ export function reshuffleFill(
     pinnedIds.includes(entry.id) ? structuredClone(entry) : additions[next++],
   );
 }
+
+/** Select a different movement for one unpinned slot without touching any snapshots. */
+export function swapFill(
+  candidates: ExerciseEntry[],
+  preview: ExerciseEntry[],
+  index: number,
+  pinnedIds: readonly string[],
+  random: () => number = Math.random,
+): ExerciseEntry {
+  const current = preview[index];
+  if (!Number.isInteger(index) || !current)
+    throw new Error('This suggestion changed. Preview additions again.');
+  if (pinnedIds.includes(current.id)) throw new Error('Unpin this suggestion before swapping it.');
+  const ids = new Set(preview.map((entry) => entry.catalogId ?? entry.id));
+  const names = new Set(preview.map((entry) => normalizeSearch(entry.name)));
+  const pool = candidates.filter(
+    (entry) => !ids.has(entry.catalogId ?? entry.id) && !names.has(normalizeSearch(entry.name)),
+  );
+  if (!pool.length)
+    throw new Error(
+      'No different eligible movement is available. Your preview is unchanged. Change filters or keep this suggestion.',
+    );
+  return structuredClone(pool[Math.floor(random() * pool.length)]);
+}

@@ -218,7 +218,11 @@ function GenerateDialog({
   onGenerate: (entries: ExerciseEntry[]) => void;
 }) {
   const [initialSource] = useState(sourceKey);
-  const stale = sourceKey !== initialSource;
+  const [invalidated, setInvalidated] = useState(false);
+  const stale = invalidated || sourceKey !== initialSource;
+  useEffect(() => {
+    if (sourceKey !== initialSource) setInvalidated(true);
+  }, [initialSource, sourceKey]);
   const { library, personal, bundled } = useExerciseLibrary();
   const equipment = useEquipment();
   const favorites = useExerciseFavorites();
@@ -382,7 +386,10 @@ function GenerateDialog({
             max={100}
             step={1}
             value={count}
-            aria-invalid={!!error}
+            aria-invalid={
+              !!error &&
+              (!Number.isInteger(Number(count)) || Number(count) < 1 || Number(count) > 100)
+            }
             aria-describedby={error ? errorId : undefined}
             onChange={(event) => {
               setCount(event.target.value);

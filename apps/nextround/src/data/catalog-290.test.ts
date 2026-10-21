@@ -7,10 +7,10 @@ import { catalogMetadata, eligibleExercise } from './equipment';
 import { exercises } from './exercises';
 
 it('adds twenty distinct no-equipment exercises while preserving all 383 existing entries', () => {
-  expect(exercises).toHaveLength(423);
+  expect(exercises).toHaveLength(443);
   expect(exercises.slice(0, 383)).toEqual(baseline);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(423);
-  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(423);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(443);
+  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(443);
   for (const e of exercises.slice(383, 403)) {
     expect(eligibleExercise(e, [])).toBe(true);
     expect(catalogMetadata[e.id].targetAreas?.length).toBeGreaterThan(0);

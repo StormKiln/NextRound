@@ -6,17 +6,17 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 2.11.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.11.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 2.12.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.12.0.md) · [Privacy policy](PRIVACY.md)
 
-## Keep the suggestions you like
+## Swap one suggestion
 
-Pin any proposed addition in **Fill remaining slots**, then reshuffle only the unpinned positions. Pinned targets stay intact. Pins last for the current preview; changing filters, totals or library data clears it. Apply and Undo keep you in control.
+Use **Swap** in Fill remaining slots to replace one proposed movement with a different eligible exercise. Other suggestions, pinned positions and targets stay intact. Swap uses your current filters and preserves the preview when there is no alternative. Apply and Undo keep you in control.
 
-![Pinned workout suggestions](docs/screenshots/pinned-suggestions.png)
+![Swap a workout suggestion](docs/screenshots/swap-suggestions.png)
 
-This 2.11.0 production WebKit capture uses isolated sample data.
+This 2.12.0 production WebKit capture uses isolated sample data.
 
-The library now includes **423 exercises**, with 20 new no-equipment movements for warm-up, core, lower-body and conditioning work.
+The library now includes **443 exercises**, with 20 new jump-rope, pull-up-bar, slam-ball and dumbbell movements.
 
 ## Fill the rest of your workout
 
@@ -74,7 +74,7 @@ This 2.5.0 production WebKit capture uses isolated sample data.
 - **Protect your local data:** export a full backup in Settings, preview a restore before replacing data, and keep a rollback copy. Backups include private history and notes and are not encrypted. [Data and recovery details](docs/training-storage.md).
 
 - **Choose from six workout modes:** EMOM, Countdown, work/rest Intervals, AMRAP, For Time and Ladder. Configure lead-in and warning cues, pause/resume, and follow large workout clocks. The Mac stays awake during an active workout.
-- **Build your exercise order:** browse 423 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, preview explained alternatives, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
+- **Build your exercise order:** browse 443 bundled exercises, create personal movements, filter by equipment or focus area, drag to reorder, preview explained alternatives, replace a movement, and set supported repetition, time, distance or calorie targets. Targets guide planned work; they are not measured performance.
 - **Generate a workout:** choose My favorites for explicitly starred movements, Most used for history-ranked movements, Try something new or Mix It Up, then choose the exercise count. Choose optional focus areas; any selected area can match. Focus, equipment preferences and workout compatibility apply together; review and adjust targets before starting.
 - **Star exercises:** mark bundled or personal movements in the picker and combine Favourites only with search, equipment and focus filters. Exercise stars stay on your Mac, separate from saved-workout favourites and usage history.
 - **Reuse your favourites:** save named workouts for all six modes, update, duplicate directly from Home, mark favourites, and filter by name and workout type.

@@ -9,7 +9,13 @@ import { useExerciseFavorites } from '@/features/exercises/favorites-store';
 import { useExerciseLibrary } from '@/features/exercises/library';
 import { useEquipment } from '@/features/settings/equipment-store';
 import { Settings } from '@/features/settings/settings';
-import { type FillFilters, fillCandidates, reshuffleFill, sampleFill } from './fill-workout';
+import {
+  type FillFilters,
+  fillCandidates,
+  reshuffleFill,
+  sampleFill,
+  swapFill,
+} from './fill-workout';
 import { FocusFilter } from './focus-controls';
 import { generatedEntry } from './workout-generator';
 
@@ -35,7 +41,11 @@ export function FillWorkoutDialog({
   }, [equipment.load, favorites.load]);
   const sourceKey = JSON.stringify({ exercises, mode, workSeconds });
   const [initial] = useState(() => ({ key: sourceKey, entries: structuredClone(exercises) }));
-  const stale = initial.key !== sourceKey;
+  const [invalidated, setInvalidated] = useState(false);
+  const stale = invalidated || initial.key !== sourceKey;
+  useEffect(() => {
+    if (initial.key !== sourceKey) setInvalidated(true);
+  }, [initial.key, sourceKey]);
   const [total, setTotal] = useState(String(Math.min(initial.entries.length + 3, 100)));
   const [areas, setAreas] = useState<FocusArea[]>([]);
   const [category, setCategory] = useState<FillFilters['category']>('');
@@ -46,6 +56,8 @@ export function FillWorkoutDialog({
   const [settings, setSettings] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [swapError, setSwapError] = useState('');
+  const swapId = useId();
   const [preview, setPreview] = useState<{
     key: string;
     entries: ExerciseEntry[];
@@ -82,6 +94,7 @@ export function FillWorkoutDialog({
   useEffect(() => {
     if (preview && (!ready || preview.key !== previewKey)) {
       setPreview(null);
+      setSwapError('');
       setNotice('Preview and pins cleared. Preview additions again with your updated choices.');
     }
   }, [ready, previewKey, preview]);
@@ -90,6 +103,7 @@ export function FillWorkoutDialog({
       setNotice('Preview and pins cleared. Preview additions again with your updated choices.');
     setError('');
     setPreview(null);
+    setSwapError('');
   };
   const generate = () => {
     if (!ready) return;
@@ -109,9 +123,11 @@ export function FillWorkoutDialog({
         revision: (preview?.revision ?? 0) + 1,
       });
       setError('');
+      setSwapError('');
       setNotice('');
     } catch (e) {
       setPreview(null);
+      setSwapError('');
       setError(e instanceof Error ? e.message : 'Unable to create additions.');
       countRef.current?.focus();
     }
@@ -170,7 +186,12 @@ export function FillWorkoutDialog({
             max={100}
             step={1}
             value={total}
-            aria-invalid={!!error}
+            aria-invalid={
+              !!error &&
+              (!Number.isInteger(Number(total)) ||
+                Number(total) <= initial.entries.length ||
+                Number(total) > 100)
+            }
             aria-describedby={error ? errorId : undefined}
             onChange={(e) => {
               setTotal(e.target.value);
@@ -297,6 +318,7 @@ export function FillWorkoutDialog({
                   equipment.load();
                   favorites.load();
                   setPreview(null);
+                  setSwapError('');
                 }}
               >
                 Retry available exercises
@@ -327,31 +349,89 @@ export function FillWorkoutDialog({
                 {currentPreview.entries.length}, total{' '}
                 {initial.entries.length + currentPreview.entries.length}.
               </p>
+              {swapError && (
+                <p className="error" role="alert">
+                  {swapError}
+                </p>
+              )}
               <ol aria-label="Proposed additions">
-                {currentPreview.entries.map((entry) => (
-                  <li key={entry.id}>
+                {currentPreview.entries.map((entry, index) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: These are fixed preview slots; replacement must preserve the slot and its focused controls.
+                  <li key={`slot-${index}`}>
                     <div className="fill-movement">
                       <strong>{entry.name}</strong>
                       <span>
                         {entry.target ? formatTarget(entry.target) : 'Targets follow the workout'}
                       </span>
                     </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      aria-pressed={currentPreview.pinnedIds.includes(entry.id)}
-                      aria-label={`${currentPreview.pinnedIds.includes(entry.id) ? 'Unpin' : 'Pin'} ${entry.name}`}
-                      onClick={() =>
-                        setPreview({
-                          ...currentPreview,
-                          pinnedIds: currentPreview.pinnedIds.includes(entry.id)
-                            ? currentPreview.pinnedIds.filter((id) => id !== entry.id)
-                            : [...currentPreview.pinnedIds, entry.id],
-                        })
-                      }
-                    >
-                      {currentPreview.pinnedIds.includes(entry.id) ? 'Pinned' : 'Pin'}
-                    </Button>
+                    <div className="fill-row-actions">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        aria-pressed={currentPreview.pinnedIds.includes(entry.id)}
+                        aria-label={`${currentPreview.pinnedIds.includes(entry.id) ? 'Unpin' : 'Pin'} ${entry.name}`}
+                        onClick={() =>
+                          setPreview({
+                            ...currentPreview,
+                            pinnedIds: currentPreview.pinnedIds.includes(entry.id)
+                              ? currentPreview.pinnedIds.filter((id) => id !== entry.id)
+                              : [...currentPreview.pinnedIds, entry.id],
+                          })
+                        }
+                      >
+                        {currentPreview.pinnedIds.includes(entry.id) ? 'Pinned' : 'Pin'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        id={`${swapId}-${index}`}
+                        aria-label={`Swap ${entry.name}`}
+                        disabled={currentPreview.pinnedIds.includes(entry.id)}
+                        title={
+                          currentPreview.pinnedIds.includes(entry.id)
+                            ? 'Unpin this suggestion to swap it'
+                            : 'Choose a different eligible movement'
+                        }
+                        onClick={() => {
+                          try {
+                            const replacement = generatedEntry(
+                              swapFill(
+                                candidates,
+                                currentPreview.entries,
+                                index,
+                                currentPreview.pinnedIds,
+                              ),
+                              mode,
+                              workSeconds,
+                            );
+                            setPreview({
+                              ...currentPreview,
+                              entries: currentPreview.entries.map((existing, slot) =>
+                                slot === index ? replacement : existing,
+                              ),
+                              revision: currentPreview.revision + 1,
+                            });
+                            setSwapError('');
+                            setNotice(
+                              `${entry.name} replaced with ${replacement.name}. Other suggestions and pins are unchanged.`,
+                            );
+                            requestAnimationFrame(() =>
+                              document
+                                .getElementById(`${swapId}-${index}`)
+                                ?.focus({ preventScroll: true }),
+                            );
+                          } catch (e) {
+                            setSwapError(
+                              e instanceof Error
+                                ? e.message
+                                : 'Unable to swap this suggestion. Your preview is unchanged.',
+                            );
+                          }
+                        }}
+                      >
+                        Swap
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ol>
@@ -360,7 +440,8 @@ export function FillWorkoutDialog({
               )}
               <p className="hint">
                 Pin additions to keep their positions and targets. Reshuffle changes only unpinned
-                slots and may draw the same movements again. Pins last only for this preview. Review
+                slots and may draw the same movements again. Swap replaces just one unpinned
+                suggestion with a different movement. Pins last only for this preview. Review
                 movements and targets before starting.
               </p>
             </section>
