@@ -3036,6 +3036,146 @@ export const exercises: ExerciseEntry[] = [
       'Squat with heels grounded, then stand and lift one leg out to the side without leaning far. Lower the foot and repeat, alternating the lifted leg. One squat plus one side lift counts as one rep.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'rope-alternate-foot',
+    name: 'Alternate-foot jump rope',
+    description:
+      'Step over each rope turn on alternating feet. Keep the hops low and the rhythm even. Count each landing.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rope-high-knees',
+    name: 'High-knees jump rope',
+    description:
+      'Lift alternating knees as the rope passes underneath. Stay upright and land softly. Count each landing.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rope-boxer-step',
+    name: 'Boxer-step jump rope',
+    description:
+      'Shift your weight between feet with small alternating bounces as the rope turns. Keep shoulders relaxed. Count each rope pass.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rope-side-to-side',
+    name: 'Side-to-side jump rope',
+    description:
+      'Hop both feet a short distance left and right on successive rope turns. Keep knees soft. Count each landing.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rope-front-to-back',
+    name: 'Front-to-back jump rope',
+    description:
+      'Hop both feet slightly forward, then backward, on successive rope turns. Use small controlled hops. Count each landing.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rope-double-under',
+    name: 'Jump rope double-under',
+    description:
+      'Jump once while turning the rope underneath twice. Land softly before repeating. Count each completed double pass.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'rope-crossover',
+    name: 'Crossover jump rope',
+    description:
+      'Cross your forearms as the rope approaches your feet, jump through, then uncross for the next jump. Count each crossed jump.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'chinup',
+    name: 'Chin-up',
+    description:
+      'Grip a secure bar with palms facing you. Pull your chin above it without swinging, then lower with control until your arms straighten.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'wide-grip-pullup',
+    name: 'Wide-grip pull-up',
+    description:
+      'Use a secure bar and an overhand grip wider than your shoulders. Pull upward without kicking, then lower slowly through a comfortable range.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'scapular-pullup',
+    name: 'Scapular pull-up',
+    description:
+      'Hang from a secure bar with straight elbows. Draw your shoulder blades down to lift your body slightly, then release slowly without swinging.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'hanging-knee-raise',
+    name: 'Hanging knee raise',
+    description:
+      'Hang steadily from a secure bar. Curl your knees toward your chest, then lower slowly. Keep your torso controlled and avoid swinging.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'hanging-leg-raise',
+    name: 'Hanging leg raise',
+    description:
+      'Hang steadily from a secure bar. Lift your straight legs forward within a controlled range, then lower slowly without using momentum.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'bar-hang',
+    name: 'Pull-up bar hang',
+    description:
+      'Hold a secure bar with feet clear of the floor and arms extended. Keep the shoulders comfortable and your body still. Step down before your grip gives way.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'slam-ball-kneeling-rotation',
+    name: 'Kneeling rotational slam',
+    description:
+      'Kneel tall with a non-bouncing slam ball. Lift it overhead, turn gently and slam beside one hip. Retrieve it and alternate sides; count each slam.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'slam-ball-burpee',
+    name: 'Slam-ball burpee',
+    description:
+      'Set a non-bouncing slam ball down. Place hands on the floor beside it, step back to plank and return. Stand, lift the ball overhead and slam. Count each full sequence.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'slam-ball-russian-twist',
+    name: 'Slam-ball Russian twist',
+    description:
+      'Sit with bent knees and heels grounded, holding a slam ball at your chest. Rotate your torso gently from side to side. Count each side reached.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-seated-press',
+    name: 'Dumbbell seated shoulder press',
+    description:
+      'Sit upright on a stable bench with dumbbells at shoulder height. Press overhead without arching your back, then lower under control.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-single-arm-bench-press',
+    name: 'Dumbbell single-arm bench press',
+    description:
+      'Lie on a stable weight-rated bench with feet planted. Press one dumbbell above your chest without rotating your torso, then lower slowly. Change arms between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-walking-lunge',
+    name: 'Dumbbell walking lunge',
+    description:
+      'Hold dumbbells at your sides. Step forward into a controlled lunge, then bring the rear leg through into the next step. Count each step.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dumbbell-front-rack-march',
+    name: 'Dumbbell front-rack march',
+    description:
+      'Hold two dumbbells at your shoulders. Stand tall and lift alternating knees without leaning or twisting. Lower each foot quietly; count each knee lift.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {

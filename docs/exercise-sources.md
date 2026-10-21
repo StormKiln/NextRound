@@ -507,3 +507,17 @@ Reviewed 2026-10-20. Original concise technique summaries; no external media or 
 | Diamond kicks | [Reference](https://spotebi.com/exercise-guide/diamond-kicks/) |
 | Bear squat | [Reference](https://spotebi.com/exercise-guide/bear-squat/) |
 | Squat to side kick | [Reference](https://spotebi.com/exercise-guide/squat-side-kick/) |
+
+## 2.12.0 — twenty equipment movements
+
+Adds seven rope variations, six bar movements, three slam-ball movements and four dumbbell movements (423 → 443). Descriptions are original summaries, not copied instructions. Equipment, focus areas, intensity and editable starting targets are editorial classifications rather than individual exercise prescriptions. Existing 423 records are preserved by a full-record fixture.
+
+- [Crossrope demonstrations](https://www.crossrope.com/pages/fitness-challenge-exercises/): alternate-foot, high-knees, boxer-step, side-to-side, front-to-back, double-under and crossover skipping. Each crossing or landing is defined in its description.
+- [ACE chin-ups](https://www.acefitness.org/continuing-education/certified/february-2025/8800/the-ace-do-it-better-series-chin-ups/) and [pull-ups](https://www.acefitness.org/resources/everyone/exercise-library/191/pull-ups/): underhand chin-up and wider overhand pull-up.
+- [Prehab scapular pull-up](https://theprehabguys.com/vimeo-video/scapular-pull-up-2/): straight-elbow shoulder-blade movement.
+- Muscle & Strength [hanging knee raise](https://www.muscleandstrength.com/exercises/hanging-knee-raise.html) and [hanging leg raise](https://cdn.muscleandstrength.com/exercises/hanging-leg-raise.html): controlled bent- and straight-leg variations.
+- [CrossFit bar-hang workout](https://www.crossfit.com/250106): timed pull-up-bar hang; no therapeutic claims included.
+- [Onnit rotational slam](https://www.onnit.com/blogs/the-edge/at-home-abs-get-a-six-pack-in-your-living-room), [Onnit burpee slam](https://www.onnit.com/academy/medicine-ball-workouts/) and [TRX slam-ball exercises](https://www.trxtraining.com/blogs/news/slam-ball-exercises): kneeling rotational slam, burpee slam and loaded Russian twist. NextRound specifies a non-bouncing ball, retrieval from the floor and hands on the floor for the burpee variation.
+- [ACE shoulder training](https://www.acefitness.org/resources/pros/expert-articles/9074/smart-shoulder-solutions-an-evidence-based-approach-to-training-the-deltoids/), [Muscle & Strength one-arm bench press](https://www.muscleandstrength.com/node/3806), [walking-lunge programming](https://cdn.muscleandstrength.com/sites/default/files/workouts/therapidpacedbodyfatburner.pdf) and [CrossFit Novato front-rack march](https://www.youtube.com/watch?v=4PUA3Jo9b1w): seated press, one-arm bench press, walking lunge and front-rack march. Bench movements explicitly require a stable raised surface, with a weight-rated bench for the lying press.
+
+Sources consulted 2026-10-21. Rep targets are deliberately modest, timed holds use seconds, and interval targets stay within the work period. Ladder accepts only repetition-compatible movements.
