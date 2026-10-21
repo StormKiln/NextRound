@@ -54,7 +54,8 @@ test('exhausted swap keeps preview and Apply with a local error and valid count'
   await d.getByRole('button', { name: 'Preview additions', exact: true }).click();
   const row = d.getByRole('list', { name: 'Proposed additions' }).locator('li');
   const before = await row.locator('.fill-movement').textContent();
-  await row.getByRole('button', { name: /^Swap / }).click();
+  await row.getByRole('button', { name: /^Swap / }).focus();
+  await page.keyboard.press('Enter');
   await expect(d.getByRole('alert')).toContainText('No different eligible movement');
   await expect(row.locator('.fill-movement')).toHaveText(before!);
   await expect(row.getByRole('button', { name: /^Swap / })).toBeFocused();
