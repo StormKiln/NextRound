@@ -110,7 +110,7 @@ export function durationSeconds(config: WorkoutConfig): number {
         ? config.durationSeconds
         : config.minutes * 60;
 }
-export type WorkoutCue = 'tock' | 'beep' | 'rest' | 'complete';
+export type WorkoutCue = 'tock' | 'beep' | 'rest' | 'complete' | 'done';
 export type Workout =
   | { type: 'ladder'; config: LadderConfig }
   | { type: 'forTime'; config: ForTimeConfig }
@@ -288,6 +288,20 @@ export function formatTime(ms: number): string {
     .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 }
 
+// A timed target ends inside an EMOM minute or interval work phase; athlete-paced modes have no fixed start.
+function timedTargetDone(config: WorkoutConfig, second: number): boolean {
+  if (config.type !== undefined && config.type !== 'emom' && config.type !== 'intervals')
+    return false;
+  const [slot, work] =
+    config.type === 'intervals'
+      ? [config.workSeconds + config.restSeconds, config.workSeconds]
+      : [60, 60];
+  const active = second - config.leadInSeconds;
+  if (active < 0 || !config.exercises.length) return false;
+  const target = config.exercises[Math.floor(active / slot) % config.exercises.length]?.target;
+  return active % slot < work && target?.unit === 'seconds' && target.value === active % slot;
+}
+
 export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | null {
   const second = Math.floor(elapsedMs / 1000);
   const lead = config.leadInSeconds;
@@ -298,6 +312,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
     const inCycle = (second - lead) % (config.workSeconds + config.restSeconds);
     if (inCycle === 0) return 'beep';
     if (inCycle === config.workSeconds) return 'rest';
+    if (timedTargetDone(config, second)) return 'done';
     const remaining =
       (inCycle < config.workSeconds
         ? config.workSeconds
@@ -314,6 +329,7 @@ export function cueAt(config: WorkoutConfig, elapsedMs: number): WorkoutCue | nu
       (second - lead) % 60 === 0)
   )
     return 'beep';
+  if (timedTargetDone(config, second)) return 'done';
   const remaining =
     second < lead
       ? lead - second

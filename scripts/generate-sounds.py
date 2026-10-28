@@ -16,6 +16,7 @@ for name, notes in {
     'beep': [(1980, .12), (1980, .22)],
     'rest': [(1320, .16), (880, .28)],
     'complete': [(1320, .16), (1760, .16), (2640, .45)],
+    'done': [(2640, .06), (2640, .06), (2640, .06)],
 }.items():
     samples = []
     for frequency, duration in notes:
