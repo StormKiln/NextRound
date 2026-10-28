@@ -3,6 +3,7 @@ fn main() {
         .file("native/media.m")
         .file("native/history_export.m")
         .file("native/workout_files.m")
+        .file("native/spotify.m")
         .flag("-fobjc-arc")
         .compile("nextround_media");
     println!("cargo:rustc-link-lib=framework=AVFoundation");
@@ -12,5 +13,6 @@ fn main() {
     println!("cargo:rustc-link-lib=framework=UniformTypeIdentifiers");
     println!("cargo:rerun-if-changed=native/history_export.m");
     println!("cargo:rerun-if-changed=native/workout_files.m");
+    println!("cargo:rerun-if-changed=native/spotify.m");
     tauri_build::build()
 }

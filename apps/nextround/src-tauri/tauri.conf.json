@@ -21,7 +21,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src ipc: http://ipc.localhost; media-src 'self' blob:",
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost https://i.scdn.co; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src ipc: http://ipc.localhost; media-src 'self' blob:",
       "capabilities": ["main"]
     }
   },
@@ -34,6 +34,7 @@
     ],
     "macOS": {
       "minimumSystemVersion": "14.0",
+      "entitlements": "Entitlements.plist",
       "signingIdentity": "-"
     }
   },

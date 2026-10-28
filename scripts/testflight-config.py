@@ -88,6 +88,9 @@ def main():
                     'com.apple.security.files.user-selected.read-write': True,
                     # WKWebView's networking process requires this even for bundled content.
                     'com.apple.security.network.client': True,
+                    # Opt-in Spotify control: hardened-runtime Apple Events plus Spotify's scripting access groups only.
+                    'com.apple.security.automation.apple-events': True,
+                    'com.apple.security.scripting-targets': {'com.spotify.client': ['com.spotify.playback', 'com.spotify.library']},
                     'com.apple.application-identifier': app_id,
                     'com.apple.developer.team-identifier': team}
     entitlements_path = directory / 'entitlements.plist'

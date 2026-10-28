@@ -566,6 +566,35 @@ textarea {
   font-size: 13px;
   margin-bottom: 20px;
 }
+.now-playing {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  color: #aaa49e;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.now-playing p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  max-width: 100%;
+}
+.now-playing span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.now-playing strong {
+  color: #faf5ef;
+}
+.now-playing img {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
 .complete {
   min-height: calc(100vh - 80px);
   padding: 60px 30px;

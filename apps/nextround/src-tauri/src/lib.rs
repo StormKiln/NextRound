@@ -4,6 +4,7 @@ mod audio;
 mod backup;
 mod history;
 mod history_export;
+mod spotify;
 mod templates;
 pub mod timer;
 mod training;
@@ -35,6 +36,7 @@ struct Runtime {
     session: Option<Session>,
     update_gate: update_gate::UpdateGate,
     audio: Audio,
+    spotify: spotify::Link,
     last: Instant,
     wall: SystemTime,
     remainder: Duration,
@@ -75,6 +77,15 @@ impl Runtime {
                 session.notice = Some(error);
             }
         }
+        self.sync_spotify();
+    }
+    fn sync_spotify(&mut self) {
+        let snapshot = self.session.as_ref().map(Session::snapshot);
+        self.spotify.sync(spotify::desired(
+            snapshot.as_ref().map(|s| s.phase.as_str()),
+            snapshot.as_ref().is_some_and(|s| s.paused),
+            self.training_active && !self.training_final,
+        ));
     }
 }
 type Shared = Arc<Mutex<Runtime>>;
@@ -122,6 +133,7 @@ fn start_workout(
     rt.last = Instant::now();
     rt.wall = SystemTime::now();
     rt.remainder = Duration::ZERO;
+    rt.sync_spotify();
     Ok(result)
 }
 #[tauri::command]
@@ -169,6 +181,7 @@ fn restore_workout(
     rt.last = Instant::now();
     rt.wall = SystemTime::now();
     rt.remainder = Duration::ZERO;
+    rt.sync_spotify();
     Ok(snapshot)
 }
 #[tauri::command]
@@ -215,6 +228,7 @@ fn control_workout(action: String, state: State<'_, Shared>) -> Result<Snapshot,
             session.notice = Some(error);
         }
     }
+    rt.sync_spotify();
     Ok(result)
 }
 #[tauri::command]
@@ -405,6 +419,9 @@ pub fn run() {
             open_project_page,
             get_close_behavior,
             set_close_behavior,
+            spotify::spotify_settings,
+            spotify::set_spotify_enabled,
+            spotify::spotify_now_playing,
             history::read_workout_history,
             history_export::save_history_csv,
             workout_files::open_workout_file,
@@ -443,6 +460,9 @@ pub fn run() {
         open_project_page,
         get_close_behavior,
         set_close_behavior,
+        spotify::spotify_settings,
+        spotify::set_spotify_enabled,
+        spotify::spotify_now_playing,
         history::read_workout_history,
         history_export::save_history_csv,
         workout_files::open_workout_file,
@@ -546,6 +566,8 @@ pub fn run() {
                 }
             });
             let audio = Audio::new().map_err(std::io::Error::other)?;
+            let spotify = spotify::Spotify::load(app.path().app_config_dir()?.join("spotify.json"));
+            app.manage(spotify.clone());
             let runtime = Arc::new(Mutex::new(Runtime {
                 note_editing: false,
                 training_active: false,
@@ -555,6 +577,7 @@ pub fn run() {
                 session: None,
                 update_gate: update_gate::UpdateGate::default(),
                 audio,
+                spotify: spotify::Link::new(spotify),
                 last: Instant::now(),
                 wall: SystemTime::now(),
                 remainder: Duration::ZERO,
