@@ -15,6 +15,7 @@ fn cue_bytes(cue: &str) -> Result<&'static [u8], String> {
         "rest" => Ok(include_bytes!("../../sounds/rest.wav")),
         "beep" => Ok(include_bytes!("../../sounds/beep.wav")),
         "complete" => Ok(include_bytes!("../../sounds/complete.wav")),
+        "done" => Ok(include_bytes!("../../sounds/done.wav")),
         _ => Err("Unknown audio cue".into()),
     }
 }
@@ -48,6 +49,7 @@ impl Audio {
                 "tock" => "tock",
                 "beep" => "beep",
                 "rest" => "rest",
+                "done" => "done",
                 _ => "complete",
             };
             self.players.push((name, Player(pointer)));
@@ -102,7 +104,7 @@ mod tests {
     #[test]
     fn rejects_unknown_cues() {
         assert!(cue_bytes("../other").is_err());
-        for cue in ["tock", "beep", "rest", "complete"] {
+        for cue in ["tock", "beep", "rest", "complete", "done"] {
             assert_eq!(&cue_bytes(cue).unwrap()[..4], b"RIFF");
         }
     }
@@ -114,7 +116,7 @@ mod tests {
         let id = audio.awake.unwrap();
         audio.keep_awake(true).unwrap();
         assert_eq!(audio.awake, Some(id));
-        for cue in ["tock", "beep", "rest", "complete"] {
+        for cue in ["tock", "beep", "rest", "complete", "done"] {
             audio.play(cue).unwrap();
             std::thread::sleep(std::time::Duration::from_millis(500));
             audio.stop();

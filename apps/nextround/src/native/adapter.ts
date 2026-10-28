@@ -11,6 +11,7 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import beepUrl from '../../sounds/beep.wav';
 import completeUrl from '../../sounds/complete.wav';
+import doneUrl from '../../sounds/done.wav';
 import restUrl from '../../sounds/rest.wav';
 import tockUrl from '../../sounds/tock.wav';
 
@@ -29,7 +30,9 @@ function play(cue: WorkoutCue) {
   if (trainingContext.active && trainingContext.silent) return;
   if (trainingContext.active && !trainingContext.finalBlock && cue === 'complete') cue = 'beep';
   stopSound();
-  playback = new Audio({ tock: tockUrl, beep: beepUrl, rest: restUrl, complete: completeUrl }[cue]);
+  playback = new Audio(
+    { tock: tockUrl, beep: beepUrl, rest: restUrl, complete: completeUrl, done: doneUrl }[cue],
+  );
   void playback.play().catch(() => {
     if (browserSession)
       browserSession.notice =

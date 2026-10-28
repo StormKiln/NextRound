@@ -307,6 +307,28 @@ pub fn snapshot(config: &Config, elapsed: u64) -> Snapshot {
         config: config.clone(),
     }
 }
+// A timed target ends inside an EMOM minute or interval work phase; athlete-paced modes have no fixed start.
+fn timed_target_done(config: &Config, second: u64) -> bool {
+    let lead = u64::from(config.lead_in_seconds);
+    let (slot, work) = match config.mode {
+        Mode::Emom => (60, 60),
+        Mode::Intervals => {
+            let work = u64::from(config.work_seconds.unwrap());
+            (work + u64::from(config.rest_seconds.unwrap()), work)
+        }
+        _ => return false,
+    };
+    if second < lead || config.exercises.is_empty() {
+        return false;
+    }
+    let active = second - lead;
+    let position = active % slot;
+    position < work
+        && config.exercises[(active / slot) as usize % config.exercises.len()]
+            .target
+            .as_ref()
+            .is_some_and(|t| t.unit == TargetUnit::Seconds && u64::from(t.value) == position)
+}
 pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
     let second = elapsed_ms / 1000;
     let lead = u64::from(config.lead_in_seconds);
@@ -327,6 +349,9 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
         if position == work {
             return Some("rest");
         }
+        if timed_target_done(config, second) {
+            return Some("done");
+        }
         let remaining = (if position < work { work } else { cycle }) - position;
         return (remaining <= u64::from(config.warning_seconds)).then_some("tock");
     }
@@ -334,6 +359,9 @@ pub fn cue_at(config: &Config, elapsed_ms: u64) -> Option<&'static str> {
         || (config.mode == Mode::Emom && second > lead && (second - lead).is_multiple_of(60))
     {
         return Some("beep");
+    }
+    if timed_target_done(config, second) {
+        return Some("done");
     }
     let remaining = if second < lead {
         lead - second
@@ -657,6 +685,28 @@ mod tests {
         let mut raw = base;
         raw.as_object_mut().unwrap().remove("restSeconds");
         assert!(validate(&serde_json::from_value(raw).unwrap()).is_err());
+    }
+    #[test]
+    fn timed_targets_cue_done_inside_their_slot() {
+        let hold = |id: &str, unit: &str, value: u32| serde_json::json!({"id":id,"name":id,"target":{"unit":unit,"value":value}});
+        let c: Config = serde_json::from_value(serde_json::json!({"type":"emom","minutes":4,"leadInSeconds":10,"warningSeconds":3,"exercises":[hold("plank","seconds",40),hold("squat","reps",40),hold("hang","seconds",58),hold("wall","seconds",60)]})).unwrap();
+        assert!(validate(&c).is_ok());
+        assert_eq!(cue_at(&c, 50000), Some("done"));
+        assert_eq!(cue_at(&c, 110000), None);
+        assert_eq!(cue_at(&c, 187000), Some("tock"));
+        assert_eq!(cue_at(&c, 188000), Some("done"));
+        assert_eq!(cue_at(&c, 189000), Some("tock"));
+        assert_eq!(cue_at(&c, 250000), Some("complete"));
+        let done = |c: &Config| {
+            (0..=400)
+                .filter(|s| cue_at(c, s * 1000) == Some("done"))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(done(&c), vec![50, 188]);
+        let c: Config = serde_json::from_value(serde_json::json!({"type":"intervals","workSeconds":30,"restSeconds":10,"rounds":3,"leadInSeconds":5,"warningSeconds":0,"exercises":[hold("plank","seconds",20),hold("hang","seconds",30)]})).unwrap();
+        assert_eq!(done(&c), vec![25, 105]);
+        let c: Config = serde_json::from_value(serde_json::json!({"type":"countdown","durationSeconds":120,"leadInSeconds":0,"warningSeconds":0,"exercises":[hold("plank","seconds",40)]})).unwrap();
+        assert!(done(&c).is_empty());
     }
     #[test]
     fn interval_contract_and_pause() {
