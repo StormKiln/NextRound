@@ -6,6 +6,7 @@ void *nr_audio_create(const unsigned char *bytes, size_t length) {
     @autoreleasepool {
         NSData *data = [NSData dataWithBytes:bytes length:length];
         AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithData:data error:nil];
+        player.volume = 1.0;
         return (__bridge_retained void *)player;
     }
 }
