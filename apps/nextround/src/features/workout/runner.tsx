@@ -11,6 +11,7 @@ import { fullscreen } from '@/native/adapter';
 import { useWorkout, workoutError } from '@/state/workout';
 import '../countdown/checklist.css';
 import { returnToSetup } from './navigation';
+import { NowPlaying } from './now-playing';
 
 export function Runner({ embedded = false }: { embedded?: boolean }) {
   const { snapshot: s, control, busy, checkedExerciseIds, toggleChecked } = useWorkout();
@@ -248,6 +249,7 @@ export function Runner({ embedded = false }: { embedded?: boolean }) {
           )}
         </section>
       </div>
+      <NowPlaying />
       {(s.notice || error) && (
         <p role="alert" className="runner-notice">
           {[s.notice, error].filter(Boolean).join(' ')}

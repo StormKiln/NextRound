@@ -2,4 +2,5 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
+    <key>NSAppleEventsUsageDescription</key><string>NextRound plays and pauses Spotify with your workout and shows the current track. It only does this when you turn on Spotify control in Settings.</string>
 </dict></plist>

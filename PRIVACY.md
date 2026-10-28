@@ -32,6 +32,8 @@ The app includes no advertising, tracking, or developer-operated analytics SDKs.
 
 **GitHub download copies:** If automatic update checks are enabled, the app contacts GitHub for release information. Manual update checks and downloads also contact GitHub. These requests disclose ordinary network information, such as your IP address and request headers, to GitHub and its delivery infrastructure. They do not upload your workout templates, history or exercise notes. You can disable automatic checking in **Settings → Updates**. See [GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
+**Spotify control (optional, off by default):** When you turn on Spotify control in **Settings → General**, NextRound uses macOS Apple Events to play and pause the Spotify desktop app with your workout and to read the current track's title, artist and album artwork address. macOS asks for your permission first. NextRound does not send workout information to Spotify and does not store the track information. Album artwork is loaded from Spotify's image servers, which receive ordinary network information such as your IP address. Spotify's own privacy policy applies to the Spotify app.
+
 **External links:** Opening the privacy policy, release notes, or support page opens a website in your browser. That website may process network information and use cookies under its own policy. NextRound does not send your workout contents with these links.
 
 ## Support and information you choose to share

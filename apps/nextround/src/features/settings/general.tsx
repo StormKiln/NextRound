@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import { native } from '@/native/adapter';
+import { SpotifySettings } from './spotify-settings';
 
 type CloseBehavior = 'minimize' | 'quit';
 export function GeneralSettings() {
@@ -67,6 +68,7 @@ export function GeneralSettings() {
           {error}
         </p>
       )}
+      <SpotifySettings />
     </>
   );
 }
