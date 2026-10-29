@@ -59,6 +59,8 @@ test('reshuffle replaces the warm-up preview without changing its length', async
 test('runs warm-up, workout and cool-down in order and saves one result with both', async ({
   page,
 }) => {
+  // Over three minutes of fake time plus UI checks exceed the default 30 s budget.
+  test.setTimeout(90000);
   await page.clock.install();
   await page.goto('/countdown');
   await page.getByLabel('Minutes', { exact: true }).fill('0');
