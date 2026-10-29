@@ -52,6 +52,11 @@ test('reshuffle replaces the warm-up preview without changing its length', async
     after = await list.allTextContents();
   }
   expect(after).toHaveLength(5);
+  if (process.env.NEXTROUND_CAPTURE) {
+    await page.getByRole('checkbox', { name: 'Add a cool-down' }).check();
+    await page.getByRole('group', { name: 'Warm-up and cool-down' }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: 'docs/screenshots/warmup-cooldown.png' });
+  }
   expect(after.join()).not.toBe(before.join());
   expect(new Set(after).size).toBe(5);
 });
@@ -80,6 +85,8 @@ test('runs warm-up, workout and cool-down in order and saves one result with bot
   await expect(page.locator('.runner-top .mode-pill')).toHaveText('Warm-up');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(firstWarmup ?? '');
   await expect(page.getByText('Hold for 45 seconds')).toBeVisible();
+  if (process.env.NEXTROUND_CAPTURE)
+    await page.screenshot({ path: 'docs/screenshots/warmup-runner.png' });
   await page.clock.runFor(46000);
   await expect(page.getByText('Change position')).toBeVisible();
   await page.clock.runFor(15000);
