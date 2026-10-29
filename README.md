@@ -6,7 +6,19 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 3.0.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.0.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 3.1.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.1.0.md) · [Privacy policy](PRIVACY.md)
+
+## Warm up and cool down
+
+Check **Add a warm-up** or **Add a cool-down** in any workout setup and choose 1–15 minutes with the slider (5 by default). NextRound previews one movement per minute, which you can reshuffle. It runs the warm-up before your workout and the cool-down after, holding each movement for 45 seconds. Your workout's result, history and comparisons stay exactly as before.
+
+![Warm-up and cool-down options](docs/screenshots/warmup-cooldown.png)
+
+![Warm-up runner](docs/screenshots/warmup-runner.png)
+
+These 3.1.0 WebKit captures use isolated sample data.
+
+The library now includes **473 exercises**, with 30 new dynamic warm-ups, deep stretches and yoga poses. Filter by workout phase or tag your own exercises.
 
 ## Train with Spotify
 
