@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { categories, type EquipmentId, equipmentLabels } from '@/data/equipment';
 import { type FocusArea, focusAreas } from '@/data/focus';
+import { type Phase, phaseLabels } from '@/data/phases';
 import { personalQueryKey } from './library';
 import { mutatePersonalExercises, type PersonalExercise, units } from './repository';
 export function newPersonal(): PersonalExercise {
@@ -52,6 +53,7 @@ export function ExerciseForm({
       description: exercise.description.trim(),
       equipment: [...exercise.equipment].sort(),
       targetAreas: [...exercise.targetAreas].sort(),
+      phases: [...(exercise.phases ?? [])].sort(),
       supportedUnits: [...exercise.supportedUnits].sort(),
     });
   const current = { ...draft };
@@ -128,6 +130,7 @@ export function ExerciseForm({
               name: draft.name.trim(),
               description: draft.description.trim(),
             };
+            if (!exercise.phases?.length) delete exercise.phases;
             delete exercise.defaultTarget;
             if (hasTarget) exercise.defaultTarget = { unit, value };
             gate.current = true;
@@ -209,6 +212,24 @@ export function ExerciseForm({
                         onChange={() =>
                           change('targetAreas', toggle(draft.targetAreas, id as FocusArea))
                         }
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Workout phase</legend>
+                <p className="hint">
+                  Optional. Tagged exercises appear in warm-up and cool-down pools.
+                </p>
+                <div className="personal-options">
+                  {Object.entries(phaseLabels).map(([id, label]) => (
+                    <label key={id}>
+                      <input
+                        type="checkbox"
+                        checked={draft.phases?.includes(id as Phase) ?? false}
+                        onChange={() => change('phases', toggle(draft.phases ?? [], id as Phase))}
                       />
                       {label}
                     </label>

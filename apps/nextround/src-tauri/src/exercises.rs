@@ -59,6 +59,7 @@ fn validate_document(v: &Value) -> Result<(), String> {
                 "category",
                 "equipment",
                 "targetAreas",
+                "phases",
                 "supportedUnits",
                 "defaultTarget",
                 "sourceId",
@@ -119,6 +120,9 @@ fn validate_document(v: &Value) -> Result<(), String> {
             ],
             false,
         )?;
+        if let Some(phases) = e.get("phases") {
+            list(phases, &["warmup", "cooldown"], false)?;
+        }
         list(
             &e["supportedUnits"],
             &["reps", "seconds", "metres", "calories"],
@@ -299,6 +303,9 @@ mod tests {
             serde_json::json!({"supportedUnits":[]}),
             serde_json::json!({"equipment":["unknown"]}),
             serde_json::json!({"targetAreas":["unknown"]}),
+            serde_json::json!({"phases":["stretch"]}),
+            serde_json::json!({"phases":["warmup","warmup"]}),
+            serde_json::json!({"phases":"warmup"}),
             serde_json::json!({"defaultTarget":{"unit":"seconds","value":30}}),
             serde_json::json!({"defaultTarget":{"unit":"reps","value":5,"future":true}}),
         ] {
@@ -308,6 +315,21 @@ mod tests {
                 .extend(patch.as_object().unwrap().clone());
             assert!(validate_document(&serde_json::json!({"version":1,"exercises":[a]})).is_err());
         }
+    }
+    #[test]
+    fn personal_phases_are_optional_and_round_trip() {
+        let s = store();
+        s.mutate(save(entry("personal:old"), None)).unwrap();
+        let mut tagged = entry("personal:tagged");
+        tagged["phases"] = json!(["warmup", "cooldown"]);
+        s.mutate(save(tagged.clone(), None)).unwrap();
+        let read = ExerciseStore::new(s.path.clone()).read().unwrap();
+        assert_eq!(read["exercises"][0], entry("personal:old"));
+        assert_eq!(read["exercises"][1], tagged);
+        let mut empty = entry("personal:a");
+        empty["phases"] = json!([]);
+        assert!(validate_document(&json!({"version":1,"exercises":[empty]})).is_ok());
+        fs::remove_dir_all(s.path.parent().unwrap()).unwrap();
     }
     #[test]
     fn personal_cap_and_failed_write_preserve_existing_data() {

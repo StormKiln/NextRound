@@ -3176,6 +3176,216 @@ export const exercises: ExerciseEntry[] = [
       'Hold two dumbbells at your shoulders. Stand tall and lift alternating knees without leaning or twisting. Lower each foot quietly; count each knee lift.',
     supportedUnits: ['reps', 'seconds'],
   },
+  {
+    id: 'worlds-greatest-stretch',
+    name: 'World’s greatest stretch',
+    description:
+      'Step into a long lunge and plant the opposite hand. Bring the other elbow toward the front instep, then rotate that arm up. Keep the front knee over the foot; rear knee down to scale. Alternate sides; each side is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'walking-knee-hug',
+    name: 'Walking knee hug',
+    description:
+      'Step forward and draw the other knee toward your chest with both hands, rising briefly onto the standing toes. Stand tall, release and step through. Use a wall or march in place for balance. Each knee hug is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'walking-quad-pull',
+    name: 'Walking quad pull',
+    description:
+      'Step forward, bend the other knee and hold that ankle, easing the heel toward your glute. Keep knees close and ribs down. Release and step through. Hold support if balance is limited. Each pull is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-torso-rotation',
+    name: 'Standing torso rotation',
+    description:
+      'Stand with feet hip-width and knees soft. Turn your chest side to side, letting relaxed arms follow and the back heel pivot. Keep the motion smooth and stay within an easy range. Each turn is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'scapular-wall-slide',
+    name: 'Scapular wall slide',
+    description:
+      'Stand with your back to a wall, feet a step forward, forearms on the wall in a goalpost shape. Slide your arms up only as far as your lower back stays flat, then draw them down. Each up-and-down is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'high-knee-march',
+    name: 'High-knee march',
+    description:
+      'March in place, lifting each knee toward hip height as the opposite arm swings forward. Stand tall and set each foot down softly. Lower the knee height to scale. Each knee lift is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'lateral-lunge-shift',
+    name: 'Lateral lunge shift',
+    description:
+      'Stand wide with toes forward. Shift your hips toward one side, bending that knee while the other leg straightens, then glide across without standing up. Keep heels down and chest tall. Each shift is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'walking-leg-cradle',
+    name: 'Walking leg cradle',
+    description:
+      'Step forward and lift the other knee, cradling the shin with both hands so the foot turns toward your standing hip. Stand tall and draw gently, then lower and step through. Use support if needed. Each cradle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'straight-leg-kick-walk',
+    name: 'Straight-leg kick walk',
+    description:
+      'Walk forward, swinging one straight leg up toward the opposite hand at a comfortable height, then step through. Keep the standing knee soft and back tall; lower the hand rather than kicking higher. Each kick is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'half-kneeling-thoracic-rotation',
+    name: 'Half-kneeling thoracic rotation',
+    description:
+      'Half-kneel with both knees at right angles and hands behind your head. Rotate your chest toward the front knee, then open to the other side while hips stay square. Do not pull on your neck. Each turn is one rep; switch knees.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'squat-to-stand',
+    name: 'Squat to stand',
+    description:
+      'Hinge forward and hold your toes, bending the knees as needed. Sink into a deep squat with chest lifted, then straighten the legs while keeping hold. Release and stand tall, reaching overhead. Each cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kneeling-ankle-rock',
+    name: 'Kneeling ankle rock',
+    description:
+      'Half-kneel with the front foot flat. Rock the front knee forward over the toes while the heel stays down, then ease back. Stay pain-free and hold a wall for balance. Each rock is one rep; switch sides between sets.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-side-reach',
+    name: 'Standing side reach',
+    description:
+      'Stand with feet hip-width. Reach one arm overhead and bend gently to the opposite side, then return through the centre and switch. Keep hips level and avoid leaning forward. Each reach is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'reverse-lunge-overhead-reach',
+    name: 'Reverse lunge with overhead reach',
+    description:
+      'Step back into a reverse lunge and reach both arms overhead to lengthen the front of the back hip. Keep ribs down and the front knee over the foot. Push through the front foot to return. Alternate legs; each lunge is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'standing-cat-camel',
+    name: 'Standing cat-camel',
+    description:
+      'Stand with knees bent and hands on your thighs. Round your back as you tuck the pelvis, then lift the chest into a gentle upper-back arch. Move slowly with your breath and keep the neck relaxed. Each cycle is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'pigeon-pose',
+    name: 'Pigeon pose',
+    description:
+      'From hands and knees, bring one knee behind the same wrist with the shin angled across. Slide the other leg back and level the hips, using a cushion under the front hip. Stop if the front knee hurts. Time is per side.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'legs-up-the-wall',
+    name: 'Legs up the wall',
+    description:
+      'Sit sideways beside a wall, then lie back as you swing both legs up it. Rest your hips a comfortable distance away with knees soft and arms relaxed. Breathe slowly. To finish, bend the knees and roll to one side.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'doorway-chest-stretch',
+    name: 'Doorway chest stretch',
+    description:
+      'Stand in a doorway with forearms on the frame, elbows at or just below shoulder height. Step one foot through until the chest stretches gently. Keep ribs down and shoulders relaxed; do not hang on the frame.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'couch-stretch',
+    name: 'Couch stretch',
+    description:
+      'Kneel facing away from a wall or couch and slide one shin up it, padding the knee. Step the other foot forward and lift your chest only as far as comfortable, squeezing the rear glute. Avoid arching your back. Time is per side.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'banana-stretch',
+    name: 'Banana stretch',
+    description:
+      'Lie on your back with legs long and arms overhead. Walk your feet and hands toward one side so your body forms a gentle crescent. Keep shoulders and hips down and breathe into the long side. Time is per side.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'frog-pose',
+    name: 'Frog pose',
+    description:
+      'From hands and knees, slide the knees wide with ankles in line with the knees. Rest on your forearms and ease the hips back only until the inner thighs stretch gently. Pad your knees and do not force the range.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'sleeper-stretch',
+    name: 'Sleeper stretch',
+    description:
+      'Lie on one side with the bottom arm forward at shoulder height, elbow bent to a right angle. Use the top hand to ease that forearm gently toward the floor. Stop at mild tension or any pinching. Time is per side.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'kneeling-wrist-stretch',
+    name: 'Kneeling wrist stretch',
+    description:
+      'On hands and knees, turn your fingers toward your knees with palms down. Shift your weight back gently until the forearms stretch, then rest on the backs of the hands. Keep the load light; stop for pain or numbness.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'corpse-pose',
+    name: 'Corpse pose',
+    description:
+      'Lie on your back with legs relaxed apart and arms by your sides, palms up. Let your breath slow and soften the jaw, shoulders and hands. Support your knees or head with a cushion if helpful. Roll to one side to sit up.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'seated-neck-side-stretch',
+    name: 'Seated neck side stretch',
+    description:
+      'Sit tall with shoulders relaxed. Tip one ear toward the same shoulder and rest that hand lightly on your head without pulling. Let the other shoulder drop. Stop if you feel tingling or dizziness. Time is per side.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'wall-lat-stretch',
+    name: 'Wall lat stretch',
+    description:
+      'Place both hands on a wall at hip height and walk your feet back. Hinge at the hips until your arms are overhead and your chest drops between them, knees soft. Breathe into your side ribs without letting your back sag.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'kneeling-toe-stretch',
+    name: 'Kneeling toe stretch',
+    description:
+      'Kneel with your toes tucked under and sit back gently toward your heels, hands on the floor or thighs for support. Keep the weight light and lean forward to ease off. Stop if your feet or knees feel sharp pain.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'supine-knee-drop',
+    name: 'Supine knee drop',
+    description:
+      'Lie on your back with knees bent, feet wide and arms open. Let both knees fall slowly to one side, pause, then bring them through the centre to the other side. Keep shoulders relaxed down. Each drop is one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'easy-pose-forward-fold',
+    name: 'Easy pose forward fold',
+    description:
+      'Sit cross-legged on the floor or a cushion. Walk your hands forward and fold gently from the hips, letting your head relax. Keep both sitting bones grounded. Switch which shin is in front halfway through or between sets.',
+    supportedUnits: ['seconds'],
+  },
+  {
+    id: 'doorway-hamstring-stretch',
+    name: 'Doorway hamstring stretch',
+    description:
+      'Lie on your back in a doorway with one leg through it. Rest the other heel up the frame and slide closer until the back of the thigh stretches gently, knee soft. Keep both hips down. Time is per side.',
+    supportedUnits: ['seconds'],
+  },
 ];
 
 export async function listExercises() {

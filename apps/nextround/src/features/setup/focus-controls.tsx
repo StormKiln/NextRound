@@ -1,26 +1,45 @@
 import { useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { type FocusArea, focusAreas, type PickerView } from '@/data/focus';
+import { type Phase, phaseLabels } from '@/data/phases';
 
 export function FocusControls({
   view,
   onView,
   selected,
   onChange,
+  phase = '',
+  onPhase,
 }: {
   view: PickerView;
   onView: (view: PickerView) => void;
   selected: FocusArea[];
   onChange: (areas: FocusArea[]) => void;
+  phase?: Phase | '';
+  onPhase?: (phase: Phase | '') => void;
 }) {
   const id = useId();
   return (
-    <div className="focus-controls">
+    <div className={onPhase ? 'focus-controls with-phase' : 'focus-controls'}>
       <label htmlFor={id}>Group exercises by</label>
       <select id={id} value={view} onChange={(e) => onView(e.target.value as PickerView)}>
         <option value="type">Exercise type</option>
         <option value="focus">Focus area</option>
       </select>
+      {onPhase && (
+        <select
+          aria-label="Workout phase"
+          value={phase}
+          onChange={(e) => onPhase(e.target.value as Phase | '')}
+        >
+          <option value="">All phases</option>
+          {Object.entries(phaseLabels).map(([id, label]) => (
+            <option key={id} value={id}>
+              {label}
+            </option>
+          ))}
+        </select>
+      )}
       <FocusFilter selected={selected} onChange={onChange} />
       {view === 'focus' && (
         <p className="hint">Exercises may appear in several groups. Group counts overlap.</p>

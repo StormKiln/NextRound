@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { metadataFor } from '@/data/equipment';
 import { exercises } from '@/data/exercises';
+import { matchesPhase, type Phase, phaseLabels, phasesFor } from '@/data/phases';
 import { matchesExercise } from '../setup/exercise-suggestions';
 import { ExerciseForm, newPersonal } from './exercise-form';
 import { personalQueryKey, useExerciseLibrary } from './library';
@@ -19,6 +20,7 @@ export function copyExercise(entry: ExerciseEntry): PersonalExercise {
     category: metadata?.category ?? 'Uncategorized',
     equipment: [...(metadata?.equipment ?? [])],
     targetAreas: [...(metadata?.targetAreas ?? [])],
+    ...(phasesFor(entry).length ? { phases: phasesFor(entry) } : {}),
     supportedUnits: [...(entry.supportedUnits ?? ['reps', 'seconds', 'metres', 'calories'])],
     ...(entry.target ? { defaultTarget: { ...entry.target } } : {}),
     sourceId: entry.catalogId ?? entry.id,
@@ -30,6 +32,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   const [search, setSearch] = useState('');
   const [archived, setArchived] = useState(false);
   const [bundled, setBundled] = useState(false);
+  const [phase, setPhase] = useState<Phase | ''>('');
   const [feedback, setFeedback] = useState<{
     text: string;
     saved?: PersonalExercise;
@@ -43,7 +46,10 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   });
   const savedHidden =
     feedback?.saved &&
-    (bundled || (!archived && feedback.saved.archived) || !matchesExercise(feedback.saved, search));
+    (bundled ||
+      (!archived && feedback.saved.archived) ||
+      !matchesExercise(feedback.saved, search) ||
+      (!!phase && !feedback.saved.phases?.includes(phase)));
   const [editing, setEditing] = useState<{
     initial: PersonalExercise;
     expected?: PersonalExercise;
@@ -70,7 +76,13 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
   }, [busy]);
   const ready = !personal.isPending && !personal.isError;
   const entries = (ready ? (personal.data?.exercises ?? []) : []).filter(
-    (e) => (archived || !e.archived) && matchesExercise(e, search),
+    (e) =>
+      (archived || !e.archived) &&
+      matchesExercise(e, search) &&
+      (!phase || e.phases?.includes(phase)),
+  );
+  const bundledEntries = exercises.filter(
+    (e) => matchesExercise(e, search) && (!phase || matchesPhase(e, phase)),
   );
   const archive = async (entry: PersonalExercise, origin: HTMLButtonElement) => {
     if (busy) return;
@@ -124,6 +136,21 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+      <div className="phase-filter">
+        <label htmlFor="library-phase">Workout phase</label>
+        <select
+          id="library-phase"
+          value={phase}
+          onChange={(e) => setPhase(e.target.value as Phase | '')}
+        >
+          <option value="">All exercises</option>
+          {Object.entries(phaseLabels).map(([id, label]) => (
+            <option key={id} value={id}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
       {!bundled && (
         <label className="personal-check">
           <input
@@ -160,6 +187,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                 if (!entry) return;
                 setBundled(false);
                 if (!matchesExercise(entry, search)) setSearch('');
+                if (phase && !entry.phases?.includes(phase)) setPhase('');
                 if (entry.archived) setArchived(true);
                 editorOrigin.current = null;
                 revealRef.current = entry.id;
@@ -185,29 +213,35 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
       )}
       <div className="personal-list">
         {bundled
-          ? exercises
-              .filter((e) => matchesExercise(e, search))
-              .map((e) => (
-                <section key={e.id}>
-                  <div>
-                    <span className="eyebrow">Bundled · read-only</span>
-                    <h3>{e.name}</h3>
-                    <p>{e.description}</p>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    disabled={!ready || busy}
-                    id={`personal-copy-${e.id}`}
-                    aria-label={`Copy ${e.name}`}
-                    onClick={() => {
-                      editorOrigin.current = `personal-copy-${e.id}`;
-                      setEditing({ initial: copyExercise(e) });
-                    }}
-                  >
-                    Copy to my exercises
-                  </Button>
-                </section>
-              ))
+          ? bundledEntries.map((e) => (
+              <section key={e.id}>
+                <div>
+                  <span className="eyebrow">Bundled · read-only</span>
+                  <h3>{e.name}</h3>
+                  <p>{e.description}</p>
+                  {phasesFor(e).length > 0 && (
+                    <small>
+                      Phase:{' '}
+                      {phasesFor(e)
+                        .map((p) => phaseLabels[p])
+                        .join(', ')}
+                    </small>
+                  )}
+                </div>
+                <Button
+                  variant="secondary"
+                  disabled={!ready || busy}
+                  id={`personal-copy-${e.id}`}
+                  aria-label={`Copy ${e.name}`}
+                  onClick={() => {
+                    editorOrigin.current = `personal-copy-${e.id}`;
+                    setEditing({ initial: copyExercise(e) });
+                  }}
+                >
+                  Copy to my exercises
+                </Button>
+              </section>
+            ))
           : entries.map((e) => (
               <section key={e.id}>
                 <div>
@@ -230,6 +264,11 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                         )
                         .join(', ')}
                     </span>
+                    {!!e.phases?.length && (
+                      <span className="personal-detail">
+                        Phase: {e.phases.map((p) => phaseLabels[p]).join(', ')}
+                      </span>
+                    )}
                     <span className="personal-detail">
                       {e.defaultTarget
                         ? `Default target: ${formatTarget(e.defaultTarget)}`
@@ -262,7 +301,7 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                 </div>
               </section>
             ))}
-        {ready && bundled && !exercises.some((e) => matchesExercise(e, search)) && (
+        {ready && bundled && !bundledEntries.length && (
           <div role="status">
             <p>No bundled exercises match.</p>
             <Button
@@ -274,6 +313,11 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
             >
               Clear exercise search
             </Button>
+            {phase && (
+              <Button variant="secondary" onClick={() => setPhase('')}>
+                Show all phases
+              </Button>
+            )}
           </div>
         )}
         {ready && !bundled && !entries.length && (
@@ -281,7 +325,9 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
             <p>
               {search.trim()
                 ? 'No personal exercises match your search.'
-                : 'No personal exercises to show. Create one, copy a bundled movement, or show archived exercises.'}
+                : phase
+                  ? `No personal exercises are tagged ${phaseLabels[phase]}.`
+                  : 'No personal exercises to show. Create one, copy a bundled movement, or show archived exercises.'}
             </p>
             {search.trim() && (
               <Button
@@ -292,6 +338,11 @@ export function ExerciseLibrary({ onClose }: { onClose?: () => void }) {
                 }}
               >
                 Clear exercise search
+              </Button>
+            )}
+            {phase && (
+              <Button variant="secondary" onClick={() => setPhase('')}>
+                Show all phases
               </Button>
             )}
           </div>

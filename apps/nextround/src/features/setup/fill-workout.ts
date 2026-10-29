@@ -6,6 +6,7 @@ import {
   metadataFor,
 } from '@/data/equipment';
 import { type FocusArea, matchesFocus } from '@/data/focus';
+import { matchesPhase, type Phase } from '@/data/phases';
 import { normalizeSearch } from './exercise-suggestions';
 
 export type FillFilters = {
@@ -15,6 +16,7 @@ export type FillFilters = {
   intensity: NonNullable<CatalogMetadata['intensity']> | '';
   favoritesOnly: boolean;
   favoriteIds: readonly string[];
+  phase?: Phase;
 };
 export function fillCandidates(
   library: ExerciseEntry[],
@@ -35,6 +37,7 @@ export function fillCandidates(
       !matchesFocus(entry, filters.areas) ||
       (filters.category && metadata?.category !== filters.category) ||
       (filters.intensity && metadata?.intensity !== filters.intensity) ||
+      (filters.phase && !matchesPhase(entry, filters.phase)) ||
       (filters.favoritesOnly && !filters.favoriteIds.includes(entry.id)) ||
       (mode === 'ladder' && entry.supportedUnits && !entry.supportedUnits.includes('reps'))
     )

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { eligibleExercise, equipmentNote } from '@/data/equipment';
 import { type FocusArea, focusAreas, matchesFocus, type PickerView } from '@/data/focus';
+import { matchesPhase, type Phase, phaseLabels } from '@/data/phases';
 import { ExerciseForm } from '@/features/exercises/exercise-form';
 import { FAVORITES_KEY } from '@/features/exercises/favorites';
 import { useExerciseFavorites } from '@/features/exercises/favorites-store';
@@ -88,6 +89,7 @@ export function ExerciseEditor({
   const [preset, setPreset] = useState<SuggestionPreset | null>(null);
   const [view, setView] = useState<PickerView>('type');
   const [areas, setAreas] = useState<FocusArea[]>([]);
+  const [phase, setPhase] = useState<Phase | ''>('');
   const [equipmentSettings, setEquipmentSettings] = useState(false);
   const [equipmentOverride, setShowAllEquipment] = useState<boolean | null>(null);
   const effectiveSelection = equipment.loaded ? equipment.selection : null;
@@ -166,6 +168,7 @@ export function ExerciseEditor({
   const pickerFilterKey = JSON.stringify([
     search,
     areas,
+    phase,
     view,
     favoritesOnly,
     showAllEquipment,
@@ -669,7 +672,14 @@ export function ExerciseEditor({
                 <Button onClick={favorites.load}>Retry exercise favourites</Button>
               </div>
             )}
-            <FocusControls view={view} onView={setView} selected={areas} onChange={setAreas} />
+            <FocusControls
+              view={view}
+              onView={setView}
+              selected={areas}
+              onChange={setAreas}
+              phase={phase}
+              onPhase={setPhase}
+            />
             {personal.isPending && <p role="status">Loading personal exercises…</p>}
             {personal.isError && (
               <div role="alert">
@@ -693,6 +703,7 @@ export function ExerciseEditor({
                 library={availableLibrary.filter(
                   (entry) =>
                     matchesFocus(entry, areas) &&
+                    (!phase || matchesPhase(entry, phase)) &&
                     matchesExercise(entry, search) &&
                     (!favoritesOnly || (favoritesReady && favorites.ids.includes(entry.id))),
                 )}
@@ -720,6 +731,7 @@ export function ExerciseEditor({
                       {!!areas.length && (
                         <p>Focus: {areas.map((area) => focusAreas[area]).join(', ')}</p>
                       )}
+                      {phase && <p>Phase: {phaseLabels[phase]}</p>}
                       {!showAllEquipment && (
                         <p>Equipment: only movements for your available equipment are included.</p>
                       )}
@@ -737,6 +749,11 @@ export function ExerciseEditor({
                         {!!areas.length && (
                           <Button variant="secondary" onClick={() => setAreas([])}>
                             Clear focus filters
+                          </Button>
+                        )}
+                        {phase && (
+                          <Button variant="secondary" onClick={() => setPhase('')}>
+                            Show all phases
                           </Button>
                         )}
                         {!showAllEquipment && (
@@ -764,6 +781,7 @@ export function ExerciseEditor({
                   library={availableLibrary.filter(
                     (entry) =>
                       matchesFocus(entry, areas) &&
+                      (!phase || matchesPhase(entry, phase)) &&
                       (!favoritesOnly || (favoritesReady && favorites.ids.includes(entry.id))),
                   )}
                   note={(entry) =>
