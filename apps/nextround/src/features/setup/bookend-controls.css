@@ -1,0 +1,46 @@
+.bookends {
+  border: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 1.25rem 0;
+}
+.bookends legend {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.bookend-option .checklist-option {
+  margin: 0.75rem 0 0;
+}
+.bookend-option > .hint {
+  margin-top: 2px;
+  padding-left: calc(1.25rem + 0.7rem);
+}
+.bookend-detail {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0 calc(1.25rem + 0.7rem);
+}
+.bookend-slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bookend-slider input {
+  flex: 1;
+  min-width: 0;
+  accent-color: #ff994f;
+}
+.bookend-slider output {
+  font-family: var(--font-mono);
+  min-width: 4.5ch;
+  text-align: right;
+}
+.bookend-preview {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.bookend-detail .button {
+  justify-self: start;
+}

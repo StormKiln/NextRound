@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Button } from '@/components/ui/button';
 import { AmrapProgressPanel } from '@/features/amrap/progress';
+import { bookendSummary } from '@/features/history/bookend-summary';
 import { ResultActions } from '@/features/history/result-actions';
 import { LadderProgressPanel, LadderResult } from '@/features/ladder/progress';
 import { fullscreen } from '@/native/adapter';
@@ -414,6 +415,12 @@ export function Completion() {
           </strong>
           <span>active workout time</span>
         </div>
+        {pendingResult && bookendSummary(pendingResult) && (
+          <div>
+            <strong>{bookendSummary(pendingResult)}</strong>
+            <span>around your workout</span>
+          </div>
+        )}
       </div>
       {(s.notice || error) && <p role="alert">{[s.notice, error].filter(Boolean).join(' ')}</p>}
       {s.config.type === 'amrap' && <AmrapProgressPanel />}

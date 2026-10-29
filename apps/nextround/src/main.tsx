@@ -34,7 +34,8 @@ import { Home } from '@/features/home/home';
 import { scheduleAutomaticUpdates } from '@/features/settings/automatic-updates';
 import { Settings } from '@/features/settings/settings';
 import { useUpdates } from '@/features/settings/updates';
-import { Completion, Runner } from '@/features/workout/runner';
+import { WorkoutRoute } from '@/features/workout/bookend-runner';
+import { Completion } from '@/features/workout/runner';
 import { native } from '@/native/adapter';
 import { restoreScreenDrafts } from '@/state/screen-reload';
 import { useWorkout } from '@/state/workout';
@@ -77,7 +78,11 @@ function Shell() {
   const pendingResult = useWorkout((state) => state.pendingResult);
   const resultBusy = useWorkout((state) => state.busy);
   const resultError = useWorkout((state) => state.error);
-  const active = !!s && (s.phase === 'leadIn' || s.phase === 'running');
+  const bookend = useWorkout((state) => state.run?.stage);
+  const active =
+    bookend === 'warmup' ||
+    bookend === 'cooldown' ||
+    (!!s && (s.phase === 'leadIn' || s.phase === 'running'));
   const navigate = useNavigate();
   const [close, setClose] = useState(false);
   const [windowError, setWindowError] = useState<string | null>(null);
@@ -369,7 +374,7 @@ const ladderRoute = createRoute({
 const workoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workout',
-  component: Runner,
+  component: WorkoutRoute,
 });
 const completeRoute = createRoute({
   getParentRoute: () => rootRoute,

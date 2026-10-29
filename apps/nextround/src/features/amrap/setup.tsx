@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Clock3, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BookendControls } from '@/features/setup/bookend-controls';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
 import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 
@@ -65,6 +66,7 @@ export function AmrapSetup() {
               </div>
             ))}
           </div>
+          <BookendControls mode="amrap" />
           <SetupErrors errors={errors} mode="amrap" />
           {error && (
             <p className="error" role="alert">

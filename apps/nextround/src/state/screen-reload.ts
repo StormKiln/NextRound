@@ -20,6 +20,8 @@ export function prepareScreenReload(storage: Storage) {
   if (
     state.busy ||
     state.pendingResult ||
+    state.run?.stage === 'warmup' ||
+    state.run?.stage === 'cooldown' ||
     (state.snapshot && ['running', 'leadIn'].includes(state.snapshot.phase))
   )
     throw new Error('Finish your active workout and resolve its result before reloading.');

@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Clock3, Play, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BookendControls } from '@/features/setup/bookend-controls';
 import { useSetupValidation } from '@/features/setup/validation';
 import { SaveWorkoutButton } from '@/features/templates';
 import { useWorkout } from '@/state/workout';
@@ -109,6 +110,7 @@ export function Setup() {
               <span>Your lead-in is extra; it does not use workout time.</span>
             </p>
           </div>
+          <BookendControls mode="emom" />
           {error && (
             <p className="error" role="alert">
               {error}

@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Clock3, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BookendControls } from '@/features/setup/bookend-controls';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
 import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 import '../countdown/checklist.css';
@@ -82,6 +83,7 @@ export function ForTimeSetup() {
             />
             Show completion checkboxes
           </label>
+          <BookendControls mode="forTime" />
           <SetupErrors errors={errors} mode="forTime" />
           {error && (
             <p className="error" role="alert">

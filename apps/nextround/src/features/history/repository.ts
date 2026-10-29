@@ -21,7 +21,12 @@ export type WorkoutResult = {
   config: WorkoutConfig;
   checkedExerciseIds: string[];
   amrapProgress?: AmrapProgress;
+  // Time spent in the optional warm-up and cool-down timed around the workout.
+  warmupMs?: number;
+  cooldownMs?: number;
 };
+// Warm-ups and cool-downs last at most 15 minutes plus their lead-in.
+const maxBookendMs = 3600000;
 export type HistoryDocument = { version: 1; results: WorkoutResult[] };
 export type HistoryMutation =
   | { action: 'save'; result: WorkoutResult }
@@ -44,6 +49,8 @@ export function copyResult(value: unknown): WorkoutResult {
           'amrapProgress',
           'outcome',
           'ladderCompletedMovements',
+          'warmupMs',
+          'cooldownMs',
         ].includes(key),
     )
   )
@@ -92,7 +99,12 @@ export function copyResult(value: unknown): WorkoutResult {
     if (!entry.amrapProgress || !validAmrapProgress(config, entry.amrapProgress))
       throw new Error(invalid);
   } else if (entry.amrapProgress !== undefined) throw new Error(invalid);
+  for (const part of [entry.warmupMs, entry.cooldownMs])
+    if (part !== undefined && (!Number.isSafeInteger(part) || part < 0 || part > maxBookendMs))
+      throw new Error(invalid);
   return {
+    ...(entry.warmupMs !== undefined ? { warmupMs: entry.warmupMs } : {}),
+    ...(entry.cooldownMs !== undefined ? { cooldownMs: entry.cooldownMs } : {}),
     ...(normalizeNote(entry.note ?? '') ? { note: entry.note } : {}),
     ...(config.type === 'ladder'
       ? { ladderCompletedMovements: entry.ladderCompletedMovements }

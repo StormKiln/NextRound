@@ -20,7 +20,13 @@ pub struct WorkoutResult {
     pub elapsed_ms: u64,
     pub config: Config,
     pub checked_exercise_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warmup_ms: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cooldown_ms: Option<u64>,
 }
+// Warm-ups and cool-downs last at most 15 minutes plus their lead-in.
+const MAX_BOOKEND_MS: u64 = 3_600_000;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AmrapProgress {
@@ -98,7 +104,11 @@ fn validate_result(result: &WorkoutResult) -> Result<(), String> {
         return Err("Progress applies only to Ladder.".into());
     }
     let mut checked = HashSet::new();
-    if result.id.trim().is_empty()
+    if [result.warmup_ms, result.cooldown_ms]
+        .iter()
+        .flatten()
+        .any(|ms| *ms > MAX_BOOKEND_MS)
+        || result.id.trim().is_empty()
         || result.id.chars().count() > 120
         || result.completed_at == 0
         || result.completed_at > 8_640_000_000_000_000
@@ -439,6 +449,26 @@ mod tests {
                 ))
                 .join("history.json"),
         )
+    }
+    #[test]
+    fn warmup_and_cooldown_durations_are_optional_and_bounded() {
+        let plain = result();
+        assert!(validate_result(&plain).is_ok());
+        assert!(!serde_json::to_value(&plain)
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .contains_key("warmupMs"));
+        let mut raw = serde_json::to_value(&plain).unwrap();
+        raw["warmupMs"] = 310000.into();
+        raw["cooldownMs"] = 0.into();
+        let bookended: WorkoutResult = serde_json::from_value(raw.clone()).unwrap();
+        assert!(validate_result(&bookended).is_ok());
+        assert_eq!(serde_json::to_value(&bookended).unwrap(), raw);
+        raw["cooldownMs"] = 3600001u64.into();
+        assert!(validate_result(&serde_json::from_value(raw.clone()).unwrap()).is_err());
+        raw["cooldownMs"] = (-1).into();
+        assert!(serde_json::from_value::<WorkoutResult>(raw).is_err());
     }
     #[test]
     fn saves_once_and_preserves_identity_across_restart() {
