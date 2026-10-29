@@ -367,6 +367,22 @@ const reps: Record<string, number> = {
   'kettlebell-lateral-step-up': 6,
   'kettlebell-half-snatch': 4,
   'kettlebell-goblet-split-squat': 6,
+  'worlds-greatest-stretch': 6,
+  'walking-knee-hug': 10,
+  'walking-quad-pull': 10,
+  'standing-torso-rotation': 20,
+  'scapular-wall-slide': 10,
+  'high-knee-march': 20,
+  'lateral-lunge-shift': 10,
+  'walking-leg-cradle': 10,
+  'straight-leg-kick-walk': 10,
+  'half-kneeling-thoracic-rotation': 10,
+  'squat-to-stand': 6,
+  'kneeling-ankle-rock': 10,
+  'standing-side-reach': 12,
+  'reverse-lunge-overhead-reach': 8,
+  'standing-cat-camel': 8,
+  'supine-knee-drop': 10,
 };
 export function defaultEmomTarget(entry: ExerciseEntry): ExerciseTarget {
   const count = reps[entry.catalogId ?? entry.id];

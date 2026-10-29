@@ -2,6 +2,7 @@ import type { ExerciseTarget, TargetUnit } from '@nextround/core';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { categories, type EquipmentId, equipmentLabels } from '@/data/equipment';
 import { type FocusArea, focusAreas } from '@/data/focus';
+import { type Phase, phaseLabels } from '@/data/phases';
 import { assertStorageReady } from '../backup/gate';
 export type PersonalExercise = {
   id: string;
@@ -10,6 +11,7 @@ export type PersonalExercise = {
   category: (typeof categories)[number];
   equipment: EquipmentId[];
   targetAreas: FocusArea[];
+  phases?: Phase[];
   supportedUnits: TargetUnit[];
   defaultTarget?: ExerciseTarget;
   sourceId?: string;
@@ -55,6 +57,7 @@ export function parsePersonalDocument(value: unknown): PersonalDocument {
       'category',
       'equipment',
       'targetAreas',
+      'phases',
       'supportedUnits',
       'defaultTarget',
       'sourceId',
@@ -77,6 +80,7 @@ export function parsePersonalDocument(value: unknown): PersonalDocument {
     ids.add(e.id);
     list(e.equipment, Object.keys(equipmentLabels));
     list(e.targetAreas, Object.keys(focusAreas));
+    if (e.phases !== undefined) list(e.phases, Object.keys(phaseLabels));
     list(e.supportedUnits, units, true);
     if (
       e.sourceId !== undefined &&

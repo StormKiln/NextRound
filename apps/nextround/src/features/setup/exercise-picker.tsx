@@ -2,6 +2,7 @@ import type { ExerciseEntry } from '@nextround/core';
 import { countLabel } from '@nextround/core';
 import { Plus } from 'lucide-react';
 import { expandedAreasFor, focusAreas, type PickerView } from '@/data/focus';
+import { phaseLabels, phasesFor } from '@/data/phases';
 import { FavoriteButton } from '../exercises/favorite-button';
 
 import { matchesExercise, normalizeSearch } from './exercise-suggestions';
@@ -62,6 +63,13 @@ export function ExerciseGroups({
               <span>
                 <strong>{entry.name}</strong>
                 <small>{entry.description}</small>
+                {phasesFor(entry).length > 0 && (
+                  <small>
+                    {phasesFor(entry)
+                      .map((phase) => phaseLabels[phase])
+                      .join(' · ')}
+                  </small>
+                )}
                 {note && <small>{note(entry)}</small>}
                 <small>
                   {counts

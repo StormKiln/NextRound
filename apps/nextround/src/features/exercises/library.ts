@@ -24,6 +24,7 @@ export function mergeLibrary(
           category: e.category,
           equipment: [...e.equipment],
           targetAreas: [...e.targetAreas],
+          ...(e.phases?.length ? { phases: [...e.phases] } : {}),
           aliases: [],
         },
       })),

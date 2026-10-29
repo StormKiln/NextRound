@@ -1630,6 +1630,9 @@ textarea {
   margin-bottom: 8px;
   padding-bottom: 8px;
 }
+.picker-body .focus-controls.with-phase {
+  grid-template-columns: auto minmax(100px, 1fr) auto auto;
+}
 .picker-body .focus-controls > label,
 .picker-body .focus-controls > details {
   margin: 0;
@@ -1941,4 +1944,19 @@ fieldset.library-secondary-actions {
 .fill-preview button[aria-pressed="true"] {
   outline: 2px solid var(--primary, #f97316);
   outline-offset: 2px;
+}
+
+.phase-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block: 0 8px;
+}
+.phase-filter > label {
+  margin: 0;
+  white-space: nowrap;
+}
+.phase-filter > select {
+  flex: 1;
+  min-width: 0;
 }
