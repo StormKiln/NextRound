@@ -701,6 +701,8 @@ export const useWorkout = create<State>((set, get) => {
           set({ readError: null });
           const state = get();
           const run = state.run;
+          // After a cool-down the timer holds that block; the main workout's snapshot stays put.
+          if (run?.stage === 'done') return;
           if (run && (run.stage === 'warmup' || run.stage === 'cooldown')) {
             if (!run.snapshot) return;
             set({ run: { ...run, snapshot } });

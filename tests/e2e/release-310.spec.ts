@@ -19,7 +19,9 @@ for (const mode of ['emom', 'countdown', 'intervals', 'amrap', 'for-time', 'ladd
     await expect(options.locator('output')).toHaveText('5 min');
     const movements = options.getByRole('list', { name: 'Warm-up movements' }).locator('li');
     await expect(movements).toHaveCount(5);
-    await expect(options.getByRole('status')).toContainText(/warm-up and cool-down/i);
+    await expect(
+      options.getByText(/with warm-up and cool-down|warm-up and cool-down add/i),
+    ).toBeVisible();
     await length.fill('3');
     await expect(movements).toHaveCount(3);
     await warmup.uncheck();

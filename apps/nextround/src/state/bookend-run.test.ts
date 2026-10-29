@@ -85,6 +85,10 @@ it('runs the warm-up, the workout and the cool-down, keeping one main result', a
   expect(useWorkout.getState().pendingResult).toMatchObject({ cooldownMs: 60000 });
   expect(adapter.setTrainingGuard).toHaveBeenLastCalledWith(false);
   expect(adapter.resolveResult).toHaveBeenCalledTimes(3);
+  // The timer now holds the cool-down; polling must keep showing the main workout.
+  adapter.readWorkout.mockResolvedValueOnce(done(configAt(2)));
+  await useWorkout.getState().poll();
+  expect(useWorkout.getState().snapshot?.config).toEqual(main);
 
   expect(await useWorkout.getState().saveResult(write)).toBe(true);
   expect(write).toHaveBeenCalledWith({
