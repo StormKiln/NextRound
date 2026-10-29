@@ -1,6 +1,6 @@
 # NextRound Privacy Policy
 
-Effective date: October 17, 2026
+Effective date: October 28, 2026
 
 This policy describes the macOS NextRound app distributed through the Mac App Store, TestFlight, and the public [StormKiln/NextRound repository](https://github.com/StormKiln/NextRound). NextRound is maintained by StormKiln.
 

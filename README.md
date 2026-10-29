@@ -6,7 +6,13 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 2.12.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-2.12.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 3.0.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.0.0.md) · [Privacy policy](PRIVACY.md)
+
+## Train with Spotify
+
+Turn on **Play and pause Spotify with workouts** in Settings → General. Starting or resuming a workout plays the Spotify desktop app, pausing or finishing pauses it, and the current track appears in the workout. It's off by default, macOS asks for permission first, and NextRound never opens Spotify for you.
+
+Timing cues are redesigned to stay clear over music, and exercises with a seconds target, such as a 40-second plank in an EMOM, now play a distinct cue when the time is up.
 
 ## Swap one suggestion
 
