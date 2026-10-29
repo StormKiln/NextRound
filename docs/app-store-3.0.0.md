@@ -1,0 +1,5 @@
+# App Store / TestFlight 3.0.0
+
+Train to your own music. Optional Spotify control plays and pauses the Spotify desktop app with your workout and shows the current track. Redesigned timing cues stay clear over music, and a new cue tells you when a timed hold, like a 40-second plank, is done.
+
+Review notes: No account, paid content, public user-generated content or external service is required for core functionality. Data stays on the Mac. App Store/TestFlight builds update through Apple. Spotify control is optional and off by default. It uses Apple Events only for the Spotify desktop app (com.spotify.client), limited by the scripting-targets entitlement to Spotify's playback and library access groups. macOS asks for consent when the setting is turned on. NextRound never launches Spotify. Test without Spotify: start an EMOM with an exercise target of 20 seconds and hear the done cue 20 seconds into the minute. Test with Spotify: open Spotify, turn on Settings → General → Play and pause Spotify with workouts, allow access, then start, pause, resume and stop a workout while watching playback and the now-playing line.
