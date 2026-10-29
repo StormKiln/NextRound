@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Play, Repeat2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BookendControls } from '@/features/setup/bookend-controls';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
 import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 import { SaveWorkoutButton } from '@/features/templates';
@@ -74,6 +75,7 @@ export function IntervalsSetup() {
               ? `${formatTime(durationSeconds(config) * 1000)} total, excluding lead-in and pauses.`
               : 'Choose whole durations and rounds, up to 24 hours total.'}
           </p>
+          <BookendControls mode="intervals" />
           <SetupErrors errors={errors} mode="intervals" />
           {error && (
             <p className="error" role="alert">

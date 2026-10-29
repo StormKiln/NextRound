@@ -2,6 +2,7 @@ import { type LadderConfig, type LadderPattern, ladderReps } from '@nextround/co
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BookendControls } from '@/features/setup/bookend-controls';
 import { ExerciseEditor } from '@/features/setup/exercise-editor';
 import { SetupErrors, useSetupValidation } from '@/features/setup/validation';
 import { SaveWorkoutButton } from '@/features/templates';
@@ -121,6 +122,7 @@ export function LadderSetup() {
                 );
               })}
           </div>
+          <BookendControls mode="ladder" />
           <SetupErrors errors={errors} mode="ladder" />
           {error && <p role="alert">{error}</p>}
           <Button

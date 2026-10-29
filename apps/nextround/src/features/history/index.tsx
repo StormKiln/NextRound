@@ -20,6 +20,7 @@ import {
 import { readTraining, trainingKey } from '@/features/sessions/repository';
 import { fullscreen } from '@/native/adapter';
 import { useWorkout } from '@/state/workout';
+import { bookendSummary } from './bookend-summary';
 import { mutateHistoryIntoCache, readHistoryIntoCache } from './cache';
 import { ComparisonView } from './comparison-view';
 import { DateControls, useCalendarNow } from './date-controls';
@@ -323,6 +324,7 @@ export function History() {
                 active time · {countLabel(result.config.exercises?.length ?? 0, 'exercise')}
                 {result.outcome &&
                   ` · ${result.outcome === 'finished' ? 'Finished' : 'Time cap reached'}`}
+                {bookendSummary(result) && ` · ${bookendSummary(result)}`}
               </p>
             </div>
             <div className="template-actions">
@@ -561,6 +563,7 @@ function ResultSnapshot({ result }: { result: WorkoutResult }) {
           ? formatElapsed(result.elapsedMs)
           : formatTime(result.elapsedMs)}{' '}
         active workout time
+        {bookendSummary(result) && ` · ${bookendSummary(result)}`}
       </p>
       <p>
         {result.config.type === 'forTime' || result.config.type === 'ladder'
