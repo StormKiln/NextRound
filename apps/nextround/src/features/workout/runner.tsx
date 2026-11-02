@@ -61,6 +61,9 @@ export function Runner({ embedded = false }: { embedded?: boolean }) {
     : emom && s.roundIndex < rounds - 1
       ? next?.target
       : undefined;
+  // The lead-in already describes the first movement above, so only later rounds preview it here.
+  const upcomingDescription =
+    !lead && emom && s.roundIndex < rounds - 1 ? next?.description : undefined;
   const warning =
     (!forTime ||
       lead ||
@@ -246,6 +249,11 @@ export function Runner({ embedded = false }: { embedded?: boolean }) {
                     : next?.name}
                 {upcomingTarget && ` · ${formatTarget(upcomingTarget)}`}
               </strong>
+              {upcomingDescription && (
+                <p className="up-next-description" data-testid="next-description">
+                  {upcomingDescription}
+                </p>
+              )}
             </div>
           )}
         </section>

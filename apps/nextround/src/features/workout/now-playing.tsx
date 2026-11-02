@@ -35,7 +35,7 @@ export function NowPlaying() {
     <section className="now-playing" aria-label="Spotify now playing">
       {track && (
         <p>
-          {track.artworkUrl ? <img src={track.artworkUrl} alt="" /> : <Music size={16} />}
+          {track.artworkUrl ? <img src={track.artworkUrl} alt="" /> : <Music size={32} />}
           <span>
             <strong>{track.name}</strong>
             {track.artist && ` · ${track.artist}`}
