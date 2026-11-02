@@ -4,6 +4,8 @@ const upNextName = async (page: Page) =>
   ((await page.locator('.up-next strong').textContent()) ?? '').split(' · ')[0];
 
 test('EMOM previews the next movement description and keeps controls in view', async ({ page }) => {
+  // A minute of fake time renders every tick; slower CI runners exceed the default 30 s budget.
+  test.setTimeout(90000);
   await page.setViewportSize({ width: 760, height: 620 });
   await page.clock.install();
   await page.goto('/emom');
@@ -36,6 +38,8 @@ test('EMOM previews the next movement description and keeps controls in view', a
 test('warm-up previews the next movement description outside the change window', async ({
   page,
 }) => {
+  // A minute of fake time renders every tick; slower CI runners exceed the default 30 s budget.
+  test.setTimeout(90000);
   await page.clock.install();
   await page.goto('/emom');
   await page.getByRole('checkbox', { name: 'Add a warm-up' }).check();
