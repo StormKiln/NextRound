@@ -84,7 +84,7 @@ test('runs warm-up, workout and cool-down in order and saves one result with bot
 
   await expect(page.locator('.runner-top .mode-pill')).toHaveText('Warm-up');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(firstWarmup ?? '');
-  await expect(page.getByText('Hold for 45 seconds')).toBeVisible();
+  await expect(page.getByText('Move for 45 seconds')).toBeVisible();
   if (process.env.NEXTROUND_CAPTURE)
     await page.screenshot({ path: 'docs/screenshots/warmup-runner.png' });
   await page.clock.runFor(46000);
@@ -94,6 +94,7 @@ test('runs warm-up, workout and cool-down in order and saves one result with bot
 
   await page.clock.runFor(10100);
   await expect(page.locator('.runner-top .mode-pill')).toHaveText('Cool-down');
+  await expect(page.getByText('Hold for 50 seconds')).toBeVisible();
   await page.getByRole('button', { name: 'Pause cool-down' }).click();
   await page.clock.runFor(5000);
   await page.getByRole('button', { name: 'Resume cool-down' }).click();

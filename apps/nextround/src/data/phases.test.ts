@@ -43,10 +43,10 @@ function byId(id: string) {
   return entry;
 }
 
-it('reads catalog tags, defaults untagged and strength movements to no phase', () => {
+it('reads catalog tags and keeps high-intensity movements out of both phases', () => {
   expect(phasesFor(byId('arm-circles'))).toEqual(['warmup']);
   expect(phasesFor(byId('childs-pose'))).toEqual(['cooldown']);
-  expect(phasesFor(byId('downward-facing-dog'))).toEqual(['warmup', 'cooldown']);
+  expect(phasesFor(byId('downward-facing-dog'))).toEqual(['warmup']);
   expect(phasesFor(byId('burpee'))).toEqual([]);
   expect(phasesFor({ id: 'unknown', name: 'Custom' })).toEqual([]);
   // Workout snapshots resolve tags through their catalog identity.
@@ -55,8 +55,13 @@ it('reads catalog tags, defaults untagged and strength movements to no phase', (
   );
   for (const [id, meta] of Object.entries(catalogMetadata))
     if (meta.phases?.length) {
-      expect(meta.trainingType, id).not.toBe('strength');
+      // Warm-ups include active bodyweight work (3.2.0); cool-downs stay low-intensity mobility.
+      if (meta.phases.includes('cooldown')) {
+        expect(meta.trainingType, id).not.toBe('strength');
+        expect(meta.intensity ?? 'low', id).toBe('low');
+      }
       expect(meta.intensity, id).not.toBe('high');
+      expect(meta.equipment, id).toEqual([]);
       expect(parsePhases(meta.phases), id).toEqual(meta.phases);
     }
 });

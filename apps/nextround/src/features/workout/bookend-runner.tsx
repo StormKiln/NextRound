@@ -40,7 +40,7 @@ export function BookendRunner() {
   const next = movements[(s.exerciseIndex + 1) % Math.max(1, movements.length)];
   const last = s.roundIndex === (plan?.minutes ?? 1) - 1;
   const position = 60000 - s.roundRemainingMs;
-  const changing = !lead && position >= BOOKEND_HOLD_SECONDS * 1000;
+  const changing = !lead && position >= BOOKEND_HOLD_SECONDS[stage] * 1000;
   const fraction = lead
     ? s.roundRemainingMs / Math.max(1, s.config.leadInSeconds * 1000)
     : s.roundRemainingMs / 60000;
@@ -74,7 +74,7 @@ export function BookendRunner() {
                 ? 'Take a breath. Resume when ready.'
                 : changing
                   ? 'Change position'
-                  : `Hold for ${BOOKEND_HOLD_SECONDS} seconds`}
+                  : `${stage === 'warmup' ? 'Move' : 'Hold'} for ${BOOKEND_HOLD_SECONDS[stage]} seconds`}
             </span>
           </div>
         </section>

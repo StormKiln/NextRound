@@ -23,3 +23,7 @@ export function phasesFor(entry: ExerciseEntry): Phase[] {
 export function matchesPhase(entry: ExerciseEntry, phase: Phase) {
   return phasesFor(entry).includes(phase);
 }
+// Warm-ups open with dynamic mobility before active movement. Entries without a training type count as active.
+export function isMobility(entry: ExerciseEntry) {
+  return metadataFor(entry)?.trainingType === 'mobility';
+}

@@ -1,11 +1,14 @@
 import { type ExerciseEntry, validateConfig } from '@nextround/core';
 import { expect, it, vi } from 'vitest';
 
+// The description stands in for the phase tag; a "mobility" name prefix marks mobility work.
 vi.mock('@/data/phases', () => ({
   matchesPhase: (entry: ExerciseEntry, phase: string) => entry.description === phase,
+  isMobility: (entry: ExerciseEntry) => entry.id.startsWith('mobility'),
 }));
 
 import {
+  BOOKEND_HOLD_SECONDS,
   BOOKENDS_STORAGE_KEY,
   bookendConfig,
   bookendSeconds,
@@ -78,11 +81,13 @@ it('picks one distinct timed movement per minute from the phase pool', () => {
   expect(new Set(picked.map((e) => e.catalogId)).size).toBe(2);
   for (const e of picked) {
     expect(['circles', 'swings', 'hips']).toContain(e.catalogId);
-    expect(e.target).toEqual({ unit: 'seconds', value: 45 });
+    expect(e.target).toEqual({ unit: 'seconds', value: BOOKEND_HOLD_SECONDS.warmup });
     expect(e.id).not.toBe(e.catalogId);
   }
   expect(pickBookend(library, 'warmup', 15)).toHaveLength(3);
-  expect(pickBookend(library, 'cooldown', 5).map((e) => e.catalogId)).toEqual(['pose']);
+  const cooldown = pickBookend(library, 'cooldown', 5);
+  expect(cooldown.map((e) => e.catalogId)).toEqual(['pose']);
+  expect(cooldown[0].target).toEqual({ unit: 'seconds', value: BOOKEND_HOLD_SECONDS.cooldown });
   expect(pickBookend([], 'cooldown', 5)).toEqual([]);
 });
 
@@ -100,4 +105,55 @@ it('builds a valid one-movement-per-minute config and totals enabled time', () =
       cooldown: { enabled: true, minutes: 3 },
     }),
   ).toBe(480);
+});
+
+it('holds cool-down stretches longer than warm-up efforts, inside the minute', () => {
+  expect(BOOKEND_HOLD_SECONDS).toEqual({ warmup: 45, cooldown: 50 });
+});
+
+const ramp = [
+  ...['mobility-a', 'mobility-b', 'mobility-c', 'mobility-d'].map((id) => entry(id, 'warmup')),
+  ...['jacks', 'squats', 'shuffle', 'lunges', 'kicks', 'bridges'].map((id) => entry(id, 'warmup')),
+];
+const isMobilityId = (id?: string) => !!id?.startsWith('mobility');
+
+it('opens a warm-up with about a third mobility, then active movement', () => {
+  for (const [minutes, opening] of [
+    [1, 1],
+    [3, 1],
+    [5, 2],
+    [6, 2],
+    [9, 3],
+  ] as const) {
+    const ids = pickBookend(ramp, 'warmup', minutes).map((e) => e.catalogId);
+    expect(ids).toHaveLength(minutes);
+    expect(ids.slice(0, opening).every(isMobilityId), `${minutes}: ${ids}`).toBe(true);
+    expect(ids.slice(opening).some(isMobilityId), `${minutes}: ${ids}`).toBe(false);
+  }
+});
+
+it('fills a warm-up from the other group when one runs short', () => {
+  // Six active movements cannot fill ten minutes, so mobility covers the rest up front.
+  const ten = pickBookend(ramp, 'warmup', 10).map((e) => e.catalogId);
+  expect(ten.slice(0, 4).every(isMobilityId)).toBe(true);
+  expect(ten.slice(4).some(isMobilityId)).toBe(false);
+  // Without mobility the warm-up is all active; without active work it is all mobility.
+  const active = ramp.filter((e) => !isMobilityId(e.id));
+  expect(pickBookend(active, 'warmup', 4)).toHaveLength(4);
+  const mobility = ramp.filter((e) => isMobilityId(e.id));
+  expect(
+    pickBookend(mobility, 'warmup', 3)
+      .map((e) => e.catalogId)
+      .every(isMobilityId),
+  ).toBe(true);
+  expect(pickBookend(mobility, 'warmup', 3)).toHaveLength(3);
+});
+
+it('does not reorder cool-downs by training type', () => {
+  const stretches = ['mobility-x', 'deep', 'mobility-y'].map((id) => entry(id, 'cooldown'));
+  expect(pickBookend(stretches, 'cooldown', 3, () => 0.99).map((e) => e.catalogId)).toEqual([
+    'mobility-x',
+    'deep',
+    'mobility-y',
+  ]);
 });

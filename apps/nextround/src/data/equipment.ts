@@ -315,6 +315,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     trainingType: 'strength',
     intensity: 'moderate',
     aliases: ['straight leg kick crunch'],
+    phases: ['warmup'],
   },
   'plank-kick-through': {
     equipment: [],
@@ -380,6 +381,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     trainingType: 'mobility',
     intensity: 'low',
     aliases: ['malasana'],
+    phases: ['cooldown'],
   },
   'hero-pose': {
     equipment: [],
@@ -423,7 +425,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     trainingType: 'mobility',
     intensity: 'low',
     aliases: ['makarasana'],
-    phases: ['cooldown'],
   },
   'mountain-pose': {
     equipment: [],
@@ -742,7 +743,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['back', 'shoulders'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'pushup-leg-raise': {
     equipment: [],
@@ -767,7 +767,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['arms', 'shoulders'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
   },
   'forward-lunge-arm-drivers': {
     equipment: [],
@@ -776,6 +775,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['legs', 'glutes', 'whole-body'],
     trainingType: 'strength',
     intensity: 'moderate',
+    phases: ['warmup'],
   },
   'standing-lunge-stretch': {
     equipment: [],
@@ -897,7 +897,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['core', 'back'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'supine-corkscrew': {
     equipment: [],
@@ -914,7 +913,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['core', 'back'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'prone-single-leg-kick': {
     equipment: [],
@@ -1028,7 +1026,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['standing shoulder rolls'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'supine-heel-slide': {
     equipment: [],
@@ -1037,7 +1034,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['supine heel slides'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'bent-knee-fallout': {
     equipment: [],
@@ -1110,7 +1106,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['seated trunk rotations', 'seated upper body twists'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'side-lying-open-book': {
     equipment: [],
@@ -1119,7 +1114,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['side lying open books', 'open book rotations'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'thread-the-needle': {
     equipment: [],
@@ -1128,7 +1122,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['thread the needle stretches', 'threading the needle'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'quadruped-rockback': {
     equipment: [],
@@ -1137,7 +1130,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['quadruped rock backs', 'quadruped rockbacks'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'sideways-walk': {
     equipment: [],
@@ -1190,7 +1182,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['supine snow angels'],
     trainingType: 'mobility',
     intensity: 'moderate',
-    phases: ['warmup'],
   },
   'seated-side-straddle-stretch': {
     equipment: [],
@@ -1240,7 +1231,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['standing ankle mobilizations'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
   },
   'standing-calf-stretch': {
     equipment: [],
@@ -1355,20 +1345,19 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Other bodyweight',
     targetAreas: ['core'],
     aliases: ['pelvic tilts'],
-    phases: ['warmup'],
   },
   'standing-chest-stretch': {
     equipment: [],
     category: 'Other bodyweight',
     targetAreas: ['chest', 'shoulders'],
     aliases: ['chest opener'],
-    phases: ['cooldown'],
   },
   'standing-gate-opener': {
     equipment: [],
     category: 'Other bodyweight',
     targetAreas: ['legs', 'glutes', 'core'],
     aliases: ['gate openers', 'hip opener'],
+    trainingType: 'mobility',
     phases: ['warmup'],
   },
   'triangle-side-stretch': {
@@ -1383,6 +1372,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Squats',
     targetAreas: ['legs', 'glutes', 'whole-body'],
     aliases: ['sumo rotational squats'],
+    phases: ['warmup'],
   },
   'single-leg-balance': {
     equipment: [],
@@ -1480,6 +1470,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     equipment: [],
     category: 'Push-ups',
     aliases: [],
+    phases: ['warmup'],
   },
   situp: { targetAreas: ['core'], equipment: [], category: 'Other bodyweight', aliases: [] },
   burpee: {
@@ -1702,6 +1693,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     equipment: [],
     category: 'Other bodyweight',
     aliases: ['hip bridge'],
+    phases: ['warmup'],
   },
   'mountain-climber': {
     targetAreas: ['whole-body', 'core', 'legs'],
@@ -1744,6 +1736,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     equipment: [],
     category: 'Other bodyweight',
     aliases: ['walk out', 'inchworm'],
+    trainingType: 'mobility',
     phases: ['warmup'],
   },
   'dumbbell-goblet-squat': {
@@ -1872,6 +1865,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Other bodyweight',
     aliases: ['lateral lunges', 'bodyweight lateral lunges'],
     targetAreas: ['legs', 'glutes'],
+    phases: ['warmup'],
   },
   'forward-lunge': {
     equipment: [],
@@ -1914,6 +1908,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Other bodyweight',
     aliases: ['bear crawls'],
     targetAreas: ['whole-body', 'core', 'shoulders'],
+    phases: ['warmup'],
   },
   'crab-walk': {
     equipment: [],
@@ -1926,18 +1921,21 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Cardio',
     aliases: ['knee drives', 'standing alternating knee drives'],
     targetAreas: ['legs', 'core'],
+    phases: ['warmup'],
   },
   'step-jack': {
     equipment: [],
     category: 'Cardio',
     aliases: ['step jacks'],
     targetAreas: ['whole-body'],
+    phases: ['warmup'],
   },
   'jumping-jack': {
     equipment: [],
     category: 'Cardio',
     aliases: ['jumping jacks'],
     targetAreas: ['whole-body'],
+    phases: ['warmup'],
   },
   'abdominal-crunch': {
     equipment: [],
@@ -2220,6 +2218,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Other bodyweight',
     aliases: ['cat cow stretch'],
     targetAreas: ['core', 'back'],
+    trainingType: 'mobility',
     phases: ['warmup'],
   },
   'childs-pose': {
@@ -2247,7 +2246,8 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     category: 'Other bodyweight',
     aliases: ['downward dog'],
     targetAreas: ['shoulders', 'back', 'legs'],
-    phases: ['warmup', 'cooldown'],
+    trainingType: 'mobility',
+    phases: ['warmup'],
   },
   'diagonal-glute-lunge': {
     equipment: [],
@@ -2914,7 +2914,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['ninety ninety hip switches'],
     intensity: 'low',
     trainingType: 'mobility',
-    phases: ['warmup'],
   },
   'rock-back-thoracic-rotation': {
     category: 'Other bodyweight',
@@ -2923,7 +2922,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['rock back extension rotation'],
     intensity: 'low',
     trainingType: 'mobility',
-    phases: ['warmup'],
   },
   'butt-kicks': {
     category: 'Cardio',
@@ -2932,6 +2930,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['butt kickers'],
     intensity: 'moderate',
     trainingType: 'strength',
+    phases: ['warmup'],
   },
   'dumbbell-cuban-press': {
     category: 'Dumbbell',
@@ -3020,7 +3019,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['ankle rotations'],
     intensity: 'low',
     trainingType: 'mobility',
-    phases: ['warmup'],
   },
   'wrist-circles': {
     category: 'Other bodyweight',
@@ -3029,7 +3027,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['wrist rotations'],
     intensity: 'low',
     trainingType: 'mobility',
-    phases: ['warmup'],
   },
   'standing-hip-circles': {
     category: 'Other bodyweight',
@@ -3056,6 +3053,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['side shuffle'],
     intensity: 'moderate',
     trainingType: 'strength',
+    phases: ['warmup'],
   },
   'grapevine-step': {
     category: 'Other bodyweight',
@@ -3073,6 +3071,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['seal jumping jack'],
     intensity: 'moderate',
     trainingType: 'strength',
+    phases: ['warmup'],
   },
   'cross-jack': {
     category: 'Cardio',
@@ -3081,6 +3080,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     aliases: ['crossover jack'],
     intensity: 'moderate',
     trainingType: 'strength',
+    phases: ['warmup'],
   },
   'standing-quad-stretch': {
     category: 'Other bodyweight',
@@ -3203,6 +3203,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     trainingType: 'strength',
     intensity: 'moderate',
     aliases: ['squat heel raise'],
+    phases: ['warmup'],
   },
   'lateral-squat-walk': {
     category: 'Squats',
@@ -3211,6 +3212,7 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     trainingType: 'strength',
     intensity: 'moderate',
     aliases: ['unbanded lateral squat steps'],
+    phases: ['warmup'],
   },
   'single-leg-calf-raise': {
     category: 'Other bodyweight',
@@ -3448,7 +3450,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['legs'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['warmup'],
     aliases: ['ankle rocks', 'knee over toe rock'],
   },
   'standing-side-reach': {
@@ -3493,7 +3494,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['legs', 'back'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
     aliases: ['viparita karani', 'wall leg rest'],
   },
   'doorway-chest-stretch': {
@@ -3547,7 +3547,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['arms'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
     aliases: ['kneeling forearm stretch', 'reverse wrist stretch'],
   },
   'corpse-pose': {
@@ -3556,7 +3555,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['whole-body'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
     aliases: ['savasana', 'final relaxation'],
   },
   'seated-neck-side-stretch': {
@@ -3565,7 +3563,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['shoulders', 'back'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
     aliases: ['neck side bend', 'upper trap stretch'],
   },
   'wall-lat-stretch': {
@@ -3583,7 +3580,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['legs'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
     aliases: ['toe squat', 'tucked toe kneel'],
   },
   'supine-knee-drop': {
@@ -3592,7 +3588,6 @@ export const catalogMetadata: Record<string, CatalogMetadata> = {
     targetAreas: ['back', 'core', 'glutes'],
     trainingType: 'mobility',
     intensity: 'low',
-    phases: ['cooldown'],
     aliases: ['windshield wiper stretch', 'supine knee sway'],
   },
   'easy-pose-forward-fold': {

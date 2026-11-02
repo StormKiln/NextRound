@@ -1,12 +1,13 @@
 import type { EmomConfig, ExerciseEntry } from '@nextround/core';
-import { matchesPhase, type Phase } from '@/data/phases';
+import { isMobility, matchesPhase, type Phase } from '@/data/phases';
 import { toWorkoutEntry } from '@/features/exercises/library';
 
 export type BookendSetting = { enabled: boolean; minutes: number };
 export type BookendSettings = Record<Phase, BookendSetting>;
 export const BOOKEND_MINUTES = { min: 1, max: 15, default: 5 } as const;
-// Each minute holds one movement for 45 s, leaving 15 s to change position before the next beep.
-export const BOOKEND_HOLD_SECONDS = 45;
+// Each minute works one movement, leaving the rest of the minute to change position before the next
+// beep. Warm-ups move for 45 s; cool-down stretches hold for 50 s so they can settle deeper.
+export const BOOKEND_HOLD_SECONDS: Record<Phase, number> = { warmup: 45, cooldown: 50 };
 export const BOOKENDS_STORAGE_KEY = 'nextround.bookends.v1';
 export const defaultBookends = (): BookendSettings => ({
   warmup: { enabled: false, minutes: BOOKEND_MINUTES.default },
@@ -57,6 +58,23 @@ export function bookendPool(library: ExerciseEntry[], phase: Phase) {
       (!entry.supportedUnits || entry.supportedUnits.includes('seconds')),
   );
 }
+function shuffled<T>(items: T[], random: () => number) {
+  const pool = [...items];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool;
+}
+// Warm-ups ramp up: about the first third is dynamic mobility, the rest active movement. When
+// either group runs short the other fills in, so the block is as long as the pool allows.
+function rampWarmup(pool: ExerciseEntry[], minutes: number) {
+  const mobility = pool.filter(isMobility);
+  const active = pool.filter((entry) => !isMobility(entry));
+  const count = Math.min(minutes, pool.length);
+  const opening = Math.min(mobility.length, Math.max(Math.ceil(count / 3), count - active.length));
+  return [...mobility.slice(0, opening), ...active.slice(0, count - opening)];
+}
 // One distinct movement per minute; shorter pools rotate in order like any EMOM.
 export function pickBookend(
   library: ExerciseEntry[],
@@ -64,14 +82,11 @@ export function pickBookend(
   minutes: number,
   random = Math.random,
 ): ExerciseEntry[] {
-  const pool = [...bookendPool(library, phase)];
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  return pool.slice(0, minutes).map((entry) => ({
+  const pool = shuffled(bookendPool(library, phase), random);
+  const chosen = phase === 'warmup' ? rampWarmup(pool, minutes) : pool.slice(0, minutes);
+  return chosen.map((entry) => ({
     ...toWorkoutEntry(entry, 'emom'),
-    target: { unit: 'seconds' as const, value: BOOKEND_HOLD_SECONDS },
+    target: { unit: 'seconds' as const, value: BOOKEND_HOLD_SECONDS[phase] },
   }));
 }
 export function bookendConfig(
