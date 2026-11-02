@@ -68,3 +68,26 @@ test('warm-up previews the next movement description outside the change window',
   await page.getByRole('button', { name: 'Skip warm-up' }).click();
   await expect(page.locator('.runner-top .mode-pill')).toHaveText('EMOM');
 });
+
+test('captures the 3.2.0 workout screens for the README', async ({ page }) => {
+  test.skip(!process.env.NEXTROUND_CAPTURE, 'Only runs when capturing release screenshots.');
+  test.setTimeout(90000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.clock.install();
+  await page.goto('/emom');
+  await page.getByLabel('Lead-in seconds').fill('2');
+  await page.getByRole('button', { name: 'Start workout' }).click();
+  await page.clock.runFor(2500);
+  await expect(page.getByTestId('next-description')).toBeVisible();
+  await page.screenshot({ path: 'docs/screenshots/workout-runner-320.png' });
+  await page.getByRole('button', { name: 'Stop workout' }).click();
+  await page.getByRole('button', { name: 'End workout' }).click();
+
+  await page.goto('/emom');
+  await page.getByRole('checkbox', { name: 'Add a warm-up' }).check();
+  await page.getByLabel('Lead-in seconds').fill('2');
+  await page.getByRole('button', { name: 'Start workout' }).click();
+  await page.clock.runFor(2500);
+  await expect(page.getByText('Move for 45 seconds')).toBeVisible();
+  await page.screenshot({ path: 'docs/screenshots/warmup-runner-320.png' });
+});
