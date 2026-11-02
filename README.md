@@ -6,11 +6,23 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 3.1.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.1.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 3.2.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.2.0.md) · [Privacy policy](PRIVACY.md)
+
+## A workout screen you can read from across the room
+
+The timer keeps its size while the rest of the screen works harder. The current movement's name and description are much larger. **Next movement** shows the next movement's description, so you know what's coming before the beep, and the Spotify now-playing line is twice the size.
+
+![Workout screen with the current and next movement](docs/screenshots/workout-runner-320.png)
+
+Warm-ups now build from dynamic mobility into active movement such as jumping jacks, squats and lunges. Cool-downs focus on deep stretches held for 50 seconds.
+
+![Warm-up building into active movement](docs/screenshots/warmup-runner-320.png)
+
+These 3.2.0 Chromium captures use the browser build, which can't control Spotify.
 
 ## Warm up and cool down
 
-Check **Add a warm-up** or **Add a cool-down** in any workout setup and choose 1–15 minutes with the slider (5 by default). NextRound previews one movement per minute, which you can reshuffle. It runs the warm-up before your workout and the cool-down after, holding each movement for 45 seconds. Your workout's result, history and comparisons stay exactly as before.
+Check **Add a warm-up** or **Add a cool-down** in any workout setup and choose 1–15 minutes with the slider (5 by default). NextRound previews one movement per minute, which you can reshuffle. It runs the warm-up before your workout and the cool-down after: 45 seconds of movement per warm-up minute and a 50-second hold per cool-down stretch. Your workout's result, history and comparisons stay exactly as before.
 
 ![Warm-up and cool-down options](docs/screenshots/warmup-cooldown.png)
 
