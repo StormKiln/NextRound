@@ -492,28 +492,33 @@ textarea {
   color: #958b81;
   font-size: 11px;
 }
+.movement .eyebrow {
+  font-size: 15px;
+}
 .movement h1 {
-  font-size: clamp(34px, 4vw, 62px);
+  font-size: clamp(38px, 4.4vw, 76px);
   overflow-wrap: anywhere;
 }
 .movement h2 {
-  font-size: 24px;
+  font-size: clamp(24px, 2.6vw, 38px);
   margin-top: 15px;
 }
+/* Sized to read from across a room; the movement column scrolls when it runs long. */
 .movement-description {
-  color: #b7ada4;
-  line-height: 1.8;
-  font-size: 14px;
-  margin-top: 20px;
-  max-width: 48ch;
+  color: #c4bab1;
+  line-height: 1.5;
+  font-size: clamp(17px, 1.6vw, 24px);
+  margin-top: 18px;
+  max-width: 52ch;
   overflow-wrap: anywhere;
-  max-height: 180px;
-  overflow: auto;
+}
+.movement-description:empty {
+  display: none;
 }
 .total {
   border-top: 1px solid #3c332b;
   border-bottom: 1px solid #3c332b;
-  margin-top: 30px;
+  margin-top: 26px;
   padding: 20px 0;
   display: flex;
   justify-content: space-between;
@@ -530,18 +535,34 @@ textarea {
   font-weight: 500;
 }
 .up-next {
-  margin-top: 24px;
+  margin-top: 22px;
+  padding: 14px 18px;
+  border: 1px solid #34312e;
+  border-radius: 12px;
+  background: #1b1a19;
 }
 .up-next span {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   color: #aaa49e;
 }
 .up-next strong {
   display: block;
-  font-size: 18px;
+  font-size: clamp(20px, 2vw, 28px);
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.up-next-description {
+  color: #aaa49e;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
   margin-top: 8px;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
 }
 .runner-controls {
   display: flex;
@@ -571,15 +592,20 @@ textarea {
   gap: 6px;
   justify-items: center;
   color: #aaa49e;
-  font-size: 13px;
-  margin-bottom: 16px;
+  font-size: 26px;
+  margin-bottom: 14px;
+  min-width: 0;
 }
 .now-playing p {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
   margin: 0;
   max-width: 100%;
+  min-width: 0;
+}
+.now-playing p[role="status"] {
+  font-size: 15px;
 }
 .now-playing span {
   overflow: hidden;
@@ -590,9 +616,9 @@ textarea {
   color: #faf5ef;
 }
 .now-playing img {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 .complete {
@@ -703,14 +729,141 @@ textarea {
   .timer-digits {
     font-size: 78px;
   }
-  .movement-description {
-    max-height: 90px;
+  .now-playing {
+    font-size: 19px;
+  }
+  .now-playing img {
+    width: 40px;
+    height: 40px;
   }
   .complete-stats {
     gap: 30px;
   }
   .complete-actions {
     flex-direction: column;
+  }
+}
+/* Runners fill the window: the timer keeps its size, the movement column takes the rest and
+   scrolls on its own so long text never pushes the controls off-screen. AMRAP and Ladder use
+   .amrap-runner instead. */
+@media (min-width: 581px) {
+  .runner:not(.amrap-runner) {
+    height: calc(100dvh - 80px);
+    display: flex;
+    flex-direction: column;
+  }
+  .runner:not(.amrap-runner) > * {
+    flex-shrink: 0;
+  }
+  .runner:not(.amrap-runner) > .runner-content {
+    flex: 1 0 auto;
+    min-height: 0;
+    padding: 12px 0;
+  }
+  /* Size containment stops the column's text from growing the row past the timer. */
+  .runner:not(.amrap-runner) .movement {
+    contain: size;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 4px 6px;
+  }
+  .runner:not(.amrap-runner) .movement > * {
+    flex-shrink: 0;
+  }
+  /* A long description gives way first and scrolls, keeping the target and Up next in view. */
+  .runner:not(.amrap-runner) .movement > .movement-description {
+    flex-shrink: 1;
+    min-height: 4.5em;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .runner:not(.amrap-runner) .movement > :first-child {
+    margin-top: auto;
+  }
+  .runner:not(.amrap-runner) .movement > :last-child {
+    margin-bottom: auto;
+  }
+}
+/* Typical laptop heights, including the 1180x820 default window: tighten spacing first. */
+@media (min-width: 581px) and (max-height: 900px) {
+  .runner:not(.amrap-runner) .movement .eyebrow {
+    margin-bottom: 8px;
+  }
+  .runner:not(.amrap-runner) .movement h2 {
+    margin-top: 10px;
+  }
+  .runner:not(.amrap-runner) .movement-description {
+    margin-top: 12px;
+  }
+  .runner:not(.amrap-runner) .total {
+    margin-top: 16px;
+    padding: 12px 0;
+  }
+  .runner:not(.amrap-runner) .up-next {
+    margin-top: 16px;
+  }
+  .up-next-description {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+}
+/* Short windows, including the 760x620 minimum: trim chrome rather than the timer. */
+@media (min-width: 581px) and (max-height: 760px) {
+  .runner:not(.amrap-runner) {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+  .runner:not(.amrap-runner) > .runner-content {
+    padding: 8px 0;
+  }
+  .runner:not(.amrap-runner) .runner-controls {
+    padding-top: 12px;
+  }
+  .runner:not(.amrap-runner) .now-playing {
+    font-size: 19px;
+    margin-bottom: 8px;
+  }
+  .runner:not(.amrap-runner) .now-playing img {
+    width: 36px;
+    height: 36px;
+  }
+  .runner:not(.amrap-runner) .movement .eyebrow {
+    margin-bottom: 6px;
+  }
+  .runner:not(.amrap-runner) .movement h1 {
+    font-size: clamp(30px, 4.2vw, 64px);
+  }
+  .runner:not(.amrap-runner) .movement h2 {
+    font-size: clamp(21px, 2.4vw, 32px);
+    margin-top: 8px;
+  }
+  .runner:not(.amrap-runner) .movement-description {
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .runner:not(.amrap-runner) .movement > .movement-description {
+    min-height: 4.2em;
+  }
+  .runner:not(.amrap-runner) .total {
+    margin-top: 12px;
+    padding: 8px 0;
+  }
+  .runner:not(.amrap-runner) .total strong {
+    font-size: 26px;
+  }
+  .runner:not(.amrap-runner) .up-next {
+    margin-top: 12px;
+    padding: 10px 14px;
+  }
+  .up-next-description {
+    margin-top: 4px;
+    line-height: 1.4;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 }
 @media (prefers-reduced-motion: reduce) {

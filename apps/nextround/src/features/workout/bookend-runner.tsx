@@ -88,7 +88,9 @@ export function BookendRunner() {
                 : current?.name}
           </h1>
           {lead && <h2>{current?.name}</h2>}
-          <p className="movement-description">{current?.description}</p>
+          <p className="movement-description">
+            {changing && !last ? next?.description : current?.description}
+          </p>
           {!changing && current?.target && <h2>{formatTarget(current.target)}</h2>}
           <div className="total">
             <span>{label} remaining</span>
@@ -96,10 +98,21 @@ export function BookendRunner() {
               {formatTime(s.remainingMs)}
             </strong>
           </div>
-          <div className="up-next">
-            <span>{last && !lead ? `Last minute. ${after}` : 'Next movement'}</span>
-            <strong>{last && !lead ? 'Ease into it.' : lead ? current?.name : next?.name}</strong>
-          </div>
+          {/* While changing position the heading and description already show the next movement. */}
+          {!(changing && !last) && (
+            <div className="up-next">
+              <span>{last && !lead ? `Last minute. ${after}` : 'Next movement'}</span>
+              <strong>
+                {last && !lead ? 'Ease into it.' : lead ? current?.name : next?.name}
+                {!last && !lead && next?.target && ` · ${formatTarget(next.target)}`}
+              </strong>
+              {!last && !lead && next?.description && (
+                <p className="up-next-description" data-testid="next-description">
+                  {next.description}
+                </p>
+              )}
+            </div>
+          )}
         </section>
       </div>
       <NowPlaying />
