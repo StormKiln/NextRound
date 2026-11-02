@@ -32,15 +32,16 @@ it('adds thirty distinct warm-up and cool-down movements while preserving all 44
   for (const e of added)
     for (const label of [e.name, ...catalogMetadata[e.id].aliases])
       expect(prior).not.toContain(normalizeSearch(label));
-  expect(added.filter((e) => matchesPhase(e, 'warmup'))).toHaveLength(15);
-  expect(added.filter((e) => matchesPhase(e, 'cooldown'))).toHaveLength(15);
+  // 3.2.0 retagged the passive warm-up and light cool-down additions (#477, #478).
+  expect(added.filter((e) => matchesPhase(e, 'warmup'))).toHaveLength(14);
+  expect(added.filter((e) => matchesPhase(e, 'cooldown'))).toHaveLength(9);
 });
 
 it('gives every addition complete mobility metadata and targets for every mode', () => {
   for (const e of added) {
     const meta = catalogMetadata[e.id];
     const [phase] = phasesFor(e);
-    expect(phasesFor(e)).toHaveLength(1);
+    expect(phasesFor(e).length).toBeLessThanOrEqual(1);
     expect(meta.trainingType).toBe('mobility');
     expect(meta.intensity).toMatch(phase === 'cooldown' ? /^low$/ : /^(low|moderate)$/);
     expect(meta.equipment).toEqual([]);
@@ -67,7 +68,7 @@ it('gives every addition complete mobility metadata and targets for every mode',
     expect(defaultEmomTarget(e).unit).toBe('reps');
 });
 
-it('has a phase pool large enough for a fifteen-minute block and never tags strength work', () => {
+it('has a phase pool large enough for a fifteen-minute block without high-intensity work', () => {
   for (const phase of ['warmup', 'cooldown'] as Phase[]) {
     const pool = fillCandidates(exercises, [], 'emom', {
       ...emptyFillFilters,
@@ -76,7 +77,7 @@ it('has a phase pool large enough for a fifteen-minute block and never tags stre
     expect(pool.length).toBeGreaterThanOrEqual(15);
     expect(pool.every((e) => matchesPhase(e, phase))).toBe(true);
     for (const e of pool) {
-      expect(catalogMetadata[e.id].trainingType).not.toBe('strength');
+      if (phase === 'cooldown') expect(catalogMetadata[e.id].trainingType).not.toBe('strength');
       expect(catalogMetadata[e.id].intensity).not.toBe('high');
     }
   }

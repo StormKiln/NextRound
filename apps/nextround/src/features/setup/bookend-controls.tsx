@@ -17,9 +17,13 @@ import { useWorkout, type WorkoutMode } from '@/state/workout';
 import './bookend-controls.css';
 
 const copy: Record<Phase, { label: string; hint: string }> = {
-  warmup: { label: 'Add a warm-up', hint: 'Dynamic movements before your workout.' },
-  cooldown: { label: 'Add a cool-down', hint: 'Stretches and yoga poses after your workout.' },
+  warmup: {
+    label: 'Add a warm-up',
+    hint: 'Dynamic mobility that builds into active movement before your workout.',
+  },
+  cooldown: { label: 'Add a cool-down', hint: 'Deep stretches and yoga holds after your workout.' },
 };
+const pace: Record<Phase, string> = { warmup: 'move', cooldown: 'hold' };
 
 function BookendOption({ phase }: { phase: Phase }) {
   const id = useId();
@@ -78,8 +82,8 @@ function BookendOption({ phase }: { phase: Phase }) {
                 ))}
               </ol>
               <p className="hint">
-                One movement a minute: hold for {BOOKEND_HOLD_SECONDS} seconds, then move to the
-                next.
+                One movement a minute: {pace[phase]} for {BOOKEND_HOLD_SECONDS[phase]} seconds, then
+                change position for the next.
                 {preview.length < minutes ? ' Movements repeat in order to fill the time.' : ''}
               </p>
               <Button type="button" variant="secondary" onClick={shuffle}>
