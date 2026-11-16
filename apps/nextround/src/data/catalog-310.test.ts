@@ -8,7 +8,7 @@ import { catalogMetadata, eligibleExercise } from './equipment';
 import { exercises } from './exercises';
 import { matchesPhase, type Phase, phasesFor } from './phases';
 
-const added = exercises.slice(443);
+const added = exercises.slice(443, 473);
 const emptyFillFilters: FillFilters = {
   equipment: null,
   areas: [],
@@ -19,10 +19,10 @@ const emptyFillFilters: FillFilters = {
 };
 
 it('adds thirty distinct warm-up and cool-down movements while preserving all 443 existing records', () => {
-  expect(exercises).toHaveLength(473);
+  expect(exercises).toHaveLength(495);
   expect(exercises.slice(0, 443)).toEqual(baseline);
-  expect(new Set(exercises.map((e) => e.id)).size).toBe(473);
-  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(473);
+  expect(new Set(exercises.map((e) => e.id)).size).toBe(495);
+  expect(new Set(exercises.map((e) => e.name.toLowerCase())).size).toBe(495);
   const prior = exercises
     .slice(0, 443)
     .flatMap((e) => [
@@ -81,5 +81,5 @@ it('has a phase pool large enough for a fifteen-minute block without high-intens
       expect(catalogMetadata[e.id].intensity).not.toBe('high');
     }
   }
-  expect(fillCandidates(exercises, [], 'emom', emptyFillFilters)).toHaveLength(473);
+  expect(fillCandidates(exercises, [], 'emom', emptyFillFilters)).toHaveLength(495);
 });

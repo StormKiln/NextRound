@@ -3386,6 +3386,160 @@ export const exercises: ExerciseEntry[] = [
       'Lie on your back in a doorway with one leg through it. Rest the other heel up the frame and slide closer until the back of the thigh stretches gently, knee soft. Keep both hips down. Time is per side.',
     supportedUnits: ['seconds'],
   },
+  {
+    id: 'plank-knee-tap',
+    name: 'Plank knee tap',
+    description:
+      'From a high plank, draw one knee in under your chest and reach the opposite hand back to tap it, then return both to plank. Lift your hips slightly to make room and keep them level. Alternate sides; each tap counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'plank-rotation',
+    name: 'Plank rotation',
+    description:
+      'From a high plank, slowly drive one knee forward under your abdomen, letting your upper back round slightly as you pull it in. Pause, return the foot and switch. Move with control, not at a run. Each knee drive counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'plank-arm-leg-lift',
+    name: 'Plank with alternating arm and leg lift',
+    description:
+      'From a high plank with feet wide, lift one arm forward and the opposite leg behind you, pause, then lower both. Keep hips square and level. Lift only the arm to scale. Alternate sides; each lift counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'squat-cross-knee-crunch',
+    name: 'Squat cross-knee crunch',
+    description:
+      'Squat with hands behind your head. As you stand, drive one knee up and rotate your torso so the opposite elbow comes toward it. Lower the foot and squat again. Alternate sides; each squat and crunch counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'dead-stop-pushup',
+    name: 'Dead-stop push-up',
+    description:
+      'From a high plank, lower your chest all the way to the floor. Lift both hands briefly, set them back under your shoulders, then press up as one unit. Drop to your knees to scale. Each press back to plank counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-curl',
+    name: 'Kettlebell curl',
+    description:
+      'Stand tall holding a light bell by the handle or horns, palms up. Keep elbows by your sides as you curl it toward your chest, then lower slowly without swinging or leaning back. Each curl counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-sumo-squat',
+    name: 'Kettlebell sumo squat',
+    description:
+      'Stand wider than hip width with toes turned out, holding the bell by the horns between your legs. Sit straight down with knees tracking over toes and chest tall, then stand. Each squat counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-woodchopper',
+    name: 'Kettlebell woodchopper',
+    description:
+      'Hold a light bell by the horns above one shoulder. Rotate and bend your knees to chop it diagonally past the opposite knee, pivoting the back foot, then return the same way. Choose a side for the interval; each chop counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-ballistic-row',
+    name: 'Kettlebell ballistic row',
+    description:
+      'Hinge with soft knees and a light bell in one hand. Row it briskly so it floats at the top, switch hands there, then lower with control and row again. Keep the bell close and feet clear. Each row counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-curl-pullover',
+    name: 'Kettlebell curl to pullover',
+    description:
+      'Stand holding a light bell by the horns. Curl it to your chest, then continue the arc up and back overhead with elbows soft. Keep ribs down; do not arch. Return the same way. Each curl, pullover and return counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-crush-press',
+    name: 'Kettlebell crush-grip overhead press',
+    description:
+      'Hold one bell by its body at chest height, squeezing it firmly between both palms. Brace and press it straight overhead without arching your back, then lower to the chest. Keep the squeeze throughout. Each press counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-squat-calf-raise',
+    name: 'Kettlebell squat to calf raise',
+    description:
+      'Hold the bell at your chest in a goblet grip. Squat with control, stand, then rise onto the balls of both feet without jumping and lower your heels. Use a lighter bell if balance wobbles. Each squat and raise counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-situp-stand',
+    name: 'Kettlebell sit-up to stand',
+    description:
+      'Lie on your back with knees bent, a light bell hugged to your chest. Sit up, plant your feet and stand, posting one hand on the floor if needed. Reverse slowly to lying. Each sit-up and stand counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-overhead-triceps-extension',
+    name: 'Kettlebell overhead triceps extension',
+    description:
+      'Hold a light bell by the horns behind your head, elbows pointing up and close together. Straighten your arms to lift it overhead, then bend the elbows to lower it slowly. Keep ribs down. Each extension counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-floor-pullover',
+    name: 'Kettlebell floor pullover',
+    description:
+      'Lie with knees bent and a light bell held by the horns above your chest. With elbows soft, lower it slowly behind your head toward the floor, then pull it back over your chest. Keep your lower back down. Each pullover counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-overhead-march',
+    name: 'Kettlebell overhead march',
+    description:
+      'Press one bell overhead, arm locked and biceps by your ear. March in place, driving one knee toward your chest at a time without leaning. Lower the bell if the arm drifts. Choose an arm for the interval; each knee drive counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-iron-trident',
+    name: 'Kettlebell iron trident',
+    description:
+      'Sit tall with legs wide and the bell beside one hip. Lift it with both hands and set it down in front of you, then beside the other hip, and work back. Keep your chest up; bend your knees to scale. Each placement counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-kneeling-swing-press',
+    name: 'Kneeling kettlebell swing press',
+    description:
+      'Kneel tall holding a light bell in one hand. Swing it back beside your hip, then forward and up in one arc into an overhead press. Lower and switch hands. Keep glutes tight. Alternate sides; each press counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-deep-squat-curl-press',
+    name: 'Kettlebell deep squat, curl and press',
+    description:
+      'Hold the bell by the horns at arm’s length and squat as deep as you comfortably can. Curl it to your chest at the bottom, then drive up and press it overhead. Lower to the chest, then to the start. Each full sequence counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-goblet-reverse-lunge',
+    name: 'Kettlebell goblet reverse lunge',
+    description:
+      'Hold the bell at your chest with both hands. Step back, lower until both knees bend comfortably, then drive through the front foot to stand. Keep your torso tall. Alternate legs; each lunge counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-gladiator-deadlift',
+    name: 'Kettlebell gladiator deadlift',
+    description:
+      'Set the bell outside one foot. Reach across with the opposite hand, hinge with a long back and soft knees, and stand tall. Hinge again to set it outside the other foot. Alternate sides; each lift and lower counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
+  {
+    id: 'kettlebell-split-stance-row',
+    name: 'Kettlebell split-stance row',
+    description:
+      'Stand in a split stance with the bell in the hand opposite your front leg. Hinge forward, keep hips square and row toward your back pocket, then lower with control. Choose a side for the interval; each row counts as one rep.',
+    supportedUnits: ['reps', 'seconds'],
+  },
 ];
 
 export async function listExercises() {
