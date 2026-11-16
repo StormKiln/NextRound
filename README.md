@@ -6,7 +6,11 @@ Plan your workout. Run the clock. Track your progress.
 
 NextRound is an offline workout timer and planner for **Apple Silicon Macs running macOS 14 or later**. No account is required. Workouts, personal exercises, preferences and saved results stay on your Mac.
 
-**Current release: 3.2.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.2.0.md) · [Privacy policy](PRIVACY.md)
+**Current release: 3.3.0.** [Download for macOS](https://github.com/StormKiln/NextRound/releases/latest) · [Release notes](docs/release-notes-3.3.0.md) · [Privacy policy](PRIVACY.md)
+
+## All your favorites in one place
+
+Every exercise you star now appears in a **Favorites** group at the top of the exercise picker, open and ready to add, however many you have. The library grows to **495 exercises** with 22 new plank, cardio and kettlebell movements, including plank knee taps, dead-stop push-ups, kettlebell woodchoppers, gladiator deadlifts and the iron trident.
 
 ## A workout screen you can read from across the room
 
