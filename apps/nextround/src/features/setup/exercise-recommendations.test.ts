@@ -123,3 +123,69 @@ it('explains custom-only history without inventing catalog counts', async () => 
   expect(screen.getByText(/No attributed exercise history yet/)).toBeTruthy();
   expect(screen.getByText(/1 saved exercise entries have no catalog link/)).toBeTruthy();
 });
+
+const many: ExerciseEntry[] = [
+  { id: 'a', name: 'Air squat' },
+  { id: 'b', name: 'Push-up' },
+  { id: 'c', name: 'Kettlebell swing' },
+  { id: 'd', name: 'Burpee' },
+  { id: 'e', name: 'Sit-up' },
+];
+function setupFavorites(ids: string[], search = '', ready = true) {
+  client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  onSelect = vi.fn();
+  function PickerSession() {
+    const [favoriteIds, setFavoriteIds] = useState(ids);
+    return h(ExerciseRecommendations, {
+      library: many,
+      search,
+      selected: [many[0]],
+      onSelect,
+      preset: null,
+      onPreset: () => undefined,
+      view: 'type',
+      favoriteIds,
+      favoritesReady: ready,
+      onFavorite: (id: string) =>
+        setFavoriteIds((current) =>
+          current.includes(id) ? current.filter((value) => value !== id) : [...current, id],
+        ),
+    });
+  }
+  return render(h(QueryClientProvider, { client }, h(PickerSession)));
+}
+const favoritesGroup = () =>
+  [...document.querySelectorAll('details.exercise-group')].find((group) =>
+    group.querySelector('summary')?.textContent?.startsWith('Favorites'),
+  ) as HTMLDetailsElement | undefined;
+const favoriteNames = () =>
+  [...(favoritesGroup()?.querySelectorAll('strong') ?? [])].map((node) => node.textContent);
+
+it('lists every starred exercise alphabetically in an open Favorites group', async () => {
+  setupFavorites(['e', 'b', 'd', 'a', 'c']);
+  await screen.findByRole('button', { name: 'Most used' });
+  const group = favoritesGroup();
+  expect(group?.open).toBe(true);
+  expect(group?.querySelector('summary span')?.textContent).toBe('5');
+  // More than the old three-suggestion cap, and a favorite already in the workout stays addable.
+  expect(favoriteNames()).toEqual(['Air squat', 'Burpee', 'Kettlebell swing', 'Push-up', 'Sit-up']);
+  expect(document.querySelector('details.exercise-group')).toBe(group);
+});
+it('applies search to favorites and updates when a star is toggled', async () => {
+  setupFavorites(['a', 'b', 'e'], 'up');
+  await screen.findByRole('button', { name: 'Most used' });
+  expect(favoriteNames()).toEqual(['Push-up', 'Sit-up']);
+  const unstar = favoritesGroup()?.querySelectorAll('button[aria-pressed="true"]')[0];
+  fireEvent.click(unstar as Element);
+  expect(favoriteNames()).toEqual(['Sit-up']);
+});
+it('hides the Favorites group without favorites or before they load, and drops the capped preset', async () => {
+  setupFavorites([]);
+  await screen.findByRole('button', { name: 'Most used' });
+  expect(favoritesGroup()).toBeUndefined();
+  expect(screen.queryByRole('button', { name: 'My favorites' })).toBeNull();
+  cleanup();
+  setupFavorites(['a'], '', false);
+  await screen.findByRole('button', { name: 'Most used' });
+  expect(favoritesGroup()).toBeUndefined();
+});

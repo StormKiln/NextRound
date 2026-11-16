@@ -48,13 +48,13 @@ test('stars persist, compose with search and return focus when the last favourit
   const star = page.getByRole('button', { name: 'Favourite My push-up', exact: true });
   await star.click();
   await expect(
-    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
+    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first(),
   ).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('My push-up');
   await page.getByLabel('Favourites only', { exact: true }).check();
-  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first().click();
   await expect(page.getByLabel('Search exercises')).toBeFocused();
   await expect(
     page.getByRole('heading', { name: 'No matching exercises.', exact: true }),
@@ -135,13 +135,16 @@ test('failed star writes preserve the selected state and recover without losing 
       original.call(this, key, value);
     };
   });
-  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).focus();
-  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).press('Space');
+  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first().focus();
+  await page
+    .getByRole('button', { name: 'Unfavourite My push-up', exact: true })
+    .first()
+    .press('Space');
   await expect(
-    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
+    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first(),
   ).toHaveAttribute('aria-pressed', 'true');
   await expect(
-    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
+    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first(),
   ).toBeFocused();
   await expect(page.getByText(/Exercise favourites could not be saved/)).toBeVisible();
   expect(
@@ -152,7 +155,7 @@ test('failed star writes preserve the selected state and recover without losing 
   await page.reload();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Search exercises').fill('My push-up');
-  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).click();
+  await page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first().click();
   await expect(
     page.getByRole('button', { name: 'Favourite My push-up', exact: true }),
   ).toBeEnabled();
@@ -193,7 +196,7 @@ test('stars retain personal identity across archive and restore without transfer
   await page.getByLabel('Favourites only', { exact: true }).check();
   await page.getByLabel('Search exercises').fill('My push-up');
   await expect(
-    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }),
+    page.getByRole('button', { name: 'Unfavourite My push-up', exact: true }).first(),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Favourite Copied movement', exact: true }),
@@ -212,14 +215,13 @@ test('single suggestions use stars without history and new entries obey equipmen
   });
   await page.goto('/countdown');
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
-  await page.getByRole('button', { name: 'My favorites', exact: true }).click();
-  await expect(
-    page.getByRole('button', { name: 'Add suggested Cat-cow', exact: true }),
-  ).toBeVisible();
+  // 3.3.0: starred movements show in the Favorites group instead of a capped suggestion preset.
+  const favorites = page
+    .locator('details.exercise-group')
+    .filter({ has: page.locator('summary', { hasText: /^Favorites/ }) });
+  await expect(favorites.locator('strong', { hasText: 'Cat-cow' })).toBeVisible();
   await page.getByLabel('Show all equipment', { exact: true }).uncheck();
-  await expect(
-    page.getByRole('button', { name: 'Add suggested Dumbbell suitcase carry', exact: true }),
-  ).toHaveCount(0);
+  await expect(favorites.locator('strong', { hasText: 'Dumbbell suitcase carry' })).toHaveCount(0);
   await page.goto('/ladder');
   await page.getByRole('button', { name: 'Create a workout', exact: true }).click();
   await page.getByRole('button', { name: 'My favorites', exact: true }).click();

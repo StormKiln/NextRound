@@ -31,10 +31,10 @@ test('favourites persist and combine with mode and normalized name filters', asy
   await expect(page.locator('.template-list > li')).toHaveCount(1);
   await page.reload();
   await expect(
-    page.getByRole('button', { name: 'Unfavourite Alpha', exact: true }),
+    page.getByRole('button', { name: 'Unfavourite Alpha', exact: true }).first(),
   ).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('checkbox', { name: 'Favourites only' }).check();
-  await page.getByRole('button', { name: 'Unfavourite Alpha', exact: true }).click();
+  await page.getByRole('button', { name: 'Unfavourite Alpha', exact: true }).first().click();
   await expect(page.getByRole('heading', { name: 'Saved workouts', exact: true })).toBeFocused();
 });
 
